@@ -3,6 +3,7 @@ import random
 import requests
 import pandas as pd
 from requests.adapters import HTTPAdapter
+from alive_progress import alive_bar
 from urllib3.util.retry import Retry
 
 BASE_URL = "https://www.base.gov.pt/Base4/pt/resultados/"
@@ -49,6 +50,7 @@ def listar_contratos(pagina):
     try:
         resposta = sessao.post(BASE_URL, data=payload, headers=HEADERS)
         resposta.raise_for_status()
+        print(f"Connecção ao {BASE_URL} com sucesso")
         return resposta.json()
     
     except requests.exceptions.RequestException as e:
@@ -94,54 +96,50 @@ def flatten_entidade(lista, prefixo, contrato_data):
         contrato_data[f"{prefixo}Nif"] = None
         contrato_data[f"{prefixo}Description"] = None
         contrato_data[f"{prefixo}Id"] = None
+
 # Iterar páginas e contratos
 while pagina < MAX_PAG:
+    with alive_bar(pagina) as bar:
+        print(f"\n A iniciar extração de contratos...")
+        print(f"\nA extrair página {pagina}...")
 
-    print(f"\nA extrair página {pagina}...")
+        data = listar_contratos(pagina)
+        if not data or "items" not in data:
+            print("Fim dos contratos.")
+            break
+        for contrato in data["items"]:
+            contrato_data = contrato.copy()
+            contrato_id = contrato["id"]
+            detalhes = extrair_detalhes(contrato_id)
 
-    data = listar_contratos(pagina)
-    if not data or "items" not in data:
-        print("Fim dos contratos.")
-        break
-    for contrato in data["items"]:
-        contrato_data = contrato.copy()
-        contrato_id = contrato["id"]
-        detalhes = extrair_detalhes(contrato_id)
+            if isinstance(detalhes, dict):
+                contrato_data.update(detalhes)
+            
+            flatten_entidade(detalhes.get("contracting"), "contracting", contrato_data)
+            flatten_entidade(detalhes.get("contracted"), "contracted", contrato_data)
 
-        if isinstance(detalhes, dict):
-            contrato_data.update(detalhes)
-        
-        flatten_entidade(detalhes.get("contracting"), "contracting", contrato_data)
-        flatten_entidade(detalhes.get("contracted"), "contracted", contrato_data)
+            contrato_data.pop("contracting", None)
+            contrato_data.pop("contracted", None)
 
-        contrato_data.pop("contracting", None)
-        contrato_data.pop("contracted", None)
+            # Links de documentos
+            contrato_data["links_documentos"] = ""
+            documentos = (detalhes.get("documentos") or detalhes.get("documents") or [])
 
-        # Links de documentos
-        contrato_data["links_documentos"] = ""
-        documentos = (
-            detalhes.get("documentos")
-            or detalhes.get("documents")
-            or []
-        )
+            if isinstance(documentos, list) and len(documentos) > 0:
+                links_docs = []
+                for doc in documentos:
+                    if isinstance(doc, dict) and "id" in doc:
+                        doc_id = doc["id"]
+                        link_doc = (f"https://www.base.gov.pt/Base4/pt/resultados/?type=doc_documentos&id={doc_id}&ext=.pdf")
+                        links_docs.append(link_doc)
+                contrato_data["links_documentos"] = " | ".join(links_docs)
 
-        if isinstance(documentos, list) and len(documentos) > 0:
-            links_docs = []
-            for doc in documentos:
-                if isinstance(doc, dict) and "id" in doc:
-                    doc_id = doc["id"]
-                    link_doc = (
-                        f"https://www.base.gov.pt/Base4/pt/resultados/?type=doc_documentos&id={doc_id}&ext=.pdf"
-                    )
-                    links_docs.append(link_doc)
-            contrato_data["links_documentos"] = " | ".join(links_docs)
+            contratos.append(contrato_data)
+            time.sleep(random.uniform(1.5, 3.5))
 
-        contratos.append(contrato_data)
-        print(f"Extração {contrato_id} concluída")
-        time.sleep(random.uniform(1.5, 3.5))
-
-    pagina += 1
-    time.sleep(random.uniform(3, 6))
+        pagina += 1
+        bar()
+        time.sleep(random.uniform(3, 6))
 
 # Guardar resultados
 df = pd.DataFrame(contratos)
