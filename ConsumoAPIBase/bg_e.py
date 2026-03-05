@@ -56,34 +56,40 @@ def extrair_detalhes(entidade_id):
         print(f"Erro ao extrair detalhe {entidade_id}: {resposta.status_code}")
         return {"id": entidade_id}
 
-# Iterar páginas e entidades
-while pagina < MAX_PAG:
-    print(f"\nA extrair página {pagina}...")
-    data = listar_entidades(pagina)
-    if not data or "items" not in data:
-        print("Fim das entidades.")
-        break
+#TODO:PENSAR NA PARTE DE EXTRAÇÃO INCREMENTAL
+#USAR DICIONARIO DE EMPRESAS SOLUÇÃO TALVEZ????
+def main(extracao_incremental):
+    # Iterar páginas e entidades
+    while pagina < MAX_PAG:
+        print(f"\nA extrair página {pagina}...")
+        data = listar_entidades(pagina)
+        if not data or "items" not in data:
+            print("Fim das entidades.")
+            break
 
-    for entidade in data["items"]:
-        entidade_data = entidade.copy()
-        detalhes = extrair_detalhes(entidade["id"])
+        for entidade in data["items"]:
+            entidade_data = entidade.copy()
+            detalhes = extrair_detalhes(entidade["id"])
 
-        if isinstance(detalhes, dict):
-            entidade_data.update(detalhes)
+            if isinstance(detalhes, dict):
+                entidade_data.update(detalhes)
 
-        entidade_data["link_contratos"] = (
-            f"https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&adjudicatariaid={entidade['id']}"
-        )
+            entidade_data["link_contratos"] = (
+                f"https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&adjudicatariaid={entidade['id']}"
+            )
 
-        entidades.append(entidade_data)
-        print(f"Extração {entidade['id']} concluída")
-        time.sleep(1)  
+            entidades.append(entidade_data)
+            print(f"Extração {entidade['id']} concluída")
+            time.sleep(1)  
 
-    pagina += 1
-    time.sleep(2)
+        pagina += 1
+        time.sleep(2)
 
 
-# Guardar resultados
-df = pd.DataFrame(entidades)
-df.to_csv("entidades.csv", sep=";", encoding="utf-8-sig")
-print("CSV entidades  criado ")
+    # Guardar resultados
+    df = pd.DataFrame(entidades)
+    df.to_csv("entidades.csv", sep=";", encoding="utf-8-sig")
+    print("CSV entidades  criado ")
+
+if __name__ == "__main__":
+    main(extracao_incremental=False)
