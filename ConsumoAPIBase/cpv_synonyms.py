@@ -10,6 +10,9 @@ CACHE_FILE = 'dictonary_CPVs.json'
 CONTRATOS_FILE = '../contratos.csv'
 client = Groq(api_key=os.getenv('API_KEY'))
 
+#TODO:MUDAR PARA RECEBER OS CPVS E IR BUSCAR
+#QUANDO REGISTADO ADICIONAR AO DICIONARIO
+#PENSAR ONDE IR BUSCAR OS CPVS
 def main():
     # 1. Verificação se o dicionario ja existe caso não exista ainda criamos para guardar dados JSON la dentro
     if os.path.exists(CACHE_FILE):
