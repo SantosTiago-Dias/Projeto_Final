@@ -1,3 +1,4 @@
 .env
 ConsumoAPIBase/*.json
 ConsumoAPIBase/Ficheiros_extracao/*.xlsx
+docs/*

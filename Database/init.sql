@@ -2,6 +2,10 @@
     FICHEIRO RESPONSVEL POR CRIAR A BASE DE DADOS 
 */
 
+/*PARA DEFENIR AS BUFFERS*/
+set global net_buffer_length=1000000; 
+set global max_allowed_packet=1000000000;
+
 /* CRIAR TABELAS DE EXTRAÇÃO */
 CREATE TABLE IF NOT EXISTS cpv_dictionary_ext(
     id_cpv INT PRIMARY KEY auto_increment,
@@ -50,7 +54,7 @@ CREATE TABLE IF NOT EXISTS entidade_ext (
 
 
 /*date so po load*/
-CREATE TABLE IF NOT EXISTS contrato_ent (
+CREATE TABLE IF NOT EXISTS contratos_ext (
     id_contrato INT,
     tipo_contrato VARCHAR(255),
     tipo_procedimento VARCHAR(255),
@@ -62,6 +66,7 @@ CREATE TABLE IF NOT EXISTS contrato_ent (
     data_celebracao DATE,
     valor_contratual DECIMAL(15,2),
     cpv INT,
+    cpv_description VARCHAR(255),
     prazo_execucao INT,
     local_execucao VARCHAR(255),
     fundamentacao VARCHAR(255),

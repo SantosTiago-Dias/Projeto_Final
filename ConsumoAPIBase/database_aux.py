@@ -51,7 +51,7 @@ def verify_database_exists():
         return True
 
 
-def insert_data_table(table_name:str,values:list,batch_size: int = 500):
+def insert_data_table(table_name:str,values:list,batch_size: int = 2000):
     if not values:
         logger.warning(f"Nenhuns dados para inserir na tabela {table_name}")
         return
@@ -87,3 +87,7 @@ def sanitize(value):
     if isinstance(value, float) and math.isnan(value):
         return None
     return value
+
+#Para ver a ultima data extraida
+def get_last_date_extracted():
+    return 'data'
