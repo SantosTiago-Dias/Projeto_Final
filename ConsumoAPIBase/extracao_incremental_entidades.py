@@ -4,7 +4,8 @@ import pandas as pd
 import os
 import json
 from loguru import logger
-import dictonary_aux as d
+import dictonary_aux as dictonary
+import database_aux as db
 
 DICTIONARY_FILE = 'dictonary_Entity.json'
 BASE_URL = "https://www.base.gov.pt/Base4/pt/resultados/"
@@ -36,20 +37,28 @@ def extrair_detalhes(entidade_id:int):
         return {"id": entidade_id}
 
 
+def prepare_data(entidade:dict):
+    entidade={
+        'id_entidade':entidade.get('id'),
+        'nif':entidade.get('nif'),
+        'nome':entidade.get('description'),
+        'pais':entidade.get('location')
+    }
+    return entidade
+
+
 def main(EntityID:int):
     
-    d.verifiy_File_exists(DICTIONARY_FILE)
+    dictonary.verifiy_File_exists(DICTIONARY_FILE)
     logger.info(f"A extrair entidade {EntityID}")
     #Procuro a entidade no dicionario se ja tiver
-    if d.verify_id_exists(DICTIONARY_FILE,EntityID) is False:
+    if not dictonary.verify_id_exists(DICTIONARY_FILE,EntityID):
         try:
             detalhes = extrair_detalhes(EntityID)
+            
+            dictonary.add_value(DICTIONARY_FILE, str(EntityID),detalhes['description'])
 
-            d.save_file(DICTIONARY_FILE, data={str(EntityID): detalhes['description']})
-
-            detalhes["link_contratos"] = (f"https://www.base.gov.pt/Base4/pt/pesquisa/?type=contratos&adjudicatariaid={EntityID}")
-
-            print(detalhes)
+            db.insert_data_table("entidades_ext",[prepare_data(detalhes)])
         except Exception as e:
             logger.exception(f"Não foi possivel encontrar a identidade{EntityID},{e}\n")
 

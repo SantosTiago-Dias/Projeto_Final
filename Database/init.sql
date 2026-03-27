@@ -34,21 +34,16 @@ CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary_ext (
 
 
 CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary_ext (
-    id_fundamentacao INT PRIMARY KEY auto_increment,
+    id_fundamentacao INT,
     fundamentacao VARCHAR(255),
     descricao TEXT
 );
 
 
-CREATE TABLE IF NOT EXISTS entidade_ext (
-    id_entidade INT PRIMARY KEY auto_increment,
+CREATE TABLE IF NOT EXISTS entidades_ext (
+    id_entidade INTEGER,
     nif VARCHAR(20),
     nome VARCHAR(255),
-    /*num_contratos INT,-- dim fact load trigger to update */
-    total_adjudicatario DECIMAL(15,2),
-    num_contratos_adjudicatario  INT,
-    total_adjudicante DECIMAL(15,2),
-    num_contratos_adjudicante INT,
     pais VARCHAR(50)
 );
 
@@ -61,28 +56,29 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     objeto VARCHAR(255),
     descricao VARCHAR(255),
     /*adjudicatarios,*/
-    adjudicante_id INT,
-    data_publicacao DATE,
-    data_celebracao DATE,
+    adjudicante TEXT,
+    data_publicacao VARCHAR(10),
+    data_celebracao VARCHAR(10),
     valor_contratual DECIMAL(15,2),
-    cpv INT,
-    cpv_description VARCHAR(255),
-    prazo_execucao INT,
+    cpvs VARCHAR(12),
+    cpvsDesignation VARCHAR(255),
+    prazo_execucao VARCHAR(255),
     local_execucao VARCHAR(255),
     fundamentacao VARCHAR(255),
     procedimento_centralizado BOOLEAN,
-    num_acordos_quadro INT,
+    num_acordos_quadro VARCHAR(255),
     desc_acordo_quadro VARCHAR(255),
-    data_fecho_contrato DATE,
+    data_fecho_contrato VARCHAR(10),
     valor_total_efetivo DECIMAL(15,2),
     regime VARCHAR(255),
     justificacao_nao_escrita VARCHAR(255),
     tipo_fim_contrato VARCHAR(255),
     crit_materiais BOOLEAN,
-    /*concorrentes,*/
+    concorrentes TEXT,
     link_pecas VARCHAR(255),
     observacoes VARCHAR(255),
     contrato_ecologico BOOLEAN,
     fundamentacao_ajuste_directo VARCHAR(255)
 );
 /* FIM DE CRIAÇÃO DAS TABELAS DE EXTRAÇÃO */
+

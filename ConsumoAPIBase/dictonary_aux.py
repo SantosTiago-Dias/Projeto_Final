@@ -23,11 +23,18 @@ def load_file(Dictionary_file: str):
     return {}
 
 def verify_id_exists(Dictionary_file:str,id:int):
-    if str(id) not in Dictionary_file:
-        return False
-    else:
+    data = load_file(Dictionary_file)
+    if str(id) in data:
         return True
+    else:
+        return False
+    
+def add_value(Dictionary_file:str,key:str,value:str):
+    current_data=load_file(Dictionary_file)
+    current_data[key]=value
+    save_file(Dictionary_file, current_data)
 
 def save_file(Dictionary_file: str, data: dict):
-   with open(Dictionary_file, 'w', encoding='utf-8') as f:
+
+    with open(Dictionary_file, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
