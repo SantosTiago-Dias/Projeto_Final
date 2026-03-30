@@ -130,8 +130,8 @@ def processar_contrato(sessao: requests.Session, contrato: dict):
         flatten_entidade(detalhes.get("contracting"), "contracting", contrato_data)
         flatten_entidade(detalhes.get("contracted"), "contracted", contrato_data)
 
-    contrato_data.pop("contracting", None)
-    contrato_data.pop("contracted", None)
+    #contrato_data.pop("contracting", None)
+    #contrato_data.pop("contracted", None)
 
     contrato_data["links_documentos"] = extrair_links_documentos(detalhes)
 
@@ -163,6 +163,7 @@ def prepare_data(contrato:dict):
         'tipo_fim_contrato': contrato.get('endOfContractType'),
         'crit_materiais': contrato.get('materialCriteria'),
         'concorrentes': json.dumps(contrato.get('contestants')) if contrato.get('contestants') else None,
+        'adjudicatarios': json.dumps(contrato.get('contracted')) if contrato.get('contracted') else None,
         'link_pecas': contrato.get('contractingProcedureUrl'),
         'observacoes': contrato.get('observations'),
         'contrato_ecologico': contrato.get('ambientCriteria'),
@@ -175,13 +176,14 @@ def main():
     sessao = criar_sessao()
     contratos = []
     pagina = 0
+    parar = False
     #date of today
     today = datetime.today()
 
     try:
         data = listar_contratos(sessao, pagina)
         logger.info("A iniciar extração de contratos...")
-        while pagina < data['total']:
+        while pagina < data['total'] and not parar:
             data = listar_contratos(sessao, pagina)
             
 
@@ -205,12 +207,14 @@ def main():
                             bar()
                     else:
                         logger.success("Dados extraidos com sucesso")
+                        parar=True
                         break
             pagina += 1
 
             #insert data
             try:
                 db.insert_data_table('contratos_ext',contratos)
+                contratos.clear()
                 logger.success("dados inseridos com sucesso")
             except:
                 logger.error("ocorreu um erro a extrair os dados")

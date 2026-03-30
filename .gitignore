@@ -2,3 +2,6 @@
 ConsumoAPIBase/*.json
 ConsumoAPIBase/Ficheiros_extracao/*.xlsx
 docs/*
+__pycache__/
+*.pyc
+.vscode/settings.json

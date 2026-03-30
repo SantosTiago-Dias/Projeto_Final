@@ -34,7 +34,7 @@ def extrair_detalhes(entidade_id:int):
         return resposta.json()
     else:
         print(f"Erro ao extrair detalhe {entidade_id}: {resposta.status_code}")
-        return {"id": entidade_id}
+        return None  # retorna None em vez de dicionário parcial
 
 
 def prepare_data(entidade:dict):
@@ -55,12 +55,18 @@ def main(EntityID:int):
     if not dictonary.verify_id_exists(DICTIONARY_FILE,EntityID):
         try:
             detalhes = extrair_detalhes(EntityID)
-            
-            dictonary.add_value(DICTIONARY_FILE, str(EntityID),detalhes['description'])
 
-            db.insert_data_table("entidades_ext",[prepare_data(detalhes)])
+            #Garante que não há crash se detalhes for None
+            if not detalhes or not isinstance(detalhes, dict):
+                logger.warning(f"Entidade {EntityID} não encontrada ou inválida")
+            else:
+                descricao = detalhes.get('description')
+                dictonary.add_value(DICTIONARY_FILE, str(EntityID), descricao)
+
+                db.insert_data_table("entidades_ext", [prepare_data(detalhes)])
+
         except Exception as e:
-            logger.exception(f"Não foi possivel encontrar a identidade{EntityID},{e}\n")
+            logger.exception(f"Não foi possivel encontrar a entidade {EntityID}: {e}\n")
 
 if __name__ == "__main__":
     main(EntityID=1)

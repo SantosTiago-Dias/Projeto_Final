@@ -50,22 +50,22 @@ CREATE TABLE IF NOT EXISTS entidades_ext (
 
 /*date so po load*/
 CREATE TABLE IF NOT EXISTS contratos_ext (
-    id_contrato INT,
+    id_contrato INT UNIQUE,
     tipo_contrato VARCHAR(255),
     tipo_procedimento VARCHAR(255),
-    objeto VARCHAR(255),
-    descricao VARCHAR(255),
+    objeto TEXT,--VARCHAR(255),
+    descricao TEXT,--VARCHAR(255),
     /*adjudicatarios,*/
     adjudicante TEXT,
     data_publicacao VARCHAR(10),
     data_celebracao VARCHAR(10),
-    valor_contratual DECIMAL(15,2),
+    valor_contratual VARCHAR(20),--DECIMAL(15,2),
     cpvs VARCHAR(12),
     cpvsDesignation VARCHAR(255),
     prazo_execucao VARCHAR(255),
     local_execucao VARCHAR(255),
     fundamentacao VARCHAR(255),
-    procedimento_centralizado BOOLEAN,
+    procedimento_centralizado VARCHAR(10),--BOOLEAN,
     num_acordos_quadro VARCHAR(255),
     desc_acordo_quadro VARCHAR(255),
     data_fecho_contrato VARCHAR(10),
@@ -73,11 +73,12 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     regime VARCHAR(255),
     justificacao_nao_escrita VARCHAR(255),
     tipo_fim_contrato VARCHAR(255),
-    crit_materiais BOOLEAN,
+    crit_materiais VARCHAR(10),--BOOLEAN,
     concorrentes TEXT,
+    adjudicatarios TEXT,
     link_pecas VARCHAR(255),
     observacoes VARCHAR(255),
-    contrato_ecologico BOOLEAN,
+    contrato_ecologico VARCHAR(10),--BOOLEAN,
     fundamentacao_ajuste_directo VARCHAR(255)
 );
 /* FIM DE CRIAÇÃO DAS TABELAS DE EXTRAÇÃO */

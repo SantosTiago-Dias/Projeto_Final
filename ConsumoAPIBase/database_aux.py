@@ -23,14 +23,14 @@ def verify_database_exists():
     mydb=get_connection()
     mycursor = mydb.cursor()
     #Para prevenir que é a base de dados que queremos
-    mycursor.execute(f"USE {os.getenv("DB_NAME")}")
+    mycursor.execute(f"USE {os.getenv('DB_NAME')}")
     mycursor.execute("SHOW TABLES")
 
     tables = mycursor.fetchall()
 
     if not tables:
         logger.info("Tabela de dados não existem")
-        logger.info(f"Base de dados:{os.getenv("DB_NAME")}")
+        logger.info(f"Base de dados:{os.getenv('DB_NAME')}")
         try:
            with open('../Database/init.sql', 'r') as f:
             sql=f.read()
@@ -73,7 +73,7 @@ def insert_data_table(table_name: str, values: list, batch_size: int = 2000):
     placeholders = ", ".join(["%s"] * len(columns))
     cols_str = ", ".join(columns)
 
-    sql = f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders})"
+    sql = f"REPLACE INTO {table_name} ({cols_str}) VALUES ({placeholders})"
 
     try:
         for i in range(0, len(values), batch_size):
