@@ -51,6 +51,7 @@ def verify_database_exists():
         return False
     else:
         logger.info("Tabela de dados ja existe")
+        mycursor.execute("DROP TABLE contratos_ext; DROP TABLE entidades_ext;")
         mycursor.close()
         return True
 
@@ -73,7 +74,7 @@ def insert_data_table(table_name: str, values: list, batch_size: int = 2000):
     placeholders = ", ".join(["%s"] * len(columns))
     cols_str = ", ".join(columns)
 
-    sql = f"REPLACE INTO {table_name} ({cols_str}) VALUES ({placeholders})"
+    sql = f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders})"
 
     try:
         for i in range(0, len(values), batch_size):
@@ -99,3 +100,14 @@ def sanitize(value):
 #Talvez fazer uma base de dados para isto
 def get_last_date_extracted():
     return 'data'
+
+#Selecionar os novos campos na base de dados
+def get_distinct_data(nome_campo:str,table_name:str):
+    #Check if any table is save in database
+    mydb=get_connection()
+    mycursor = mydb.cursor()
+    #Para prevenir que é a base de dados que queremos
+    query =f"SELECT DISTINCT {nome_campo} FROM {table_name};"
+    mycursor.execute(query)
+    data=data = [row[0] for row in mycursor.fetchall()]
+    return data

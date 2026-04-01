@@ -17,6 +17,14 @@ def main():
         logger.error(f"Erro: {e}")
         sys.exit(1)
 
+    try:
+        logger.info("A iniciar população de dados")
+        cpv_synonyms.main()
+    
+    except Exception as e:
+        logger.error(f"Erro: {e}")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

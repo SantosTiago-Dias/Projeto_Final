@@ -34,7 +34,7 @@ def extrair_detalhes(entidade_id:int):
         return resposta.json()
     else:
         print(f"Erro ao extrair detalhe {entidade_id}: {resposta.status_code}")
-        return None  # retorna None em vez de dicionário parcial
+        return None
 
 
 def prepare_data(entidade:dict):
@@ -56,7 +56,6 @@ def main(EntityID:int):
         try:
             detalhes = extrair_detalhes(EntityID)
 
-            #Garante que não há crash se detalhes for None
             if not detalhes or not isinstance(detalhes, dict):
                 logger.warning(f"Entidade {EntityID} não encontrada ou inválida")
             else:
