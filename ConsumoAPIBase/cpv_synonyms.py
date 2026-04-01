@@ -1,5 +1,3 @@
-import pandas as pd
-import json
 import os
 from cerebras.cloud.sdk import Cerebras, RateLimitError
 from dotenv import load_dotenv
@@ -24,7 +22,7 @@ def main():
     dictonary.verifiy_File_exists(CACHE_FILE)
     cpv_list_distinc=db.get_distinct_data('cpvs','contratos_ext')
 
-    logger.info("A iniciar a procura de sinonimos dos cpv")
+    logger.info("A iniciar a população de dados dos cpv")
     for cpv in cpv_list_distinc:
         prompt = f"""Você é um sistema de classificação de compras públicas europeias.
 

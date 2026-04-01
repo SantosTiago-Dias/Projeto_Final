@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary_ext (
 
 
 CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary_ext (
-    id_fundamentacao INT,
+    id_fundamentacao INT PRIMARY KEY auto_increment,
     fundamentacao VARCHAR(255),
     descricao TEXT
 );

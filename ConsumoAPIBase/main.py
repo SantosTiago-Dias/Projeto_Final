@@ -3,11 +3,14 @@ import cpv_synonyms
 import extracao_incremental_contratos 
 import database_aux as db
 from loguru import logger
+import artigos_synonymos
 import sys
 
 load_dotenv('.env')
 
 def main():
+
+    #Extração dos dados
     try:
         connection = db.get_connection()
         if connection:
@@ -17,9 +20,11 @@ def main():
         logger.error(f"Erro: {e}")
         sys.exit(1)
 
+    #População de dados
     try:
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
+        artigos_synonymos.main()
     
     except Exception as e:
         logger.error(f"Erro: {e}")
