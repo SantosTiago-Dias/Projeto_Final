@@ -25,6 +25,8 @@ def main():
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
         artigos_synonymos.main()
+        
+        artigos_synonymos.main()
     
     except Exception as e:
         logger.error(f"Erro: {e}")
