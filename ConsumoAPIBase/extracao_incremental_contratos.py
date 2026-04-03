@@ -14,7 +14,7 @@ import json
 
 
 API_URL = "https://www.base.gov.pt/Base4/pt/resultados/"
-
+TABLE_NAME = "contratos_ext"
 HEADERS = {
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
     "X-Requested-With": "XMLHttpRequest",
@@ -179,6 +179,7 @@ def main():
     parar = False
     #date of today
     today = datetime.today()
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
 
     try:
         data = listar_contratos(sessao, pagina)
@@ -216,13 +217,18 @@ def main():
                 db.insert_data_table('contratos_ext',contratos)
                 contratos.clear()
                 logger.success("dados inseridos com sucesso")
-            except:
+                
+            except Exception as e:
                 logger.error("ocorreu um erro a extrair os dados")
+                db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
 
 
     except Exception as e:
         logger.exception(f"Não foi possível extrair os dados: {e}")
+        db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+        
     logger.info("Extração finalizada com sucesso")
+    db.change_status_extraction(log_id, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

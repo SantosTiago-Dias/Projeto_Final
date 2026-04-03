@@ -7,8 +7,9 @@ import database_aux as db
 import time
 
 load_dotenv('.env')
-
 CACHE_FILE = 'dictonary_CPVs.json'
+TABLE_NAME = "cpv_dictionary_ext"
+
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
 def prepare_data(cpv:int,description:str):
@@ -21,8 +22,10 @@ def prepare_data(cpv:int,description:str):
 def main():
     dictonary.verifiy_File_exists(CACHE_FILE)
     cpv_list_distinc=db.get_distinct_data('cpvs','contratos_ext')
-
+    
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
     logger.info("A iniciar a população de dados dos cpv")
+
     for cpv in cpv_list_distinc:
         prompt = f"""Você é um sistema de classificação de compras públicas europeias.
 
@@ -54,7 +57,7 @@ def main():
                     synonyms = response.choices[0].message.content.strip()
 
                     dictonary.add_value(CACHE_FILE,str(cpv),synonyms)
-                    db.insert_data_table('cpv_dictionary_ext',[prepare_data(cpv,synonyms)])
+                    db.insert_data_table(TABLE_NAME,[prepare_data(cpv,synonyms)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break
@@ -67,8 +70,11 @@ def main():
     
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
+                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
                     break
+
     logger.info("Fim de extração de cpv")
+    db.change_status_extraction(log_id, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

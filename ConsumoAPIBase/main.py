@@ -1,15 +1,23 @@
 from dotenv import load_dotenv
-import cpv_synonyms
-import extracao_incremental_contratos 
 import database_aux as db
 from loguru import logger
-import artigos_synonymos
+import extracao_incremental_contratos
 import sys
+
+#População de dados
+import cpv_synonyms
+import artigos_synonymos
+import tipoContratos_synonymos as contrato_synonymos
+import tipoProcedimento_synonymos as procedimento_Synonymos
+import justificacaoNEscrita as justificacao
+#Fim de população de dados
+
 
 load_dotenv('.env')
 
 def main():
 
+    """
     #Extração dos dados
     try:
         connection = db.get_connection()
@@ -19,14 +27,16 @@ def main():
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
-
+    """
     #População de dados
     try:
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
         artigos_synonymos.main()
-        
-        artigos_synonymos.main()
+        contrato_synonymos.main()
+        procedimento_Synonymos.main()
+        justificacao.main()
+        logger.info("Fim da população dados")
     
     except Exception as e:
         logger.error(f"Erro: {e}")

@@ -9,7 +9,7 @@ import database_aux as db
 
 DICTIONARY_FILE = 'dictonary_Entity.json'
 BASE_URL = "https://www.base.gov.pt/Base4/pt/resultados/"
-
+TABLE_NAME = "entidades_ext"
 HEADERS = {
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
     "X-Requested-With": "XMLHttpRequest",
@@ -51,6 +51,7 @@ def main(EntityID:int):
     
     dictonary.verifiy_File_exists(DICTIONARY_FILE)
     logger.info(f"A extrair entidade {EntityID}")
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
     #Procuro a entidade no dicionario se ja tiver
     if not dictonary.verify_id_exists(DICTIONARY_FILE,EntityID):
         try:
@@ -61,11 +62,12 @@ def main(EntityID:int):
             else:
                 descricao = detalhes.get('description')
                 dictonary.add_value(DICTIONARY_FILE, str(EntityID), descricao)
-
                 db.insert_data_table("entidades_ext", [prepare_data(detalhes)])
+                db.change_status_extraction(log_id, None, "SUCESSO")
 
         except Exception as e:
             logger.exception(f"Não foi possivel encontrar a entidade {EntityID}: {e}\n")
+            db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
 
 if __name__ == "__main__":
     main(EntityID=1)

@@ -6,10 +6,11 @@ from loguru import logger
 import database_aux as db
 import time
 
-DICTIONARY_FILE = "Justificacao_Nao_Escrita.json"
-client = Cerebras(api_key=os.getenv('API_KEY'))
 load_dotenv(".env")
-API_KEY = os.getenv("API_KEY")
+DICTIONARY_FILE = "Justificacao_Nao_Escrita.json"
+TABLE_NAME = "tipo_contrato_dictionary_ext"
+
+client = Cerebras(api_key=os.getenv('API_KEY'))
 
 def prepare_data(artigo:int,explain:str):
     data={
@@ -23,6 +24,8 @@ def main():
     justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_ext')
     
     logger.info("A inicar a população dos Tipos de contrato")
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
+
     for justi in justis_list_distinc:
 
         #in case the justification is null
@@ -60,7 +63,7 @@ def main():
                     explain = response.choices[0].message.content.strip()
 
                     dictonary.add_value(DICTIONARY_FILE,str(justi),explain)
-                    db.insert_data_table('tipo_contrato_dictionary_ext',[prepare_data(justi,explain)])
+                    db.insert_data_table(TABLE_NAME,[prepare_data(justi,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break
@@ -73,8 +76,11 @@ def main():
     
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
+                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
                     break
+
     logger.info("Fim de população dos tipo de contratos")
+    db.change_status_extraction(log_id, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

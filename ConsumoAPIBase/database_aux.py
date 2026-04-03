@@ -111,3 +111,31 @@ def get_distinct_data(nome_campo:str,table_name:str):
     mycursor.execute(query)
     data=data = [row[0] for row in mycursor.fetchall()]
     return data
+
+def change_status_extraction(id: int | None, table_name: str | None, status: str, mensagem: str = None) -> int | None:
+    mydb = get_connection()
+    mycursor = mydb.cursor()
+
+    match status:
+        case "INICIADO":
+            query = "INSERT INTO t_logs_extract (nome_tabela, status) VALUES (%s, 'INICIADO')"
+            mycursor.execute(query, (table_name,))
+            mydb.commit()
+            return mycursor.lastrowid  # retorna o id do novo registo
+
+        case "SUCESSO":
+            query = "UPDATE t_logs_extract SET status = 'SUCESSO', ultima_extracao = NOW() WHERE id = %s"
+            mycursor.execute(query, (id,))  # tuple, não valor solto
+            mydb.commit()
+
+        case "ERRO":
+            query = "UPDATE t_logs_extract SET status = 'ERRO', mensagem = %s, ultima_extracao = NOW() WHERE id = %s"
+            mycursor.execute(query, (mensagem, id))  # tuple com os dois valores
+            mydb.commit()
+
+        case _:
+            logger.warning(f"Status desconhecido: {status}")
+
+    mycursor.close()
+    mydb.close()
+    return None

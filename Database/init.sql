@@ -6,6 +6,17 @@
 set global net_buffer_length=1000000; 
 set global max_allowed_packet=1000000000;
 
+/* TABELAS DE LOGS */
+CREATE TABLE IF NOT EXISTS t_logs_extract(
+    id INT PRIMARY KEY auto_increment,
+    nome_tabela VARCHAR(50) NOT NULL,
+    STATUS ENUM('INICIO','SUCESSO','ERRO') NOT NULL DEFAULT 'INICIO',
+    mensagem    TEXT,
+    ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+/* FIM DA TABELA DE LOGS */
+
+
 /* CRIAR TABELAS DE EXTRAÇÃO */
 CREATE TABLE IF NOT EXISTS cpv_dictionary_ext(
     id_cpv INT PRIMARY KEY auto_increment,

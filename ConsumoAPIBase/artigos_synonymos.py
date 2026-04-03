@@ -6,10 +6,11 @@ from loguru import logger
 import database_aux as db
 import time
 
-CCP_FILE = "ccp_por_artigo.json"
-client = Cerebras(api_key=os.getenv('API_KEY'))
 load_dotenv(".env")
-API_KEY = os.getenv("API_KEY")
+CCP_FILE = "ccp_por_artigo.json"
+TABLE_NAME = "fundamentacao_contrato_dictionary_ext"
+
+client = Cerebras(api_key=os.getenv('API_KEY'))
 
 def prepare_data(artigo:int,explain:str):
     data={
@@ -22,7 +23,9 @@ def main():
     dictonary.verifiy_File_exists(CCP_FILE)
     artigos_list_distinc=db.get_distinct_data('fundamentacao','contratos_ext')
     
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
     logger.info("A inicar a população de dados dos artigos")
+
     for artigo in artigos_list_distinc:
         if not dictonary.verify_id_exists(CCP_FILE,artigo):
             retries = 0
@@ -67,8 +70,11 @@ def main():
     
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
+                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
                     break
+                
     logger.info("Fim de população de dados dos artigos")
+    db.change_status_extraction(log_id, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

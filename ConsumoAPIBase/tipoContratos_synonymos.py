@@ -6,10 +6,13 @@ from loguru import logger
 import database_aux as db
 import time
 
-CCP_FILE = "Tipo_Contrato.json"
-client = Cerebras(api_key=os.getenv('API_KEY'))
 load_dotenv(".env")
-API_KEY = os.getenv("API_KEY")
+TABLE_NAME = "tipo_contrato_dictionary_ext"
+CCP_FILE = "Tipo_Contrato.json"
+
+client = Cerebras(api_key=os.getenv('API_KEY'))
+
+
 
 def prepare_data(artigo:int,explain:str):
     data={
@@ -22,7 +25,9 @@ def main():
     dictonary.verifiy_File_exists(CCP_FILE)
     contractType_list_distinc=db.get_distinct_data('tipo_contrato','contratos_ext')
     
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
     logger.info("A inicar a população dos Tipos de contrato")
+
     for contractType in contractType_list_distinc:
         if not dictonary.verify_id_exists(CCP_FILE,contractType):
             retries = 0
@@ -54,7 +59,7 @@ def main():
                     explain = response.choices[0].message.content.strip()
 
                     dictonary.add_value(CCP_FILE,str(contractType),explain)
-                    db.insert_data_table('tipo_contrato_dictionary_ext',[prepare_data(contractType,explain)])
+                    db.insert_data_table(TABLE_NAME,[prepare_data(contractType,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break
@@ -62,6 +67,7 @@ def main():
                 except RateLimitError:
                     wait = 30 * (2 ** retries)
                     logger.warning(f"Rate limit hit for '{contractType}'. Waiting {wait}s...")
+                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
                     time.sleep(wait)
                     retries += 1
     
@@ -69,6 +75,7 @@ def main():
                     logger.error(f"ERROR: {e}")
                     break
     logger.info("Fim de população dos tipo de contratos")
+    db.change_status_extraction(log_id, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()
