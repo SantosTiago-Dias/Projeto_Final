@@ -51,7 +51,7 @@ def verify_database_exists():
         return False
     else:
         logger.info("Tabela de dados ja existe")
-        mycursor.execute("DROP TABLE contratos_ext; DROP TABLE entidades_ext;")
+        #mycursor.execute("DROP TABLE contratos_ext; DROP TABLE entidades_ext;")
         mycursor.close()
         return True
 

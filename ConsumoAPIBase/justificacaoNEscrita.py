@@ -1,7 +1,7 @@
 import os
 from cerebras.cloud.sdk import Cerebras, RateLimitError
 from dotenv import load_dotenv
-import dictonary_aux as dictonary
+import dictonary_aux as dictionary
 from loguru import logger
 import database_aux as db
 import time
@@ -20,7 +20,7 @@ def prepare_data(artigo:int,explain:str):
     return data
 
 def main():
-    dictonary.verifiy_File_exists(DICTIONARY_FILE)
+    dictionary.verifiy_File_exists(DICTIONARY_FILE)
     justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_ext')
     
     logger.info("A inicar a população dos Tipos de contrato")
@@ -33,7 +33,7 @@ def main():
             logger.warning("Justificação vazia ignorada.")
             continue
 
-        if not dictonary.verify_id_exists(DICTIONARY_FILE,justi):
+        if not dictionary.verify_id_exists(DICTIONARY_FILE,justi):
             retries = 0
             while retries < 5:
                 try:

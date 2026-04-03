@@ -1,7 +1,7 @@
 import os
 from cerebras.cloud.sdk import Cerebras, RateLimitError
 from dotenv import load_dotenv
-import dictonary_aux as dictonary
+import dictonary_aux as dictionary
 from loguru import logger
 import database_aux as db
 import time
@@ -22,14 +22,14 @@ def prepare_data(artigo:int,explain:str):
     return data
 
 def main():
-    dictonary.verifiy_File_exists(CCP_FILE)
+    dictionary.verifiy_File_exists(CCP_FILE)
     contractType_list_distinc=db.get_distinct_data('tipo_contrato','contratos_ext')
     
     log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
     logger.info("A inicar a população dos Tipos de contrato")
 
     for contractType in contractType_list_distinc:
-        if not dictonary.verify_id_exists(CCP_FILE,contractType):
+        if not dictionary.verify_id_exists(CCP_FILE,contractType):
             retries = 0
             while retries < 5:
                 try:
@@ -58,8 +58,8 @@ def main():
                     
                     explain = response.choices[0].message.content.strip()
 
-                    dictonary.add_value(CCP_FILE,str(contractType),explain)
-                    db.insert_data_table(TABLE_NAME,[prepare_data(contractType,explain)])
+                    dictionary.add_value(CCP_FILE,str(contractType),explain)
+                    db.insert_data_table('tipo_contrato_dictionary_ext',[prepare_data(contractType,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break
