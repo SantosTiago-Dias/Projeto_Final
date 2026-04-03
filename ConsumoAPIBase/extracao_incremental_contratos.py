@@ -9,7 +9,7 @@ from urllib3.util.retry import Retry
 import extracao_incremental_entidades as empresa
 from loguru import logger
 import database_aux as db
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
 
@@ -129,6 +129,8 @@ def processar_contrato(sessao: requests.Session, contrato: dict):
     if detalhes is not None:
         flatten_entidade(detalhes.get("contracting"), "contracting", contrato_data)
         flatten_entidade(detalhes.get("contracted"), "contracted", contrato_data)
+        flatten_entidade(detalhes.get("contestants"), "contestants", contrato_data)
+
 
     #contrato_data.pop("contracting", None)
     #contrato_data.pop("contracted", None)
@@ -198,7 +200,7 @@ def main():
                 for contrato in items:
 
                     publication_date = datetime.strptime(contrato['publicationDate'], '%d-%m-%Y')
-
+                    #- timedelta(days=1)
                     if publication_date.date() == today.date():
                         if items is not None:
                             contrato_data = processar_contrato(sessao, contrato)

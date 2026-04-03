@@ -9,7 +9,7 @@ set global max_allowed_packet=1000000000;
 /* CRIAR TABELAS DE EXTRAÇÃO */
 CREATE TABLE IF NOT EXISTS cpv_dictionary_ext(
     id_cpv INT PRIMARY KEY auto_increment,
-    codigo INT,
+    codigo VARCHAR(255),
     descricao TEXT
 
 );
@@ -55,12 +55,11 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     tipo_procedimento VARCHAR(255),
     objeto TEXT,
     descricao TEXT,
-    
     adjudicante TEXT,
     data_publicacao VARCHAR(10),
     data_celebracao VARCHAR(10),
     valor_contratual VARCHAR(20),
-    cpvs VARCHAR(12),
+    cpvs VARCHAR(255),
     cpvsDesignation VARCHAR(255),
     prazo_execucao VARCHAR(255),
     local_execucao VARCHAR(255),

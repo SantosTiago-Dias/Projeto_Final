@@ -4,6 +4,9 @@ import extracao_incremental_contratos
 import database_aux as db
 from loguru import logger
 import artigos_synonymos
+import tipoContratos_synonymos
+import tipoProcedimento_synonymos   
+import justificacaoNEscriya
 import sys
 
 load_dotenv('.env')
@@ -24,9 +27,11 @@ def main():
     try:
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
-        artigos_synonymos.main()
+        #artigos_synonymos.main()
+        tipoContratos_synonymos.main()
+        tipoProcedimento_synonymos.main()
+        justificacaoNEscriya.main()
         
-        artigos_synonymos.main()
     
     except Exception as e:
         logger.error(f"Erro: {e}")

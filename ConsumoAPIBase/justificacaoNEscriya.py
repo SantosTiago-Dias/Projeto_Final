@@ -1,7 +1,7 @@
 import os
 from cerebras.cloud.sdk import Cerebras, RateLimitError
 from dotenv import load_dotenv
-import dictonary_aux as dictonary
+import dictonary_aux as dictionary
 from loguru import logger
 import database_aux as db
 import time
@@ -19,7 +19,7 @@ def prepare_data(artigo:int,explain:str):
     return data
 
 def main():
-    dictonary.verifiy_File_exists(DICTIONARY_FILE)
+    dictionary.verifiy_File_exists(DICTIONARY_FILE)
     justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_ext')
     
     logger.info("A inicar a população dos Tipos de contrato")
@@ -30,7 +30,7 @@ def main():
             logger.warning("Justificação vazia ignorada.")
             continue
 
-        if not dictonary.verify_id_exists(DICTIONARY_FILE,justi):
+        if not dictionary.verify_id_exists(DICTIONARY_FILE,justi):
             retries = 0
             while retries < 5:
                 try:
@@ -59,8 +59,8 @@ def main():
                     
                     explain = response.choices[0].message.content.strip()
 
-                    dictonary.add_value(DICTIONARY_FILE,str(justi),explain)
-                    db.insert_data_table('tipo_contrato_dictionary_ext',[prepare_data(justi,explain)])
+                    dictionary.add_value(DICTIONARY_FILE,str(justi),explain)
+                    db.insert_data_table('justificacao_contrato_nao_escrito_dictionary_ext',[prepare_data(justi,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break
@@ -74,7 +74,7 @@ def main():
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
                     break
-    logger.info("Fim de população dos tipo de contratos")
+    logger.info("Fim de população das justificações dos contratos")
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,7 @@
 import os
 from cerebras.cloud.sdk import Cerebras, RateLimitError
 from dotenv import load_dotenv
-import dictonary_aux as dictonary
+import dictonary_aux as dictionary
 from loguru import logger
 import database_aux as db
 import time
@@ -19,12 +19,12 @@ def prepare_data(artigo:int,explain:str):
     return data
 
 def main():
-    dictonary.verifiy_File_exists(CCP_FILE)
+    dictionary.verifiy_File_exists(CCP_FILE)
     procedureType_list_distinc=db.get_distinct_data('tipo_procedimento','contratos_ext')
     
     logger.info("A inicar a população de dados dos Tipos de procedimento")
     for proceduteType in procedureType_list_distinc:
-        if not dictonary.verify_id_exists(CCP_FILE,proceduteType):
+        if not dictionary.verify_id_exists(CCP_FILE,proceduteType):
             retries = 0
             while retries < 5:
                 try:
@@ -53,7 +53,7 @@ def main():
                     
                     explain = response.choices[0].message.content.strip()
 
-                    dictonary.add_value(CCP_FILE,str(proceduteType),explain)
+                    dictionary.add_value(CCP_FILE,str(proceduteType),explain)
                     db.insert_data_table('tipo_procedimento_dictionary_ext',[prepare_data(proceduteType,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
@@ -68,7 +68,7 @@ def main():
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
                     break
-    logger.info("Fim de população de dados dos artigos")
+    logger.info("Fim de população dos tipos de procedimentos")
 
 if __name__ == "__main__":
     main()

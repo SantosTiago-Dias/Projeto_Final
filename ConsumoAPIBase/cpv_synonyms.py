@@ -1,7 +1,7 @@
 import os
 from cerebras.cloud.sdk import Cerebras, RateLimitError
 from dotenv import load_dotenv
-import dictonary_aux as dictonary
+import dictonary_aux as dictionary
 from loguru import logger
 import database_aux as db
 import time
@@ -19,7 +19,7 @@ def prepare_data(cpv:int,description:str):
     return data
  
 def main():
-    dictonary.verifiy_File_exists(CACHE_FILE)
+    dictionary.verifiy_File_exists(CACHE_FILE)
     cpv_list_distinc=db.get_distinct_data('cpvs','contratos_ext')
 
     logger.info("A iniciar a população de dados dos cpv")
@@ -41,7 +41,7 @@ def main():
 
         FORMATO OBRIGATÓRIO (siga exatamente):
         termo1,termo2,termo3,termo4,termo5"""
-        if not dictonary.verify_id_exists(CACHE_FILE,cpv):
+        if not dictionary.verify_id_exists(CACHE_FILE,cpv):
             retries = 0
             while retries < 5:
                 try:
@@ -53,7 +53,7 @@ def main():
                     
                     synonyms = response.choices[0].message.content.strip()
 
-                    dictonary.add_value(CACHE_FILE,str(cpv),synonyms)
+                    dictionary.add_value(CACHE_FILE,str(cpv),synonyms)
                     db.insert_data_table('cpv_dictionary_ext',[prepare_data(cpv,synonyms)])
                     
                     time.sleep(0.3)  # polite delay between requests
