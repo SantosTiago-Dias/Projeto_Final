@@ -4,7 +4,7 @@ DELIMITER $$
 CREATE PROCEDURE transform_detalhes_contratos()
 BEGIN
 
-    INSERT INTO DETALHES_CONTRATOS_TRANSF (
+    INSERT IGNORE INTO DETALHES_CONTRATOS_TRANSF (
         id_contrato,
         objeto,
         descricao,
@@ -226,8 +226,8 @@ BEGIN
     ) agg
     ON t.id_entidade = agg.id_entidade
     SET
-        t.num_contratos_adjudicatario = IFNULL(t.num_contratos_adjudicatario,0) + IFNULL(agg.num_contratos,0),
-        t.total_adjudicatario = IFNULL(t.total_adjudicatario,0) + IFNULL(agg.total_valor,0);
+        t.num_contratos_adjudicatario =IFNULL(agg.num_contratos,0),
+        t.total_adjudicatario =IFNULL(agg.total_valor,0);
 
     -- Metricas para adjudicantes
     UPDATE entidade_transf t
@@ -255,7 +255,7 @@ END$$
 CREATE PROCEDURE transform_cpv_contratos()
 BEGIN
 
-    INSERT INTO cpv_contratos_transf (id_contrato, cpv, cpv_descricao)
+    INSERT IGNORE INTO cpv_contratos_transf (id_contrato, cpv, cpv_descricao)
     SELECT 
         c.id_contrato,
         TRIM(cpv.value) AS cpv,
@@ -265,7 +265,6 @@ BEGIN
 
     JOIN JSON_TABLE(CONCAT('["', REPLACE(REPLACE(IFNULL(c.cpvs, ''), ' | ', '|'), '|', '","'), '"]'),
         "$[*]" COLUMNS (value VARCHAR(50) PATH "$",ord FOR ORDINALITY)) cpv
-
 
     JOIN JSON_TABLE(CONCAT('["',REPLACE(REPLACE(IFNULL(c.cpvsDesignation, ''), ' | ', '|'), '|', '","'),'"]'),
         "$[*]" COLUMNS (value VARCHAR(255) PATH "$",ord FOR ORDINALITY)) descp
