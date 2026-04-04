@@ -24,7 +24,7 @@ def main():
     justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_ext')
     
     logger.info("A inicar a população dos Tipos de contrato")
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
 
     for justi in justis_list_distinc:
 
@@ -62,7 +62,7 @@ def main():
                     
                     explain = response.choices[0].message.content.strip()
 
-                    dictonary.add_value(DICTIONARY_FILE,str(justi),explain)
+                    dictionary.add_value(DICTIONARY_FILE,str(justi),explain)
                     db.insert_data_table(TABLE_NAME,[prepare_data(justi,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests

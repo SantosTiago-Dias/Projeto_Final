@@ -16,6 +16,7 @@ def main():
 
 
     #Extração dos dados
+    
     try:
         connection = db.get_connection()
         if connection:
@@ -24,6 +25,7 @@ def main():
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
+    
 
     #População de dados
     try:
@@ -38,6 +40,14 @@ def main():
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
+
+    try:
+        db.execute_transformacao()
+        db.execute_load()
+    except Exception as e:
+        logger.error(f"Erro: {e}")
+        sys.exit(1)
+    
 
 
 if __name__ == "__main__":

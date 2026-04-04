@@ -50,10 +50,11 @@ def prepare_data(entidade:dict):
 def main(EntityID:int):
     
     dictonary.verifiy_File_exists(DICTIONARY_FILE)
-    logger.info(f"A extrair entidade {EntityID}")
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
+    
     #Procuro a entidade no dicionario se ja tiver
     if not dictonary.verify_id_exists(DICTIONARY_FILE,EntityID):
+        logger.info(f"A extrair entidade {EntityID}")
+        log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
         try:
             detalhes = extrair_detalhes(EntityID)
 
@@ -62,7 +63,7 @@ def main(EntityID:int):
             else:
                 descricao = detalhes.get('description')
                 dictonary.add_value(DICTIONARY_FILE, str(EntityID), descricao)
-                db.insert_data_table("entidades_ext", [prepare_data(detalhes)])
+                db.insert_data_table(TABLE_NAME, [prepare_data(detalhes)])
                 db.change_status_extraction(log_id, None, "SUCESSO")
 
         except Exception as e:

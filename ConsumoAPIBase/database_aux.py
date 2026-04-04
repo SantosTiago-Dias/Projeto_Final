@@ -4,6 +4,7 @@ import mysql.connector
 from mysql.connector import Error
 import os
 import math
+import re
 
 load_dotenv('.env')
 
@@ -12,6 +13,7 @@ def get_connection():
         return mysql.connector.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
+            port=os.getenv("DB_PORT"),
             password=os.getenv("DB_PASSWORD"),
             database=os.getenv("DB_NAME")
         )
@@ -19,41 +21,152 @@ def get_connection():
         logger.error(f"Erro ao conectar à BD: {e}")
     
 def verify_database_exists():
-    #Check if any table is save in database
-    mydb=get_connection()
+    mydb = get_connection()
+    if not mydb:
+        return
+
     mycursor = mydb.cursor()
-    #Para prevenir que é a base de dados que queremos
-    mycursor.execute(f"USE {os.getenv('DB_NAME')}")
-    mycursor.execute("SHOW TABLES")
+    try:
+        mycursor.execute(f"USE {os.getenv('DB_NAME')}")
+        mycursor.execute("SHOW TABLES")
+        mycursor.fetchall()
 
-    tables = mycursor.fetchall()
-
-    if not tables:
-        logger.info("Tabela de dados não existem")
-        logger.info(f"Base de dados:{os.getenv('DB_NAME')}")
-        try:
-           with open('../Database/init.sql', 'r') as f:
-            sql=f.read()
+        with open('../Database/init.sql', 'r', encoding='utf-8') as f:
+            sql = f.read()
             for statement in sql.split(';'):
                 statement = statement.strip()
-                if statement:  # skip empty strings
+                if statement:
                     mycursor.execute(statement)
+        
+        with open('../Database/procedures.sql', 'r', encoding='utf-8') as f:
+            sql_content = f.read()
+            
+            statements = sql_content.split('$$')
+            for statement in statements:
+                clean_stmt = statement.replace('DELIMITER', '').strip()
+                if clean_stmt and clean_stmt != ';':
+                    try:
+                        # Ensure we handle the semicolon at the end if it was 'DELIMITER ;'
+                        if clean_stmt.startswith(';'):
+                            clean_stmt = clean_stmt[1:].strip()
+                        
+                        mycursor.execute(clean_stmt)
+                    except Exception as e:
+                        logger.error(f"Error executing statement: {e}")
+                        mydb.rollback()
+                        return False
 
-            mydb.commit()
-            logger.info("Tabelas criadas com sucesso!")
+        mydb.commit()
 
-        except FileNotFoundError:
-            logger.error("Ficheiro init.sql não encontrado")
-        except mysql.connector.Error as e:
-            logger.error(f"Erro ao criar tabelas: {e}")
-        finally:
-            mycursor.close()
+    except FileNotFoundError:
+        logger.error("Ficheiro init.sql não encontrado")
         return False
-    else:
-        logger.info("Tabela de dados ja existe")
-        #mycursor.execute("DROP TABLE contratos_ext; DROP TABLE entidades_ext;")
+    except mysql.connector.Error as e:
+        logger.error(f"Erro ao criar tabelas: {e}")
+        return False
+    finally:
         mycursor.close()
-        return True
+        mydb.close()
+   
+
+def execute_transformacao():
+    mydb = get_connection()
+    if not mydb:
+        return
+
+    try:
+        procedures = [
+            "transform_detalhes_contratos",
+            "transform_contratos",
+            "transform_entidades",
+            "transform_cpv_contratos"
+        ]
+
+        for proc in procedures:
+            logger.info(f"A executar: {proc}")
+
+            # Cursor fresco por procedure — sem estado partilhado
+            cur = mydb.cursor()
+            try:
+                cur.callproc(proc)
+
+                # Drena todos os result sets
+                for result in cur.stored_results():
+                    try:
+                        result.fetchall()
+                    except Exception:
+                        pass
+
+                while cur.nextset():
+                    pass
+
+                mydb.commit()
+                logger.success(f"Concluído: {proc}")
+
+            except mysql.connector.Error as e:
+                # Não faz rollback — TRUNCATE já não é reversível
+                logger.error(f"Erro em {proc}: {e}")
+                raise  # re-lança para parar as procedures seguintes
+
+            finally:
+                cur.close()
+
+        logger.info("Transformação concluída com sucesso!")
+
+    except mysql.connector.Error as e:
+        logger.error(f"Erro na transformação: {e}")
+    finally:
+        mydb.close()
+
+def execute_load():
+    mydb = get_connection()
+    if not mydb:
+        return
+
+    try:
+        procedures = [
+            "load_dim_entidade",
+            "load_dim_detalhes_contratos",
+            "load_dim_cpv_contratos",
+            "load_fact"
+        ]
+
+        for proc in procedures:
+            logger.info(f"A executar: {proc}")
+
+            # Cursor fresco por procedure — sem estado partilhado
+            cur = mydb.cursor()
+            try:
+                cur.callproc(proc)
+
+                # Drena todos os result sets
+                for result in cur.stored_results():
+                    try:
+                        result.fetchall()
+                    except Exception:
+                        pass
+
+                while cur.nextset():
+                    pass
+
+                mydb.commit()
+                logger.success(f"Concluído: {proc}")
+
+            except mysql.connector.Error as e:
+                # Não faz rollback — TRUNCATE já não é reversível
+                logger.error(f"Erro em {proc}: {e}")
+                raise  # re-lança para parar as procedures seguintes
+
+            finally:
+                cur.close()
+
+        logger.info("Transformação concluída com sucesso!")
+
+    except mysql.connector.Error as e:
+        logger.error(f"Erro na transformação: {e}")
+    finally:
+        mydb.close()
+
 
 
 def get_table_columns(cursor, table_name: str) -> list:
@@ -117,8 +230,8 @@ def change_status_extraction(id: int | None, table_name: str | None, status: str
     mycursor = mydb.cursor()
 
     match status:
-        case "INICIADO":
-            query = "INSERT INTO t_logs_extract (nome_tabela, status) VALUES (%s, 'INICIADO')"
+        case "INICIO":
+            query = "INSERT INTO t_logs_extract (nome_tabela, status) VALUES (%s, 'INICIO')"
             mycursor.execute(query, (table_name,))
             mydb.commit()
             return mycursor.lastrowid  # retorna o id do novo registo
@@ -139,3 +252,4 @@ def change_status_extraction(id: int | None, table_name: str | None, status: str
     mycursor.close()
     mydb.close()
     return None
+

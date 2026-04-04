@@ -23,7 +23,7 @@ def main():
     dictionary.verifiy_File_exists(CCP_FILE)
     artigos_list_distinc=db.get_distinct_data('fundamentacao','contratos_ext')
     
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
     logger.info("A inicar a população de dados dos artigos")
 
     for artigo in artigos_list_distinc:

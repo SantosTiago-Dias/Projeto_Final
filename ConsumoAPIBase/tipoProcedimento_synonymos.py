@@ -23,7 +23,7 @@ def main():
     procedureType_list_distinc=db.get_distinct_data('tipo_procedimento','contratos_ext')
     
     logger.info("A inicar a população de dados dos Tipos de procedimento")
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
 
     for proceduteType in procedureType_list_distinc:
         if not dictionary.verify_id_exists(CCP_FILE,proceduteType):
@@ -71,7 +71,7 @@ def main():
                     logger.error(f"ERROR: {e}")
                     db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
                     break
-    logger.info("Fim de população de dados dos artigos")
+    logger.info("Fim de população dos tipos de procedimentos")
 
 if __name__ == "__main__":
     main()

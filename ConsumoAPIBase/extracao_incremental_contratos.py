@@ -181,7 +181,7 @@ def main():
     parar = False
     #date of today
     today = datetime.today()
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
 
     try:
         data = listar_contratos(sessao, pagina)

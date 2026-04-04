@@ -23,7 +23,7 @@ def main():
     dictionary.verifiy_File_exists(CACHE_FILE)
     cpv_list_distinc=db.get_distinct_data('cpvs','contratos_ext')
     
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
     logger.info("A iniciar a população de dados dos cpv")
 
     for cpv in cpv_list_distinc:

@@ -25,7 +25,7 @@ def main():
     dictionary.verifiy_File_exists(CCP_FILE)
     contractType_list_distinc=db.get_distinct_data('tipo_contrato','contratos_ext')
     
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIADO")
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
     logger.info("A inicar a população dos Tipos de contrato")
 
     for contractType in contractType_list_distinc:
