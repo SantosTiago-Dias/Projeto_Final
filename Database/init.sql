@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     data_fecho_contrato       VARCHAR(10),
     valor_total_efetivo       DECIMAL(15,2),
     regime                    VARCHAR(255),
-    justificacao_nao_escrita  VARCHAR(255),
+    justificacao_nao_escrita  TEXT,
     tipo_fim_contrato         VARCHAR(255),
     crit_materiais            VARCHAR(10),
     concorrentes              TEXT,

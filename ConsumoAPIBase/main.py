@@ -21,13 +21,14 @@ def main():
         connection = db.get_connection()
         if connection:
             db.verify_database_exists()
-            extracao_incremental_contratos.main()
+            #extracao_incremental_contratos.main()
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
     
 
     #População de dados
+    #TODO:Populacionar os dados dps
     try:
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()

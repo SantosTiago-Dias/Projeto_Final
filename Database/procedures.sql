@@ -80,7 +80,7 @@ BEGIN
         adjudicatario,
         chave_tipo_contrato,
         chave_tipo_procedimento,
-        -- chave_fundamentacao,
+        chave_fundamentacao,
         chave_justificacao_nao_escrita,
         id_adjudicante
     )
@@ -93,7 +93,7 @@ BEGIN
 
         tc.id_tipo_contrato AS chave_tipo_contrato,
         tp.id_tipo_procedimento AS chave_tipo_procedimento,
-        -- f.id_fundamentacao AS chave_fundamentacao,
+        f.id_fundamentacao AS chave_fundamentacao,
         j.id_justificacao AS chave_justificacao_nao_escrita,
 
         JSON_UNQUOTE(JSON_EXTRACT(c.adjudicante, '$[0].id')) AS id_adjudicante
@@ -110,8 +110,8 @@ BEGIN
     LEFT JOIN tipo_procedimento_dictionary_ext tp 
         ON tp.tipo = c.tipo_procedimento
 
-    -- LEFT JOIN fundamentacao_contrato_dictionary_ext f 
-        -- ON f.fundamentacao = c.fundamentacao
+    LEFT JOIN fundamentacao_contrato_dictionary_ext f 
+        ON f.fundamentacao = c.fundamentacao
 
     LEFT JOIN justificacao_contrato_nao_escrito_dictionary_ext j 
         ON j.justificacao = c.justificacao_nao_escrita
@@ -119,7 +119,7 @@ BEGIN
     ON DUPLICATE KEY UPDATE 
         chave_tipo_contrato = VALUES(chave_tipo_contrato),
         chave_tipo_procedimento = VALUES(chave_tipo_procedimento),
-        -- chave_fundamentacao = VALUES(chave_fundamentacao),
+        chave_fundamentacao = VALUES(chave_fundamentacao),
         chave_justificacao_nao_escrita = VALUES(chave_justificacao_nao_escrita),
         id_adjudicante = VALUES(id_adjudicante);
 
@@ -133,7 +133,7 @@ BEGIN
         adjudicatario,
         chave_tipo_contrato,
         chave_tipo_procedimento,
-        -- chave_fundamentacao,
+        chave_fundamentacao,
         chave_justificacao_nao_escrita,
         id_adjudicante
     )
@@ -146,7 +146,7 @@ BEGIN
 
         tc.id_tipo_contrato AS chave_tipo_contrato,
         tp.id_tipo_procedimento AS chave_tipo_procedimento,
-        -- f.id_fundamentacao AS chave_fundamentacao,
+        f.id_fundamentacao AS chave_fundamentacao,
         j.id_justificacao AS chave_justificacao_nao_escrita,
 
         JSON_UNQUOTE(JSON_EXTRACT(c.adjudicante, '$[0].id')) AS id_adjudicante
@@ -163,8 +163,8 @@ BEGIN
     LEFT JOIN tipo_procedimento_dictionary_ext tp 
         ON tp.tipo = c.tipo_procedimento
 
-    -- LEFT JOIN fundamentacao_contrato_dictionary_ext f 
-        -- ON f.fundamentacao = c.fundamentacao
+    LEFT JOIN fundamentacao_contrato_dictionary_ext f 
+        ON f.fundamentacao = c.fundamentacao
 
     LEFT JOIN justificacao_contrato_nao_escrito_dictionary_ext j 
         ON j.justificacao = c.justificacao_nao_escrita

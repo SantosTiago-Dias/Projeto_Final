@@ -9,7 +9,7 @@ from urllib3.util.retry import Retry
 import extracao_incremental_entidades as empresa
 from loguru import logger
 import database_aux as db
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 
 
@@ -87,11 +87,12 @@ def extrair_detalhes(sessao: requests.Session, contrato_id: str):
 #Extrair entidades
 def flatten_entidade(lista: list, prefixo: str, contrato_data: dict):
     if isinstance(lista, list) and lista:
-        entidade = lista[0]
-        contrato_data[f"{prefixo}Nif"] = entidade.get("nif")
-        contrato_data[f"{prefixo}Description"] = entidade.get("description")
-        contrato_data[f"{prefixo}Id"] = entidade.get("id")
-        empresa.main(entidade.get("id"))
+        for entidade in lista:
+            contrato_data[f"{prefixo}Nif"] = entidade.get("nif")
+            contrato_data[f"{prefixo}Description"] = entidade.get("description")
+            contrato_data[f"{prefixo}Id"] = entidade.get("id")
+            empresa.main(entidade.get("id"))
+
     else:
         contrato_data[f"{prefixo}Nif"] = None
         contrato_data[f"{prefixo}Description"] = None
