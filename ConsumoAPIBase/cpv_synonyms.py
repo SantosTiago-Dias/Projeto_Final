@@ -1,63 +1,84 @@
-import pandas as pd
-import json
 import os
-from groq import Groq
+from cerebras.cloud.sdk import Cerebras, RateLimitError
 from dotenv import load_dotenv
+import dictonary_aux as dictionary
+from loguru import logger
+import database_aux as db
+import time
 
 load_dotenv('.env')
-
 CACHE_FILE = 'dictonary_CPVs.json'
-CONTRATOS_FILE = '../contratos.csv'
-client = Groq(api_key=os.getenv('API_KEY'))
+TABLE_NAME = "cpv_dictionary_ext"
 
+client = Cerebras(api_key=os.getenv('API_KEY'))
+
+def prepare_data(cpv:int,description:str):
+    data={
+        'codigo':cpv,
+        'descricao':description,
+    }
+    return data
+ 
 def main():
-    # 1. Verificação se o dicionario ja existe caso não exista ainda criamos para guardar dados JSON la dentro
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
-            try:
-                cpv_cache = json.load(f)
-            except json.JSONDecodeError:
-                cpv_cache = {}
-    else:
-        cpv_cache = {}
-        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(cpv_cache, f)
+    dictionary.verifiy_File_exists(CACHE_FILE)
+    cpv_list_distinc=db.get_distinct_data('cpvs','contratos_ext')
+    
+    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
+    logger.info("A iniciar a população de dados dos cpv")
 
-    #Carregamento dos dados de contratos
-    df = pd.read_csv(CONTRATOS_FILE, sep=';')
+    for cpv in cpv_list_distinc:
+        prompt = f"""Você é um sistema de classificação de compras públicas europeias.
 
-    def get_synonyms_smart(cpv_code, designation):
-        if str(cpv_code) in cpv_cache:
-            return cpv_cache[str(cpv_code)]
+        Dado o código CPV: {cpv}
 
-        print(f"New CPV detected: {cpv_code} ({designation}). Generating synonyms...")
-        prompt = f"Gere 5 sinónimos ou termos de pesquisa para: '{designation}'. Responda apenas os termos separados por vírgula."
+        Retorne EXATAMENTE 5 sinônimos ou termos correntes para esse código CPV.
 
-        try:
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            synonyms = response.choices[0].message.content.strip()
-            cpv_cache[str(cpv_code)] = synonyms
-            #TODO:GUADAR ESTES DADOS TANTO NA TABELA DE BASE DE DADOS
-            #COMO NO DICIONARIO
+        REGRAS ESTRITAS:
+        - Responda APENAS com os 5 termos separados por vírgula
+        - SEM explicações, SEM introduções, SEM numeração
+        - SEM quebras de linha, SEM pontuação extra
+        - SEM frases como "Os sinônimos são:" ou similares
+        - SEM observações
+        - SEM mudançpa de linha
+        - SEM frases "Aqui estão 5 sinônimos ou termos correntes para o código CPV"
+        - SEM palavras de ligação
 
-            return synonyms
-        except Exception as e:
-            print(f"Error: {e}")
-            synonyms = "termo geral"
+        FORMATO OBRIGATÓRIO (siga exatamente):
+        termo1,termo2,termo3,termo4,termo5"""
+        if not dictionary.verify_id_exists(CACHE_FILE,cpv):
+            retries = 0
+            while retries < 5:
+                try:
+                    response = client.chat.completions.create(
+                        model="llama3.1-8b",
+                        messages=[{"role": "user", "content": prompt}],
+                        max_completion_tokens=100,
+                    )
+                    
+                    synonyms = response.choices[0].message.content.strip()
 
-    #Eliminar os dados duplicados
-    unique_items = df[['cpvs', 'cpvsDesignation']].drop_duplicates()
+                    dictionary.add_value(CACHE_FILE,str(cpv),synonyms)
+                    db.insert_data_table('cpv_dictionary_ext',[prepare_data(cpv,synonyms)])
+                    
+                    time.sleep(0.3)  # polite delay between requests
+                    break
+    
+                except RateLimitError:
+                    wait = 30 * (2 ** retries)  # 30s, 60s, 120s...
+                    logger.warning(f"Rate limit hit for '{cpv}'. Waiting {wait}s...")
+                    time.sleep(wait)
+                    retries += 1
+    
+                except Exception as e:
+                    logger.error(f"ERROR: {e}")
+                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+                    break
 
-    #Percorrer cada uma para ir buscar os seus "sinonimos"
-    for _, row in unique_items.iterrows():
-        get_synonyms_smart(row['cpvs'], row['cpvsDesignation'])
+    logger.info("Fim de extração de cpv")
+    db.change_status_extraction(log_id, None, "SUCESSO")
 
-    # 4. Salva os sinonimos no dicionario
-    print(cpv_cache)
-    with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-        json.dump(cpv_cache, f, ensure_ascii=False, indent=4)
+if __name__ == "__main__":
+    main()
 
-    print("Procura de sinonimos completa")
+
+

@@ -1,21 +1,55 @@
 from dotenv import load_dotenv
-import os
-import cpv_synonyms
-import bg_c as contratos
-import bg_e as empresa
+import database_aux as db
+from loguru import logger
+import extracao_incremental_contratos
+import sys
 
-load_dotenv('.env')
+#População de dados
+import cpv_synonyms
+import artigos_synonymos
+import tipoContratos_synonymos as contrato_synonymos
+import tipoProcedimento_synonymos as procedimento_Synonymos
+import justificacaoNEscrita as justificacao
+#Fim de população de dados
 
 def main():
 
-    extracao_incremental=False      
-    
-    #TODO:USAR a base de dados como maneira de saber se é
-    #extração incremental ou extração completa
 
-    contratos.main(extracao_incremental)
-    empresa.main(extracao_incremental)
-    cpv_synonyms.main()
+    #Extração dos dados
+    
+    try:
+        connection = db.get_connection()
+        if connection:
+            db.verify_database_exists()
+            extracao_incremental_contratos.main()
+    except Exception as e:
+        logger.error(f"Erro: {e}")
+        sys.exit(1)
+    
+
+    #População de dados
+    #TODO:Populacionar os dados dps
+    try:
+        logger.info("A iniciar população de dados")
+        cpv_synonyms.main()
+        artigos_synonymos.main()
+        contrato_synonymos.main()
+        procedimento_Synonymos.main()
+        justificacao.main()
+        logger.info("Fim da população dados")
+    
+    except Exception as e:
+        logger.error(f"Erro: {e}")
+        sys.exit(1)
+
+    try:
+        db.execute_transformacao()
+        db.execute_load()
+    except Exception as e:
+        logger.error(f"Erro: {e}")
+        sys.exit(1)
+    
+
 
 if __name__ == "__main__":
     main()
