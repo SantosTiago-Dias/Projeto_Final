@@ -41,6 +41,7 @@ def main():
         - SEM observações
         - SEM mudançpa de linha
         - SEM frases "Aqui estão 5 sinônimos ou termos correntes para o código CPV"
+        - SEM palavras de ligação
 
         FORMATO OBRIGATÓRIO (siga exatamente):
         termo1,termo2,termo3,termo4,termo5"""

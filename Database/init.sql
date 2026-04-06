@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS entidades_ext (
     id_entidade INTEGER,
     nif         VARCHAR(20),
     nome        VARCHAR(255),
-    pais        VARCHAR(50)
+    pais        VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS contratos_ext (
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     num_acordos_quadro        VARCHAR(255),
     desc_acordo_quadro        VARCHAR(255),
     data_fecho_contrato       VARCHAR(10),
-    valor_total_efetivo       DECIMAL(15,2),
+    valor_total_efetivo       VARCHAR(20),
     regime                    VARCHAR(255),
     justificacao_nao_escrita  TEXT,
     tipo_fim_contrato         VARCHAR(255),

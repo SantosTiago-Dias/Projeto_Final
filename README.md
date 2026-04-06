@@ -4,6 +4,6 @@ Correr parte de extração ETL instalar:
 python -m pip install requests
 python -m pip install pandas
 python -m pip install alive-progress
-pip install groq
+pip install cerebras-cloud-sdk
 pip install loguru
 pip install openpyxl
