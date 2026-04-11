@@ -8,7 +8,7 @@ import time
 
 load_dotenv(".env")
 DICTIONARY_FILE = "Justificacao_Nao_Escrita.json"
-TABLE_NAME = "justificacao_contrato_nao_escrito_dictionary_ext"
+TABLE_NAME = "justificacao_contrato_nao_escrito_dictionary"
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 

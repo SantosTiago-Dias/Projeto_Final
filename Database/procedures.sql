@@ -104,16 +104,16 @@ BEGIN
         COLUMNS (value JSON PATH '$')
     ) a ON TRUE
 
-    LEFT JOIN tipo_contrato_dictionary_ext tc 
+    LEFT JOIN tipo_contrato_dictionary tc 
         ON tc.tipo = c.tipo_contrato
 
-    LEFT JOIN tipo_procedimento_dictionary_ext tp 
+    LEFT JOIN tipo_procedimento_dictionary tp 
         ON tp.tipo = c.tipo_procedimento
 
-    LEFT JOIN fundamentacao_contrato_dictionary_ext f 
+    LEFT JOIN fundamentacao_contrato_dictionary f 
         ON f.fundamentacao = c.fundamentacao
 
-    LEFT JOIN justificacao_contrato_nao_escrito_dictionary_ext j 
+    LEFT JOIN justificacao_contrato_nao_escrito_dictionary j 
         ON j.justificacao = c.justificacao_nao_escrita
 
     ON DUPLICATE KEY UPDATE 
@@ -157,16 +157,16 @@ BEGIN
         COLUMNS (value JSON PATH '$')
     ) co ON TRUE
 
-    LEFT JOIN tipo_contrato_dictionary_ext tc 
+    LEFT JOIN tipo_contrato_dictionary tc 
         ON tc.tipo = c.tipo_contrato
 
-    LEFT JOIN tipo_procedimento_dictionary_ext tp 
+    LEFT JOIN tipo_procedimento_dictionary tp 
         ON tp.tipo = c.tipo_procedimento
 
-    LEFT JOIN fundamentacao_contrato_dictionary_ext f 
+    LEFT JOIN fundamentacao_contrato_dictionary f 
         ON f.fundamentacao = c.fundamentacao
 
-    LEFT JOIN justificacao_contrato_nao_escrito_dictionary_ext j 
+    LEFT JOIN justificacao_contrato_nao_escrito_dictionary j 
         ON j.justificacao = c.justificacao_nao_escrita
 
     WHERE JSON_UNQUOTE(JSON_EXTRACT(co.value, '$.id')) NOT IN (

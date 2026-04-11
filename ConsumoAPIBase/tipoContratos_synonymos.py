@@ -7,7 +7,7 @@ import database_aux as db
 import time
 
 load_dotenv(".env")
-TABLE_NAME = "tipo_contrato_dictionary_ext"
+TABLE_NAME = "tipo_contrato_dictionary"
 CCP_FILE = "Tipo_Contrato.json"
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
@@ -59,7 +59,7 @@ def main():
                     explain = response.choices[0].message.content.strip()
 
                     dictionary.add_value(CCP_FILE,str(contractType),explain)
-                    db.insert_data_table('tipo_contrato_dictionary_ext',[prepare_data(contractType,explain)])
+                    db.insert_data_table(TABLE_NAME,[prepare_data(contractType,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break

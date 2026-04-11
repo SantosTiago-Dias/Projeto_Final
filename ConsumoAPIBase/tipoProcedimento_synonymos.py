@@ -8,7 +8,7 @@ import time
 
 load_dotenv(".env")
 CCP_FILE = "Tipo_Procedimento.json"
-TABLE_NAME = "tipo_procedimento_dictionary_ext"
+TABLE_NAME = "tipo_procedimento_dictionary"
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
 def prepare_data(artigo:int,explain:str):
@@ -56,7 +56,7 @@ def main():
                     explain = response.choices[0].message.content.strip()
 
                     dictionary.add_value(CCP_FILE,str(proceduteType),explain)
-                    db.insert_data_table('tipo_procedimento_dictionary_ext',[prepare_data(proceduteType,explain)])
+                    db.insert_data_table(TABLE_NAME,[prepare_data(proceduteType,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break

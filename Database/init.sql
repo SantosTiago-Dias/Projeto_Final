@@ -3,6 +3,14 @@
 SET GLOBAL net_buffer_length  = 1000000;
 SET GLOBAL max_allowed_packet = 1000000000;
 
+/*Limpeza de tabelas*/
+DROP Table If EXISTS contratos_ext;
+DROP Table If EXISTS entidades_ext;
+DROP Table If EXISTS contratos_transf;
+DROP Table If EXISTS entidade_transf;
+
+
+
 CREATE TABLE IF NOT EXISTS t_logs_extract (
     id              INT PRIMARY KEY AUTO_INCREMENT,
     nome_tabela     VARCHAR(50) NOT NULL,
@@ -11,31 +19,31 @@ CREATE TABLE IF NOT EXISTS t_logs_extract (
     ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS cpv_dictionary_ext (
+CREATE TABLE IF NOT EXISTS cpv_dictionary (
     id_cpv   INT PRIMARY KEY AUTO_INCREMENT,
     codigo   VARCHAR(255),
     descricao TEXT
 );
 
-CREATE TABLE IF NOT EXISTS tipo_procedimento_dictionary_ext (
+CREATE TABLE IF NOT EXISTS tipo_procedimento_dictionary (
     id_tipo_procedimento INT PRIMARY KEY AUTO_INCREMENT,
     tipo                 VARCHAR(255),
     descricao            TEXT
 );
 
-CREATE TABLE IF NOT EXISTS tipo_contrato_dictionary_ext (
+CREATE TABLE IF NOT EXISTS tipo_contrato_dictionary (
     id_tipo_contrato INT PRIMARY KEY AUTO_INCREMENT,
     tipo             VARCHAR(255),
     descricao        TEXT
 );
 
-CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary_ext (
+CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary (
     id_justificacao INT PRIMARY KEY AUTO_INCREMENT,
     justificacao    VARCHAR(255),
     descricao       TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary_ext (
+CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary (
     id_fundamentacao INT PRIMARY KEY AUTO_INCREMENT,
     fundamentacao    VARCHAR(255),
     descricao        TEXT
@@ -88,7 +96,7 @@ CREATE TABLE IF NOT EXISTS entidade_transf (
     num_contratos_adjudicatario INT,
     total_adjudicante           DECIMAL(15,2),
     num_contratos_adjudicante   INT,
-    pais                        VARCHAR(50),
+    pais                        VARCHAR(255),
     UNIQUE (id_entidade)
 );
 
@@ -143,7 +151,7 @@ CREATE TABLE IF NOT EXISTS dim_entidade (
     num_contratos_adjudicatario INT,
     total_adjudicante           DECIMAL(15,2),
     num_contratos_adjudicante   INT,
-    pais                        VARCHAR(50),
+    pais                        VARCHAR(255),
     UNIQUE (id_entidade)
 );
 

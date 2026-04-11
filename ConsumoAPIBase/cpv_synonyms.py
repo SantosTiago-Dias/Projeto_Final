@@ -8,7 +8,7 @@ import time
 
 load_dotenv('.env')
 CACHE_FILE = 'dictonary_CPVs.json'
-TABLE_NAME = "cpv_dictionary_ext"
+TABLE_NAME = "cpv_dictionary"
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
@@ -21,7 +21,7 @@ def prepare_data(cpv:int,description:str):
  
 def main():
     dictionary.verifiy_File_exists(CACHE_FILE)
-    cpv_list_distinc=db.get_distinct_data('cpvs','contratos_ext')
+    cpv_list_distinc=db.get_distinct_data('cpv','cpv_contratos_transf')
     
     log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
     logger.info("A iniciar a população de dados dos cpv")
@@ -58,7 +58,7 @@ def main():
                     synonyms = response.choices[0].message.content.strip()
 
                     dictionary.add_value(CACHE_FILE,str(cpv),synonyms)
-                    db.insert_data_table('cpv_dictionary_ext',[prepare_data(cpv,synonyms)])
+                    db.insert_data_table(TABLE_NAME,[prepare_data(cpv,synonyms)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break
