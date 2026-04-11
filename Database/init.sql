@@ -3,6 +3,14 @@
 SET GLOBAL net_buffer_length  = 1000000;
 SET GLOBAL max_allowed_packet = 1000000000;
 
+/*Limpeza de tabelas*/
+DROP Table If EXISTS contratos_ext;
+DROP Table If EXISTS entidades_ext;
+DROP Table If EXISTS contratos_transf;
+DROP Table If EXISTS entidade_transf;
+
+
+
 CREATE TABLE IF NOT EXISTS t_logs_extract (
     id              INT PRIMARY KEY AUTO_INCREMENT,
     nome_tabela     VARCHAR(50) NOT NULL,
