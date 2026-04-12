@@ -48,7 +48,13 @@ def main():
         sys.exit(1)
 
     try:
-        db.execute_transformacao()
+        db.ensure_dim_data('2024-01-01', '2036-12-31')
+    except Exception as e:
+        logger.error(f"Erro ao gerar dim_data: {e}")
+        sys.exit(1)
+
+
+    try:
         db.execute_load()
     except Exception as e:
         logger.error(f"Erro: {e}")

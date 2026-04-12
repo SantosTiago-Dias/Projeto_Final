@@ -365,7 +365,158 @@ BEGIN
 END$$
 
 
-DELIMITER $$
+CREATE PROCEDURE load_dim_data(IN data_inicio DATE, IN data_fim DATE)
+BEGIN
+    DECLARE d DATE;
+
+    DECLARE Ano INT;
+    DECLARE a INT; DECLARE b INT; DECLARE c INT;
+    DECLARE d1 INT; DECLARE e INT; DECLARE f INT;
+    DECLARE g INT; DECLARE h INT; DECLARE i INT;
+    DECLARE k INT; DECLARE l INT; DECLARE m INT;
+
+    DECLARE MesPascoa INT;
+    DECLARE DiaPascoa INT;
+    DECLARE Pascoa DATE;
+
+    SET d = data_inicio;
+
+    WHILE d <= data_fim DO
+
+        SET Ano = YEAR(d);
+
+        -- Algoritmo da Páscoa (igual ao DAX)
+        SET a = MOD(Ano,19);
+        SET b = FLOOR(Ano/100);
+        SET c = MOD(Ano,100);
+        SET d1 = FLOOR(b/4);
+        SET e = MOD(b,4);
+        SET f = FLOOR((b+8)/25);
+        SET g = FLOOR((b-f+1)/3);
+        SET h = MOD(19*a + b - d1 - g + 15,30);
+        SET i = FLOOR(c/4);
+        SET k = MOD(c,4);
+        SET l = MOD(32 + 2*e + 2*i - h - k,7);
+        SET m = FLOOR((a + 11*h + 22*l)/451);
+
+        SET MesPascoa = FLOOR((h + l - 7*m + 114)/31);
+        SET DiaPascoa = MOD(h + l - 7*m + 114,31) + 1;
+
+        SET Pascoa = STR_TO_DATE(CONCAT(Ano,'-',MesPascoa,'-',DiaPascoa),'%Y-%m-%d');
+
+        INSERT INTO dim_data (
+            data,
+            feriado,
+            fim_semana,
+            dia,
+            mes,
+            ano,
+            dia_semana,
+            nome_mes,
+            abr_mes,
+            data_extenso
+        )
+        VALUES (
+            d,
+
+            CASE
+                -- Fixos
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-01-01'),'%Y-%m-%d') THEN 'Ano Novo'
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-04-25'),'%Y-%m-%d') THEN 'Dia da Liberdade'
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-05-01'),'%Y-%m-%d') THEN 'Dia do Trabalhador'
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-06-10'),'%Y-%m-%d') THEN 'Dia de Portugal'
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-08-15'),'%Y-%m-%d') THEN 'Assunção'
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-10-05'),'%Y-%m-%d') THEN 'Implantação da República'
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-11-01'),'%Y-%m-%d') THEN 'Todos os Santos'
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-12-01'),'%Y-%m-%d') THEN 'Restauração da Independência'
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-12-08'),'%Y-%m-%d') THEN 'Imaculada Conceição'
+                WHEN d = STR_TO_DATE(CONCAT(Ano,'-12-25'),'%Y-%m-%d') THEN 'Natal'
+
+                -- Móveis
+                WHEN d = DATE_SUB(Pascoa, INTERVAL 47 DAY) THEN 'Carnaval'
+                WHEN d = DATE_SUB(Pascoa, INTERVAL 2 DAY) THEN 'Sexta-feira Santa'
+                WHEN d = Pascoa THEN 'Páscoa'
+                WHEN d = DATE_ADD(Pascoa, INTERVAL 60 DAY) THEN 'Corpo de Deus'
+
+                ELSE 'Não Aplicável'
+            END,
+
+            -- fim de semana
+            CASE WHEN DAYOFWEEK(d) IN (1,7) THEN 1 ELSE 0 END,
+
+            DAY(d),
+            MONTH(d),
+            YEAR(d),
+
+            -- dia semana
+            CASE DAYOFWEEK(d)
+                WHEN 1 THEN 'domingo'
+                WHEN 2 THEN 'segunda-feira'
+                WHEN 3 THEN 'terça-feira'
+                WHEN 4 THEN 'quarta-feira'
+                WHEN 5 THEN 'quinta-feira'
+                WHEN 6 THEN 'sexta-feira'
+                WHEN 7 THEN 'sábado'
+            END,
+
+            -- mês nome
+            CASE MONTH(d)
+                WHEN 1 THEN 'janeiro'
+                WHEN 2 THEN 'fevereiro'
+                WHEN 3 THEN 'março'
+                WHEN 4 THEN 'abril'
+                WHEN 5 THEN 'maio'
+                WHEN 6 THEN 'junho'
+                WHEN 7 THEN 'julho'
+                WHEN 8 THEN 'agosto'
+                WHEN 9 THEN 'setembro'
+                WHEN 10 THEN 'outubro'
+                WHEN 11 THEN 'novembro'
+                WHEN 12 THEN 'dezembro'
+            END,
+
+            -- abreviação
+            CASE MONTH(d)
+                WHEN 1 THEN 'jan'
+                WHEN 2 THEN 'fev'
+                WHEN 3 THEN 'mar'
+                WHEN 4 THEN 'abr'
+                WHEN 5 THEN 'mai'
+                WHEN 6 THEN 'jun'
+                WHEN 7 THEN 'jul'
+                WHEN 8 THEN 'ago'
+                WHEN 9 THEN 'set'
+                WHEN 10 THEN 'out'
+                WHEN 11 THEN 'nov'
+                WHEN 12 THEN 'dez'
+            END,
+
+            -- data extenso
+            CONCAT(
+                DAY(d), ' de ',
+                CASE MONTH(d)
+                    WHEN 1 THEN 'janeiro'
+                    WHEN 2 THEN 'fevereiro'
+                    WHEN 3 THEN 'março'
+                    WHEN 4 THEN 'abril'
+                    WHEN 5 THEN 'maio'
+                    WHEN 6 THEN 'junho'
+                    WHEN 7 THEN 'julho'
+                    WHEN 8 THEN 'agosto'
+                    WHEN 9 THEN 'setembro'
+                    WHEN 10 THEN 'outubro'
+                    WHEN 11 THEN 'novembro'
+                    WHEN 12 THEN 'dezembro'
+                END,
+                ' de ', YEAR(d)
+            )
+        );
+
+        SET d = DATE_ADD(d, INTERVAL 1 DAY);
+
+    END WHILE;
+
+END$$
 DROP PROCEDURE IF EXISTS load_fact$$
 CREATE PROCEDURE load_fact()
 BEGIN
@@ -380,7 +531,7 @@ BEGIN
         chave_justificacao_nao_escrita,
         adjudicante,
         valor_contratual,
-        data_celebracao
+        chave_data
     )
     SELECT 
         dc.chave_contratos,
@@ -392,7 +543,7 @@ BEGIN
         jc.id_justificacao AS chave_justificacao_nao_escrita,
         deadjudicante.chave_entidade AS adjudicante,
         dc.valor_contratual,
-        dc.data_celebracao
+        dd.chave_date AS chave_data
     FROM contratos_transf ct
     LEFT JOIN dim_detalhes_contratos dc 
         ON dc.id_contrato = ct.id_contrato
@@ -408,6 +559,8 @@ BEGIN
         ON fc.fundamentacao = ct.fundamentacao
     LEFT JOIN justificacao_contrato_nao_escrito_dictionary jc
         ON jc.justificacao = ct.justificacao_nao_escrita
+    LEFT JOIN dim_data dd
+        ON dd.data = dc.data_celebracao
     WHERE NOT EXISTS (
         SELECT 1
         FROM fact_contratos f

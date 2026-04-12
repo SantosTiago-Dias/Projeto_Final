@@ -181,6 +181,20 @@ CREATE TABLE IF NOT EXISTS dim_cpv_contratos (
     FOREIGN KEY (chave_contrato) REFERENCES dim_detalhes_contratos(chave_contratos)
 );
 
+CREATE TABLE dim_data (
+    chave_date INT AUTO_INCREMENT PRIMARY KEY,
+    data DATE NOT NULL,
+    feriado VARCHAR(100),
+    fim_semana TINYINT(1),
+    dia TINYINT,
+    mes TINYINT,
+    ano SMALLINT,
+    dia_semana VARCHAR(20),
+    nome_mes VARCHAR(20),
+    abr_mes VARCHAR(5),
+    data_extenso VARCHAR(100)
+);
+
 CREATE TABLE IF NOT EXISTS fact_contratos (
     chave_contratos               INT,
     adjudicante                   INT,
@@ -191,7 +205,7 @@ CREATE TABLE IF NOT EXISTS fact_contratos (
     chave_fundamentacao           INT,
     chave_justificacao_nao_escrita INT,
     valor_contratual              DECIMAL(15,2),
-    data_celebracao               DATE,
+    chave_data                     INT,
     PRIMARY KEY (chave_contratos, chave_entidade),
     FOREIGN KEY (chave_contratos) REFERENCES dim_detalhes_contratos(chave_contratos),
     FOREIGN KEY (chave_entidade)  REFERENCES dim_entidade(chave_entidade),
@@ -199,4 +213,5 @@ CREATE TABLE IF NOT EXISTS fact_contratos (
     FOREIGN KEY (chave_tipo_procedimento) REFERENCES tipo_procedimento_dictionary(id_tipo_procedimento),
     FOREIGN KEY (chave_fundamentacao) REFERENCES fundamentacao_contrato_dictionary(id_fundamentacao),
     FOREIGN KEY (chave_justificacao_nao_escrita) REFERENCES justificacao_contrato_nao_escrito_dictionary(id_justificacao),
+    FOREIGN KEY (chave_data) REFERENCES dim_data(chave_date)
 );
