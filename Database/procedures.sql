@@ -78,10 +78,10 @@ BEGIN
         id_contrato,
         id_entidade,
         adjudicatario,
-        chave_tipo_contrato,
-        chave_tipo_procedimento,
-        chave_fundamentacao,
-        chave_justificacao_nao_escrita,
+        tipo_contrato,
+        tipo_procedimento,
+        fundamentacao,
+        justificacao_nao_escrita,
         id_adjudicante
     )
     SELECT 
@@ -91,10 +91,10 @@ BEGIN
 
         1 AS adjudicatario,
 
-        tc.id_tipo_contrato AS chave_tipo_contrato,
-        tp.id_tipo_procedimento AS chave_tipo_procedimento,
-        f.id_fundamentacao AS chave_fundamentacao,
-        j.id_justificacao AS chave_justificacao_nao_escrita,
+        c.tipo_contrato,
+        c.tipo_procedimento,
+        c.fundamentacao,
+        c.justificacao_nao_escrita,
 
         JSON_UNQUOTE(JSON_EXTRACT(c.adjudicante, '$[0].id')) AS id_adjudicante
 
@@ -104,23 +104,7 @@ BEGIN
         COLUMNS (value JSON PATH '$')
     ) a ON TRUE
 
-    LEFT JOIN tipo_contrato_dictionary_ext tc 
-        ON tc.tipo = c.tipo_contrato
-
-    LEFT JOIN tipo_procedimento_dictionary_ext tp 
-        ON tp.tipo = c.tipo_procedimento
-
-    LEFT JOIN fundamentacao_contrato_dictionary_ext f 
-        ON f.fundamentacao = c.fundamentacao
-
-    LEFT JOIN justificacao_contrato_nao_escrito_dictionary_ext j 
-        ON j.justificacao = c.justificacao_nao_escrita
-
     ON DUPLICATE KEY UPDATE 
-        chave_tipo_contrato = VALUES(chave_tipo_contrato),
-        chave_tipo_procedimento = VALUES(chave_tipo_procedimento),
-        chave_fundamentacao = VALUES(chave_fundamentacao),
-        chave_justificacao_nao_escrita = VALUES(chave_justificacao_nao_escrita),
         id_adjudicante = VALUES(id_adjudicante);
 
 
@@ -131,10 +115,10 @@ BEGIN
         id_contrato,
         id_entidade,
         adjudicatario,
-        chave_tipo_contrato,
-        chave_tipo_procedimento,
-        chave_fundamentacao,
-        chave_justificacao_nao_escrita,
+        tipo_contrato,
+        tipo_procedimento,
+        fundamentacao,
+        justificacao_nao_escrita,
         id_adjudicante
     )
     SELECT 
@@ -144,10 +128,10 @@ BEGIN
 
         0 AS adjudicatario,
 
-        tc.id_tipo_contrato AS chave_tipo_contrato,
-        tp.id_tipo_procedimento AS chave_tipo_procedimento,
-        f.id_fundamentacao AS chave_fundamentacao,
-        j.id_justificacao AS chave_justificacao_nao_escrita,
+        c.tipo_contrato,
+        c.tipo_procedimento,
+        c.fundamentacao,
+        c.justificacao_nao_escrita,
 
         JSON_UNQUOTE(JSON_EXTRACT(c.adjudicante, '$[0].id')) AS id_adjudicante
 
@@ -157,17 +141,6 @@ BEGIN
         COLUMNS (value JSON PATH '$')
     ) co ON TRUE
 
-    LEFT JOIN tipo_contrato_dictionary_ext tc 
-        ON tc.tipo = c.tipo_contrato
-
-    LEFT JOIN tipo_procedimento_dictionary_ext tp 
-        ON tp.tipo = c.tipo_procedimento
-
-    LEFT JOIN fundamentacao_contrato_dictionary_ext f 
-        ON f.fundamentacao = c.fundamentacao
-
-    LEFT JOIN justificacao_contrato_nao_escrito_dictionary_ext j 
-        ON j.justificacao = c.justificacao_nao_escrita
 
     WHERE JSON_UNQUOTE(JSON_EXTRACT(co.value, '$.id')) NOT IN (
         SELECT id_entidade 
@@ -177,10 +150,6 @@ BEGIN
     )
 
     ON DUPLICATE KEY UPDATE 
-        chave_tipo_contrato = VALUES(chave_tipo_contrato),
-        chave_tipo_procedimento = VALUES(chave_tipo_procedimento),
-        -- chave_fundamentacao = VALUES(chave_fundamentacao),
-        chave_justificacao_nao_escrita = VALUES(chave_justificacao_nao_escrita),
         id_adjudicante = VALUES(id_adjudicante);
 
 END$$
@@ -379,16 +348,18 @@ DROP PROCEDURE IF EXISTS load_dim_cpv_contratos$$
 CREATE PROCEDURE load_dim_cpv_contratos()
 BEGIN
 
-    INSERT INTO dim_cpv_contratos (chave_contrato, cpv)
-    SELECT dc.chave_contratos, c.cpv
+    INSERT INTO dim_cpv_contratos (chave_contrato, chave_cpv)
+    SELECT dc.chave_contratos, cp.id_cpv AS chave_cpv
     FROM cpv_contratos_transf c
     INNER JOIN dim_detalhes_contratos dc 
         ON dc.id_contrato = c.id_contrato
+    INNER JOIN cpv_dictionary cp
+        ON cp.codigo = c.cpv
     WHERE NOT EXISTS (
         SELECT 1 
         FROM dim_cpv_contratos d
         WHERE d.chave_contrato = dc.chave_contratos
-          AND d.cpv = c.cpv
+          AND d.chave_cpv = cp.id_cpv
     );
 
 END$$
@@ -415,20 +386,28 @@ BEGIN
         dc.chave_contratos,
         de.chave_entidade,
         ct.adjudicatario,
-        ct.chave_tipo_contrato,
-        ct.chave_tipo_procedimento,
-        ct.chave_fundamentacao,
-        ct.chave_justificacao_nao_escrita,
+        tc.id_tipo_contrato AS chave_tipo_contrato,
+        tp.id_tipo_procedimento AS chave_tipo_procedimento,
+        fc.id_fundamentacao AS chave_fundamentacao,
+        jc.id_justificacao AS chave_justificacao_nao_escrita,
         deadjudicante.chave_entidade AS adjudicante,
         dc.valor_contratual,
         dc.data_celebracao
     FROM contratos_transf ct
-    INNER JOIN dim_detalhes_contratos dc 
+    LEFT JOIN dim_detalhes_contratos dc 
         ON dc.id_contrato = ct.id_contrato
-    INNER JOIN dim_entidade de 
+    LEFT JOIN dim_entidade de 
         ON de.id_entidade = ct.id_entidade
-    INNER JOIN dim_entidade deadjudicante
+    LEFT JOIN dim_entidade deadjudicante
         ON deadjudicante.id_entidade = ct.id_adjudicante 
+    LEFT JOIN  tipo_contrato_dictionary tc 
+        ON tc.tipo = ct.tipo_contrato
+    LEFT JOIN tipo_procedimento_dictionary tp
+        ON tp.tipo = ct.tipo_procedimento
+    LEFT JOIN fundamentacao_contrato_dictionary fc 
+        ON fc.fundamentacao = ct.fundamentacao
+    LEFT JOIN justificacao_contrato_nao_escrito_dictionary jc
+        ON jc.justificacao = ct.justificacao_nao_escrita
     WHERE NOT EXISTS (
         SELECT 1
         FROM fact_contratos f
@@ -438,5 +417,6 @@ BEGIN
     );
 
 END$$
+
 
 DELIMITER ;

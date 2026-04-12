@@ -8,7 +8,7 @@ import time
 
 load_dotenv(".env")
 DICTIONARY_FILE = "Justificacao_Nao_Escrita.json"
-TABLE_NAME = "justificacao_contrato_nao_escrito_dictionary_ext"
+TABLE_NAME = "justificacao_contrato_nao_escrito_dictionary"
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
@@ -21,7 +21,7 @@ def prepare_data(artigo:int,explain:str):
 
 def main():
     dictionary.verifiy_File_exists(DICTIONARY_FILE)
-    justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_ext')
+    justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_transf')
     
     logger.info("A inicar a população dos Tipos de contrato")
     log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")

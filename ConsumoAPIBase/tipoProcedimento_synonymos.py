@@ -8,7 +8,7 @@ import time
 
 load_dotenv(".env")
 CCP_FILE = "Tipo_Procedimento.json"
-TABLE_NAME = "tipo_procedimento_dictionary_ext"
+TABLE_NAME = "tipo_procedimento_dictionary"
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
 def prepare_data(artigo:int,explain:str):
@@ -20,7 +20,7 @@ def prepare_data(artigo:int,explain:str):
 
 def main():
     dictionary.verifiy_File_exists(CCP_FILE)
-    procedureType_list_distinc=db.get_distinct_data('tipo_procedimento','contratos_ext')
+    procedureType_list_distinc=db.get_distinct_data('tipo_procedimento','contratos_transf')
     
     logger.info("A inicar a população de dados dos Tipos de procedimento")
     log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
@@ -56,7 +56,7 @@ def main():
                     explain = response.choices[0].message.content.strip()
 
                     dictionary.add_value(CCP_FILE,str(proceduteType),explain)
-                    db.insert_data_table('tipo_procedimento_dictionary_ext',[prepare_data(proceduteType,explain)])
+                    db.insert_data_table(TABLE_NAME,[prepare_data(proceduteType,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break

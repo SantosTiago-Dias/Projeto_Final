@@ -25,17 +25,22 @@ def main():
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
-    
+
+    try:
+        db.execute_transformacao()
+    except Exception as e:
+        logger.error(f"Erro: {e}")
+        sys.exit(1)
 
     #População de dados
     #TODO:Populacionar os dados dps
     try:
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
-        artigos_synonymos.main()
         contrato_synonymos.main()
         procedimento_Synonymos.main()
         justificacao.main()
+        artigos_synonymos.main()
         logger.info("Fim da população dados")
     
     except Exception as e:

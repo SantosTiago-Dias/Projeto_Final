@@ -7,7 +7,7 @@ import database_aux as db
 import time
 
 load_dotenv(".env")
-TABLE_NAME = "tipo_contrato_dictionary_ext"
+TABLE_NAME = "tipo_contrato_dictionary"
 CCP_FILE = "Tipo_Contrato.json"
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
@@ -23,7 +23,7 @@ def prepare_data(artigo:int,explain:str):
 
 def main():
     dictionary.verifiy_File_exists(CCP_FILE)
-    contractType_list_distinc=db.get_distinct_data('tipo_contrato','contratos_ext')
+    contractType_list_distinc=db.get_distinct_data('tipo_contrato','contratos_transf')
     
     log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
     logger.info("A inicar a população dos Tipos de contrato")
@@ -59,7 +59,7 @@ def main():
                     explain = response.choices[0].message.content.strip()
 
                     dictionary.add_value(CCP_FILE,str(contractType),explain)
-                    db.insert_data_table('tipo_contrato_dictionary_ext',[prepare_data(contractType,explain)])
+                    db.insert_data_table(TABLE_NAME,[prepare_data(contractType,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break

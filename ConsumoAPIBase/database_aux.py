@@ -5,6 +5,7 @@ from mysql.connector import Error
 import os
 import math
 import re
+import requests
 
 load_dotenv('.env')
 
@@ -160,10 +161,10 @@ def execute_load():
             finally:
                 cur.close()
 
-        logger.info("Transformação concluída com sucesso!")
+        logger.info("Carregamento concluído com sucesso!")
 
     except mysql.connector.Error as e:
-        logger.error(f"Erro na transformação: {e}")
+        logger.error(f"Erro no carregamento: {e}")
     finally:
         mydb.close()
 

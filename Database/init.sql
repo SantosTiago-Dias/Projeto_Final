@@ -11,31 +11,32 @@ CREATE TABLE IF NOT EXISTS t_logs_extract (
     ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS cpv_dictionary_ext (
+CREATE TABLE IF NOT EXISTS cpv_dictionary (
     id_cpv   INT PRIMARY KEY AUTO_INCREMENT,
-    codigo   VARCHAR(255),
+    codigo   VARCHAR(10),
+    cpv_descricao VARCHAR(255),
     descricao TEXT
 );
 
-CREATE TABLE IF NOT EXISTS tipo_procedimento_dictionary_ext (
+CREATE TABLE IF NOT EXISTS tipo_procedimento_dictionary (
     id_tipo_procedimento INT PRIMARY KEY AUTO_INCREMENT,
     tipo                 VARCHAR(255),
     descricao            TEXT
 );
 
-CREATE TABLE IF NOT EXISTS tipo_contrato_dictionary_ext (
+CREATE TABLE IF NOT EXISTS tipo_contrato_dictionary (
     id_tipo_contrato INT PRIMARY KEY AUTO_INCREMENT,
     tipo             VARCHAR(255),
     descricao        TEXT
 );
 
-CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary_ext (
+CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary (
     id_justificacao INT PRIMARY KEY AUTO_INCREMENT,
-    justificacao    VARCHAR(255),
+    justificacao    TEXT,
     descricao       TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary_ext (
+CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary (
     id_fundamentacao INT PRIMARY KEY AUTO_INCREMENT,
     fundamentacao    VARCHAR(255),
     descricao        TEXT
@@ -88,7 +89,7 @@ CREATE TABLE IF NOT EXISTS entidade_transf (
     num_contratos_adjudicatario INT,
     total_adjudicante           DECIMAL(15,2),
     num_contratos_adjudicante   INT,
-    pais                        VARCHAR(50),
+    pais                        VARCHAR(255),
     UNIQUE (id_entidade)
 );
 
@@ -121,10 +122,10 @@ CREATE TABLE IF NOT EXISTS contratos_transf (
     id_adjudicante               INT,
     id_entidade                  INT,
     adjudicatario                TINYINT(1),
-    chave_tipo_contrato          INT,
-    chave_tipo_procedimento      INT,
-    chave_fundamentacao          INT,
-    chave_justificacao_nao_escrita INT,
+    tipo_contrato          VARCHAR(255),
+    tipo_procedimento      VARCHAR(255),
+    fundamentacao          VARCHAR(255),
+    justificacao_nao_escrita TEXT,
     UNIQUE (id_contrato, id_entidade)
 );
 
@@ -143,7 +144,7 @@ CREATE TABLE IF NOT EXISTS dim_entidade (
     num_contratos_adjudicatario INT,
     total_adjudicante           DECIMAL(15,2),
     num_contratos_adjudicante   INT,
-    pais                        VARCHAR(50),
+    pais                        VARCHAR(255),
     UNIQUE (id_entidade)
 );
 
@@ -174,9 +175,9 @@ CREATE TABLE IF NOT EXISTS dim_detalhes_contratos (
 
 CREATE TABLE IF NOT EXISTS dim_cpv_contratos (
     chave_contrato INT,
-    cpv            VARCHAR(10),
-    UNIQUE  (chave_contrato, cpv),
-    PRIMARY KEY (chave_contrato, cpv),
+    chave_cpv      INT,
+    UNIQUE  (chave_contrato, chave_cpv),
+    PRIMARY KEY (chave_contrato, chave_cpv),
     FOREIGN KEY (chave_contrato) REFERENCES dim_detalhes_contratos(chave_contratos)
 );
 
@@ -193,6 +194,9 @@ CREATE TABLE IF NOT EXISTS fact_contratos (
     data_celebracao               DATE,
     PRIMARY KEY (chave_contratos, chave_entidade),
     FOREIGN KEY (chave_contratos) REFERENCES dim_detalhes_contratos(chave_contratos),
-    FOREIGN KEY (chave_entidade)  REFERENCES dim_entidade(chave_entidade)
+    FOREIGN KEY (chave_entidade)  REFERENCES dim_entidade(chave_entidade),
+    FOREIGN KEY (chave_tipo_contrato) REFERENCES tipo_contrato_dictionary(id_tipo_contrato),
+    FOREIGN KEY (chave_tipo_procedimento) REFERENCES tipo_procedimento_dictionary(id_tipo_procedimento),
+    FOREIGN KEY (chave_fundamentacao) REFERENCES fundamentacao_contrato_dictionary(id_fundamentacao),
+    FOREIGN KEY (chave_justificacao_nao_escrita) REFERENCES justificacao_contrato_nao_escrito_dictionary(id_justificacao),
 );
-
