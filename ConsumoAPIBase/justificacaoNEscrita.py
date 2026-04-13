@@ -9,6 +9,7 @@ import time
 load_dotenv(".env")
 DICTIONARY_FILE = "Justificacao_Nao_Escrita.json"
 TABLE_NAME = "justificacao_contrato_nao_escrito_dictionary"
+TABLE_LOGS = 't_logs_extract'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
@@ -24,7 +25,7 @@ def main():
     justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_ext')
     
     logger.info("A inicar a população dos Tipos de contrato")
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
+    log_id = db.change_status(None, TABLE_LOGS, TABLE_NAME, "INICIO")
 
     for justi in justis_list_distinc:
 
@@ -76,11 +77,11 @@ def main():
     
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
-                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+                    db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
                     break
 
     logger.info("Fim de população dos tipo de contratos")
-    db.change_status_extraction(log_id, None, "SUCESSO")
+    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

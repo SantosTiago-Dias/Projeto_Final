@@ -9,6 +9,7 @@ import time
 load_dotenv(".env")
 CCP_FILE = "Tipo_Procedimento.json"
 TABLE_NAME = "tipo_procedimento_dictionary"
+TABLE_LOGS = 't_logs_extract'
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
 def prepare_data(artigo:int,explain:str):
@@ -23,7 +24,7 @@ def main():
     procedureType_list_distinc=db.get_distinct_data('tipo_procedimento','contratos_ext')
     
     logger.info("A inicar a população de dados dos Tipos de procedimento")
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
+    log_id = db.change_status(None, TABLE_LOGS, TABLE_NAME, "INICIO")
 
     for proceduteType in procedureType_list_distinc:
         if not dictionary.verify_id_exists(CCP_FILE,proceduteType):
@@ -69,9 +70,10 @@ def main():
     
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
-                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+                    db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
                     break
     logger.info("Fim de população dos tipos de procedimentos")
+    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

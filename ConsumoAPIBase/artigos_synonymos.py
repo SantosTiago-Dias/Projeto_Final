@@ -9,6 +9,8 @@ import time
 load_dotenv(".env")
 CCP_FILE = "ccp_por_artigo.json"
 TABLE_NAME = "fundamentacao_contrato_dictionary"
+TABLE_LOGS= "t_logs_extract"
+
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
@@ -23,7 +25,7 @@ def main():
     dictionary.verifiy_File_exists(CCP_FILE)
     artigos_list_distinc=db.get_distinct_data('fundamentacao','contratos_ext')
     
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
+    log_id = db.change_status(None,TABLE_LOGS, TABLE_NAME, "INICIO")
     logger.info("A inicar a população de dados dos artigos")
 
     for artigo in artigos_list_distinc:
@@ -70,11 +72,11 @@ def main():
     
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
-                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+                    db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
                     break
                 
     logger.info("Fim de população de dados dos artigos")
-    db.change_status_extraction(log_id, None, "SUCESSO")
+    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

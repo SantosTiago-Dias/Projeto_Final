@@ -9,6 +9,7 @@ import time
 load_dotenv(".env")
 TABLE_NAME = "tipo_contrato_dictionary"
 CCP_FILE = "Tipo_Contrato.json"
+TABLE_LOGS = 't_logs_extract'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
@@ -25,7 +26,7 @@ def main():
     dictionary.verifiy_File_exists(CCP_FILE)
     contractType_list_distinc=db.get_distinct_data('tipo_contrato','contratos_ext')
     
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
+    log_id = db.change_status(None,TABLE_LOGS,TABLE_NAME, "INICIO")
     logger.info("A inicar a população dos Tipos de contrato")
 
     for contractType in contractType_list_distinc:
@@ -67,7 +68,7 @@ def main():
                 except RateLimitError:
                     wait = 30 * (2 ** retries)
                     logger.warning(f"Rate limit hit for '{contractType}'. Waiting {wait}s...")
-                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+                    db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem=str(e))
                     time.sleep(wait)
                     retries += 1
     
@@ -75,7 +76,7 @@ def main():
                     logger.error(f"ERROR: {e}")
                     break
     logger.info("Fim de população dos tipo de contratos")
-    db.change_status_extraction(log_id, None, "SUCESSO")
+    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

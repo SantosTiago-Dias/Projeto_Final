@@ -16,7 +16,7 @@ def main():
 
 
     #Extração dos dados
-    
+    """
     try:
         connection = db.get_connection()
         if connection:
@@ -25,11 +25,13 @@ def main():
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
-    
+    """
+        
 
-    #População de dados
-    #TODO:Populacionar os dados dps
     try:
+
+        db.execute_transformacao()
+
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
         artigos_synonymos.main()
@@ -37,18 +39,13 @@ def main():
         procedimento_Synonymos.main()
         justificacao.main()
         logger.info("Fim da população dados")
+
+        db.execute_load()
     
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
 
-    try:
-        db.execute_transformacao()
-        db.execute_load()
-    except Exception as e:
-        logger.error(f"Erro: {e}")
-        sys.exit(1)
-    
 
 
 if __name__ == "__main__":

@@ -8,6 +8,8 @@ import re
 
 load_dotenv('.env')
 
+
+
 def get_connection():
     try:
         return mysql.connector.connect(
@@ -70,6 +72,7 @@ def verify_database_exists():
    
 
 def execute_transformacao():
+    
     mydb = get_connection()
     if not mydb:
         return
@@ -85,7 +88,8 @@ def execute_transformacao():
         for proc in procedures:
             logger.info(f"A executar: {proc}")
 
-            # Cursor fresco por procedure — sem estado partilhado
+            log_id = change_status(None,'t_logs_transformacao',proc,"INICIO")
+
             cur = mydb.cursor()
             try:
                 cur.callproc(proc)
@@ -101,12 +105,13 @@ def execute_transformacao():
                     pass
 
                 mydb.commit()
+                change_status(log_id, 't_logs_transformacao', None, "SUCESSO")
                 logger.success(f"Concluído: {proc}")
 
             except mysql.connector.Error as e:
-                # Não faz rollback — TRUNCATE já não é reversível
                 logger.error(f"Erro em {proc}: {e}")
-                raise  # re-lança para parar as procedures seguintes
+                change_status(log_id, 't_logs_transformacao', None, "ERRO", mensagem=str(e))
+            
 
             finally:
                 cur.close()
@@ -133,7 +138,7 @@ def execute_load():
 
         for proc in procedures:
             logger.info(f"A executar: {proc}")
-
+            log_id = change_status(None,'t_logs_carregamento',proc,"INICIO")
             # Cursor fresco por procedure — sem estado partilhado
             cur = mydb.cursor()
             try:
@@ -150,12 +155,13 @@ def execute_load():
                     pass
 
                 mydb.commit()
+                change_status(log_id, 't_logs_carregamento', None, "SUCESSO")
                 logger.success(f"Concluído: {proc}")
 
             except mysql.connector.Error as e:
-                # Não faz rollback — TRUNCATE já não é reversível
                 logger.error(f"Erro em {proc}: {e}")
-                raise  # re-lança para parar as procedures seguintes
+                change_status(log_id, 't_logs_carregamento', None, "ERRO", mensagem=str(e))
+                
 
             finally:
                 cur.close()
@@ -225,25 +231,24 @@ def get_distinct_data(nome_campo:str,table_name:str):
     data=data = [row[0] for row in mycursor.fetchall()]
     return data
 
-def change_status_extraction(id: int | None, table_name: str | None, status: str, mensagem: str = None) -> int | None:
+def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status: str, mensagem: str = None) -> int | None:
     mydb = get_connection()
     mycursor = mydb.cursor()
-
     match status:
         case "INICIO":
-            query = "INSERT INTO t_logs_extract (nome_tabela, status) VALUES (%s, 'INICIO')"
-            mycursor.execute(query, (table_name,))
+            query = "INSERT INTO "+table_logs+" (nome_objeto, status) VALUES (%s, 'INICIO')"
+            mycursor.execute(query, (nome_objeto,))
             mydb.commit()
             return mycursor.lastrowid  # retorna o id do novo registo
 
         case "SUCESSO":
-            query = "UPDATE t_logs_extract SET status = 'SUCESSO', ultima_extracao = NOW() WHERE id = %s"
-            mycursor.execute(query, (id,))  # tuple, não valor solto
+            query = "UPDATE "+table_logs+" SET status = 'SUCESSO', ultima_extracao = NOW() WHERE id = %s"
+            mycursor.execute(query, (id,))
             mydb.commit()
 
         case "ERRO":
-            query = "UPDATE t_logs_extract SET status = 'ERRO', mensagem = %s, ultima_extracao = NOW() WHERE id = %s"
-            mycursor.execute(query, (mensagem, id))  # tuple com os dois valores
+            query = "UPDATE "+table_logs+" SET status = 'ERRO', mensagem = %s, ultima_extracao = NOW() WHERE id = %s"
+            mycursor.execute(query, (mensagem, id)) 
             mydb.commit()
 
         case _:

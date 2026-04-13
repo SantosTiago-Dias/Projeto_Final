@@ -13,11 +13,30 @@ DROP Table If EXISTS entidade_transf;
 
 CREATE TABLE IF NOT EXISTS t_logs_extract (
     id              INT PRIMARY KEY AUTO_INCREMENT,
-    nome_tabela     VARCHAR(50) NOT NULL,
+    nome_objeto     VARCHAR(50) NOT NULL,
     status          ENUM('INICIO','SUCESSO','ERRO') NOT NULL DEFAULT 'INICIO',
     mensagem        TEXT,
     ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS t_logs_transformacao (
+    id              INT PRIMARY KEY AUTO_INCREMENT,
+    nome_objeto     VARCHAR(255) NOT NULL,
+    status          ENUM('INICIO','SUCESSO','ERRO') NOT NULL DEFAULT 'INICIO',
+    mensagem        TEXT,
+    ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS t_logs_carregamento (
+    id              INT PRIMARY KEY AUTO_INCREMENT,
+    nome_objeto     VARCHAR(50) NOT NULL,
+    status          ENUM('INICIO','SUCESSO','ERRO') NOT NULL DEFAULT 'INICIO',
+    mensagem        TEXT,
+    ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
 
 CREATE TABLE IF NOT EXISTS cpv_dictionary (
     id_cpv   INT PRIMARY KEY AUTO_INCREMENT,
