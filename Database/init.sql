@@ -15,31 +15,36 @@ CREATE TABLE IF NOT EXISTS cpv_dictionary (
     id_cpv   INT PRIMARY KEY AUTO_INCREMENT,
     codigo   VARCHAR(10),
     cpv_descricao VARCHAR(255),
-    descricao TEXT
+    descricao TEXT,
+    UNIQUE (codigo)
 );
 
 CREATE TABLE IF NOT EXISTS tipo_procedimento_dictionary (
     id_tipo_procedimento INT PRIMARY KEY AUTO_INCREMENT,
     tipo                 VARCHAR(255),
-    descricao            TEXT
+    descricao            TEXT,
+    UNIQUE (tipo)
 );
 
 CREATE TABLE IF NOT EXISTS tipo_contrato_dictionary (
     id_tipo_contrato INT PRIMARY KEY AUTO_INCREMENT,
     tipo             VARCHAR(255),
-    descricao        TEXT
+    descricao        TEXT,
+    UNIQUE (tipo)
 );
 
 CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary (
     id_justificacao INT PRIMARY KEY AUTO_INCREMENT,
     justificacao    TEXT,
-    descricao       TEXT
+    descricao       TEXT,
+    UNIQUE (fundamentacao)
 );
 
 CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary (
     id_fundamentacao INT PRIMARY KEY AUTO_INCREMENT,
     fundamentacao    VARCHAR(255),
-    descricao        TEXT
+    descricao        TEXT,
+    UNIQUE (justificacao)
 );
 
 CREATE TABLE IF NOT EXISTS entidades_ext (
@@ -183,7 +188,7 @@ CREATE TABLE IF NOT EXISTS dim_cpv_contratos (
 
 CREATE TABLE dim_data (
     chave_date INT AUTO_INCREMENT PRIMARY KEY,
-    data DATE NOT NULL,
+    data DATE,
     feriado VARCHAR(100),
     fim_semana TINYINT(1),
     dia TINYINT,
@@ -192,7 +197,8 @@ CREATE TABLE dim_data (
     dia_semana VARCHAR(20),
     nome_mes VARCHAR(20),
     abr_mes VARCHAR(5),
-    data_extenso VARCHAR(100)
+    data_extenso VARCHAR(100),
+    UNIQUE (data)
 );
 
 CREATE TABLE IF NOT EXISTS fact_contratos (

@@ -53,6 +53,11 @@ def main():
         logger.error(f"Erro ao gerar dim_data: {e}")
         sys.exit(1)
 
+    try:
+        db.call_init_dims()  
+    except Exception as e:
+        logger.error(f"Erro init_dims antes do load: {e}")
+        sys.exit(1)
 
     try:
         db.execute_load()

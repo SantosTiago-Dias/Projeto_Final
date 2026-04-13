@@ -534,16 +534,34 @@ BEGIN
         chave_data
     )
     SELECT 
-        dc.chave_contratos,
-        de.chave_entidade,
+        COALESCE(dc.chave_contratos,
+                 (SELECT chave_contratos FROM dim_detalhes_contratos WHERE id_contrato = -1)),
+
+        COALESCE(de.chave_entidade,
+                 (SELECT chave_entidade FROM dim_entidade WHERE id_entidade = -1)),
+
         ct.adjudicatario,
-        tc.id_tipo_contrato AS chave_tipo_contrato,
-        tp.id_tipo_procedimento AS chave_tipo_procedimento,
-        fc.id_fundamentacao AS chave_fundamentacao,
-        jc.id_justificacao AS chave_justificacao_nao_escrita,
-        deadjudicante.chave_entidade AS adjudicante,
+
+        COALESCE(tc.id_tipo_contrato,
+                 (SELECT id_tipo_contrato FROM tipo_contrato_dictionary WHERE tipo = 'N/A')),
+
+        COALESCE(tp.id_tipo_procedimento,
+                 (SELECT id_tipo_procedimento FROM tipo_procedimento_dictionary WHERE tipo = 'N/A')),
+
+        COALESCE(fc.id_fundamentacao,
+                 (SELECT id_fundamentacao FROM fundamentacao_contrato_dictionary WHERE fundamentacao = 'N/A')),
+
+        COALESCE(jc.id_justificacao,
+                 (SELECT id_justificacao FROM justificacao_contrato_nao_escrito_dictionary WHERE justificacao = 'N/A')),
+
+        COALESCE(deadjudicante.chave_entidade,
+                 (SELECT chave_entidade FROM dim_entidade WHERE id_entidade = -1)),
+
         dc.valor_contratual,
-        dd.chave_date AS chave_data
+
+        COALESCE(dd.chave_date,
+                 (SELECT chave_date FROM dim_data WHERE data IS NULL))
+
     FROM contratos_transf ct
     LEFT JOIN dim_detalhes_contratos dc 
         ON dc.id_contrato = ct.id_contrato
@@ -570,6 +588,90 @@ BEGIN
     );
 
 END$$
+CREATE PROCEDURE init_dims()
+BEGIN
 
+    INSERT INTO dim_entidade (
+        id_entidade, nif, nome,
+        total_adjudicatario,
+        num_contratos_adjudicatario,
+        total_adjudicante,
+        num_contratos_adjudicante,
+        pais
+    )
+    SELECT 
+        -1, NULL, 'ENTIDADE INVALIDA',
+        0, 0, 0, 0, 'N/A'
+    WHERE NOT EXISTS (
+        SELECT 1 FROM dim_entidade WHERE id_entidade = -1
+    );
+
+    INSERT INTO dim_detalhes_contratos (
+        id_contrato, objeto, descricao,
+        data_publicacao, data_celebracao,
+        valor_contratual, prazo_execucao,
+        local_execucao, procedimento_centralizado,
+        num_acordos_quadro, desc_acordo_quadro,
+        data_fecho_contrato, valor_total_efetivo,
+        regime, tipo_fim_contrato,
+        crit_materiais, link_pecas,
+        observacoes, contrato_ecologico,
+        fundamentacao_ajuste_directo
+    )
+    SELECT 
+        -1, 'N/A', 'CONTRATO INVALIDO',
+        NULL, NULL, 0, 0, 'N/A',
+        0, 'N/A', 'N/A',
+        NULL, 0, 'N/A', 'N/A',
+        0, 'N/A', 'N/A', 0, 'N/A'
+    WHERE NOT EXISTS (
+        SELECT 1 FROM dim_detalhes_contratos WHERE id_contrato = -1
+    );
+
+    INSERT INTO dim_data (
+        data, feriado, fim_semana,
+        dia, mes, ano,
+        dia_semana, nome_mes,
+        abr_mes, data_extenso
+    )
+    SELECT 
+        NULL, 'N/A', NULL,
+        NULL, NULL, NULL,
+        'N/A', 'N/A', 'N/A', 'DATA INVALIDA'
+    WHERE NOT EXISTS (
+        SELECT 1 FROM dim_data WHERE data IS NULL
+    );
+
+    INSERT INTO cpv_dictionary (codigo, cpv_descricao, descricao)
+    SELECT 'N/A', 'N/A', 'VALOR DESCONHECIDO'
+    WHERE NOT EXISTS (
+        SELECT 1 FROM cpv_dictionary WHERE codigo = 'N/A'
+    );
+
+    INSERT INTO tipo_procedimento_dictionary (tipo, descricao)
+    SELECT 'N/A', 'VALOR DESCONHECIDO'
+    WHERE NOT EXISTS (
+        SELECT 1 FROM tipo_procedimento_dictionary WHERE tipo = 'N/A'
+    );
+
+    INSERT INTO tipo_contrato_dictionary (tipo, descricao)
+    SELECT 'N/A', 'VALOR DESCONHECIDO'
+    WHERE NOT EXISTS (
+        SELECT 1 FROM tipo_contrato_dictionary WHERE tipo = 'N/A'
+    );
+
+    INSERT INTO justificacao_contrato_nao_escrito_dictionary (justificacao, descricao)
+    SELECT 'N/A', 'VALOR DESCONHECIDO'
+    WHERE NOT EXISTS (
+        SELECT 1 FROM justificacao_contrato_nao_escrito_dictionary WHERE justificacao = 'N/A'
+    );
+
+    INSERT INTO fundamentacao_contrato_dictionary (fundamentacao, descricao)
+    SELECT 'N/A', 'VALOR DESCONHECIDO'
+    WHERE NOT EXISTS (
+        SELECT 1 FROM fundamentacao_contrato_dictionary WHERE fundamentacao = 'N/A'
+    );
+
+END$$
 
 DELIMITER ;

@@ -119,6 +119,28 @@ def execute_transformacao():
     finally:
         mydb.close()
 
+def call_init_dims():
+    mydb = get_connection()
+    cur = mydb.cursor()
+
+    try:
+        cur.callproc("init_dims")
+
+        for result in cur.stored_results():
+            try:
+                result.fetchall()
+            except:
+                pass
+
+        while cur.nextset():
+            pass
+
+        mydb.commit()
+
+    finally:
+        cur.close()
+        mydb.close()
+
 def execute_load():
     mydb = get_connection()
     if not mydb:
