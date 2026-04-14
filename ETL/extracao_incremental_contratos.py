@@ -20,7 +20,7 @@ HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
     "User-Agent": "Mozilla/5.0",
 }
-
+TABLE_LOGS= "t_logs_extract"
 VERSION_SEARCH = "101.0"
 VERSION_DETAIL = "101.0"
 PAGE_SIZE = 25
@@ -132,10 +132,6 @@ def processar_contrato(sessao: requests.Session, contrato: dict):
         flatten_entidade(detalhes.get("contracted"), "contracted", contrato_data)
         flatten_entidade(detalhes.get("contestants"), "contestants", contrato_data)
 
-
-    #contrato_data.pop("contracting", None)
-    #contrato_data.pop("contracted", None)
-
     contrato_data["links_documentos"] = extrair_links_documentos(detalhes)
 
     return contrato_data
@@ -182,7 +178,7 @@ def main():
     parar = False
     #date of today
     today = datetime.today()
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
+    log_id = db.change_status(None, TABLE_LOGS,TABLE_NAME, "INICIO")
 
     try:
         data = listar_contratos(sessao, pagina)
@@ -223,12 +219,12 @@ def main():
                 
             except Exception as e:
                 logger.error("ocorreu um erro a extrair os dados")
-                db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+                db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
 
 
     except Exception as e:
         logger.exception(f"Não foi possível extrair os dados: {e}")
-        db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+        db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
         
     logger.info("Extração finalizada com sucesso")
     db.change_status_extraction(log_id, None, "SUCESSO")

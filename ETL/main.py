@@ -15,19 +15,25 @@ import justificacaoNEscrita as justificacao
 def main():
 
 
-    #Extração dos dados
-    """
-    try:
-        connection = db.get_connection()
-        if connection:
-            db.verify_database_exists()
-            extracao_incremental_contratos.main()
-    except Exception as e:
-        logger.error(f"Erro: {e}")
+    #region Connecção com a BD
+    connection = db.get_connection()
+    if not connection:
+        logger.error("Não foi possivel estabelecer uma connecção com a base de dados")
         sys.exit(1)
-    """
-        
+    #endregion    
 
+    #region Extração
+    try:
+        db.verify_database_exists()
+        extracao_incremental_contratos.main()    
+    except Exception as e:
+        #logger.error(f"Erro: {e}")
+        logger.exception(f"Erro: {e}")
+        sys.exit(1)
+    
+    #endregion
+
+    #region Transformação e carregamento
     try:
 
         db.execute_transformacao()
@@ -45,7 +51,7 @@ def main():
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
-
+    #endregion
 
 
 if __name__ == "__main__":

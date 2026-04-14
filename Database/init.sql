@@ -8,6 +8,7 @@ DROP Table If EXISTS contratos_ext;
 DROP Table If EXISTS entidades_ext;
 DROP Table If EXISTS contratos_transf;
 DROP Table If EXISTS entidade_transf;
+DROP TABLE IF EXISTS detalhes_contratos_transf;
 
 
 

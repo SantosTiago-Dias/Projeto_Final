@@ -7,20 +7,22 @@ import math
 import re
 
 load_dotenv('.env')
-
-
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+INIT = os.path.join(BASE_DIR, 'init.sql')
+PROCEDURES = os.path.join(BASE_DIR, 'procedures.sql')
 
 def get_connection():
     try:
         return mysql.connector.connect(
-            host=os.getenv("DB_HOST"),
-            user=os.getenv("DB_USER"),
-            port=os.getenv("DB_PORT"),
-            password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_NAME")
+            host=os.getenv("MYSQL_HOST", "database"),
+            user=os.getenv("DB_USER", "root"),
+            port=int(os.getenv("MYSQL_PORT", 3306)),
+            password=os.getenv("MYSQL_ROOT_PASSWORD", ""),
+            database=os.getenv("MYSQL_DATABASE", "ETL")
         )
     except Error as e:
         logger.error(f"Erro ao conectar à BD: {e}")
+        return False
     
 def verify_database_exists():
     mydb = get_connection()
@@ -29,18 +31,18 @@ def verify_database_exists():
 
     mycursor = mydb.cursor()
     try:
-        mycursor.execute(f"USE {os.getenv('DB_NAME')}")
+        mycursor.execute(f"USE {os.getenv('MYSQL_DATABASE')}")
         mycursor.execute("SHOW TABLES")
         mycursor.fetchall()
 
-        with open('../Database/init.sql', 'r', encoding='utf-8') as f:
+        with open(INIT, 'r', encoding='utf-8') as f:
             sql = f.read()
             for statement in sql.split(';'):
                 statement = statement.strip()
                 if statement:
                     mycursor.execute(statement)
         
-        with open('../Database/procedures.sql', 'r', encoding='utf-8') as f:
+        with open(PROCEDURES, 'r', encoding='utf-8') as f:
             sql_content = f.read()
             
             statements = sql_content.split('$$')
