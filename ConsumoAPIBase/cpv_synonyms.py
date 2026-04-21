@@ -20,6 +20,7 @@ def prepare_data(cpv:int, cpv_description: str,description:str):
     }
     return data
 
+#TODO: pensar noutra forma para fazer isto 
 def get_cpv_description(cpv: int) -> str:
     mydb = db.get_connection()
     mycursor = mydb.cursor()
