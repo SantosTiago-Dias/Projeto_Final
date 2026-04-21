@@ -8,7 +8,7 @@ import time
 
 load_dotenv(".env")
 CCP_FILE = "ccp_por_artigo.json"
-TABLE_NAME = "fundamentacao_contrato_dictionary_ext"
+TABLE_NAME = "fundamentacao_contrato_dictionary"
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
@@ -21,7 +21,7 @@ def prepare_data(artigo:int,explain:str):
 
 def main():
     dictionary.verifiy_File_exists(CCP_FILE)
-    artigos_list_distinc=db.get_distinct_data('fundamentacao','contratos_ext')
+    artigos_list_distinc=db.get_distinct_data('fundamentacao','contratos_transf')
     
     log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
     logger.info("A inicar a população de dados dos artigos")
@@ -57,7 +57,7 @@ def main():
                     explain = response.choices[0].message.content.strip()
 
                     dictionary.add_value(CCP_FILE,str(artigo),explain)
-                    db.insert_data_table('fundamentacao_contrato_dictionary_ext',[prepare_data(artigo,explain)])
+                    db.insert_data_table(TABLE_NAME,[prepare_data(artigo,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break

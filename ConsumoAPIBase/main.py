@@ -25,17 +25,22 @@ def main():
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
-    
+
+    try:
+        db.execute_transformacao()
+    except Exception as e:
+        logger.error(f"Erro: {e}")
+        sys.exit(1)
 
     #População de dados
     #TODO:Populacionar os dados dps
     try:
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
-        artigos_synonymos.main()
         contrato_synonymos.main()
         procedimento_Synonymos.main()
         justificacao.main()
+        artigos_synonymos.main()
         logger.info("Fim da população dados")
     
     except Exception as e:
@@ -43,7 +48,18 @@ def main():
         sys.exit(1)
 
     try:
-        db.execute_transformacao()
+        db.ensure_dim_data('2024-01-01', '2036-12-31')
+    except Exception as e:
+        logger.error(f"Erro ao gerar dim_data: {e}")
+        sys.exit(1)
+
+    try:
+        db.call_init_dims()  
+    except Exception as e:
+        logger.error(f"Erro init_dims antes do load: {e}")
+        sys.exit(1)
+
+    try:
         db.execute_load()
     except Exception as e:
         logger.error(f"Erro: {e}")

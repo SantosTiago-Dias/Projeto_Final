@@ -5,6 +5,7 @@ from mysql.connector import Error
 import os
 import math
 import re
+import requests
 
 load_dotenv('.env')
 
@@ -118,6 +119,28 @@ def execute_transformacao():
     finally:
         mydb.close()
 
+def call_init_dims():
+    mydb = get_connection()
+    cur = mydb.cursor()
+
+    try:
+        cur.callproc("init_dims")
+
+        for result in cur.stored_results():
+            try:
+                result.fetchall()
+            except:
+                pass
+
+        while cur.nextset():
+            pass
+
+        mydb.commit()
+
+    finally:
+        cur.close()
+        mydb.close()
+
 def execute_load():
     mydb = get_connection()
     if not mydb:
@@ -160,10 +183,10 @@ def execute_load():
             finally:
                 cur.close()
 
-        logger.info("Transformação concluída com sucesso!")
+        logger.info("Carregamento concluído com sucesso!")
 
     except mysql.connector.Error as e:
-        logger.error(f"Erro na transformação: {e}")
+        logger.error(f"Erro no carregamento: {e}")
     finally:
         mydb.close()
 
@@ -253,3 +276,119 @@ def change_status_extraction(id: int | None, table_name: str | None, status: str
     mydb.close()
     return None
 
+def ensure_dim_data(start_date: str = '2026-01-01', end_date: str = '2036-12-31'):
+    mydb = get_connection()
+    if not mydb:
+        return
+
+    cur = mydb.cursor()
+
+    try:
+        # 1. Verificar se a tabela existe
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+            AND table_name = 'dim_data'
+        """)
+        exists = cur.fetchone()[0]
+
+        if not exists:
+            logger.warning("Tabela dim_data não existe.")
+            return
+
+        # 2. Verificar se tem dados
+        cur.execute("SELECT COUNT(*) FROM dim_data")
+        count = cur.fetchone()[0]
+
+        if count > 0:
+            logger.info(f"dim_data já populada ({count} registos). Skip.")
+            return
+
+        # 3. Executar procedure
+        logger.info("dim_data vazia. A gerar calendário...")
+
+        cur.callproc('load_dim_data', [start_date, end_date])
+        #load_eventos_naturais()
+
+        # limpar result sets
+        for result in cur.stored_results():
+            try:
+                result.fetchall()
+            except:
+                pass
+
+        while cur.nextset():
+            pass
+
+        mydb.commit()
+
+        logger.success("dim_data gerada com sucesso!")
+
+    except Exception as e:
+        logger.error(f"Erro ao garantir dim_data: {e}")
+    finally:
+        cur.close()
+        mydb.close()
+
+def load_eventos_naturais():
+    mydb = get_connection()
+    if not mydb:
+        return
+
+    cursor = mydb.cursor()
+
+    try:
+        logger.info("A obter eventos da API EONET...")
+
+        url = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            logger.error(f"Erro na API: {response.status_code}")
+            return
+
+        data = response.json()
+        updates = 0
+
+        for event in data.get("events", []):
+            titulo = event.get("title", "")
+
+            # Filtrar para Portugal
+            if "Portugal" not in titulo:
+                continue
+
+            for geo in event.get("geometry", []):
+                data_evento = geo.get("date", "")[:10]
+
+                if not data_evento:
+                    continue
+
+                sql = """
+                UPDATE dim_data
+                SET evento_natural = 
+                    CASE 
+                        WHEN evento_natural IS NULL THEN %s
+                        ELSE CONCAT(evento_natural, ' | ', %s)
+                    END
+                WHERE data = %s
+                  AND (
+                        evento_natural IS NULL 
+                        OR evento_natural NOT LIKE %s
+                  )
+                """
+
+                like_pattern = f"%{titulo}%"
+
+                cursor.execute(sql, (titulo, titulo, data_evento, like_pattern))
+                updates += cursor.rowcount
+
+        mydb.commit()
+        logger.success(f"Eventos naturais (Portugal) carregados! Updates: {updates}")
+
+    except Exception as e:
+        logger.error(f"Erro ao carregar eventos naturais: {e}")
+
+    finally:
+        cursor.close()
+        mydb.close()
