@@ -25,6 +25,8 @@ VERSION_SEARCH = "101.0"
 VERSION_DETAIL = "101.0"
 PAGE_SIZE = 25
 MAX_PAGES = 1
+RETRIES = 5
+
 
 
 def criar_sessao():
@@ -59,7 +61,13 @@ def listar_contratos(sessao: requests.Session, pagina: int) :
         return resposta.json()
 
     except requests.exceptions.RequestException as e:
-        print(f"Erro na listagem da página {pagina}: {e}")
+        logger.error(f"Erro na listagem da página {pagina}: {e}")
+        if RETRIES > 0:
+            logger.info(f"Tentativa n {RETRIES}")
+            time.sleep(2 ** (5 - RETRIES))  # Exponential backoff
+            return listar_contratos(sessao, pagina)
+        else:
+            db.change_status(None, TABLE_LOGS, TABLE_NAME, "ERRO", mensagem=f"Erro ao tentar extrair dados:{e}")
         return None
 
 #Vai buscar os detalhes de cada contrato
@@ -179,47 +187,50 @@ def main():
     #date of today
     today = datetime.today()
     log_id = db.change_status(None, TABLE_LOGS,TABLE_NAME, "INICIO")
+    num_contratos = 0
 
     try:
         data = listar_contratos(sessao, pagina)
         logger.info("A iniciar extração de contratos...")
-        while pagina < data['total'] and not parar:
-            data = listar_contratos(sessao, pagina)
+        #while pagina < data['total'] and not parar:
+        
+        #TODO:POR NORMAL DPS
+        data = listar_contratos(sessao, pagina)
+
+        if not data or "items" not in data:
+            #TODO:ver isto
+            print("Fim dos contratos ou erro na resposta.")
+            #break
+
+        items = data["items"]
+
+        with alive_bar(len(items), title=f"Página {pagina+1}") as bar:
+            for contrato in items:
+
+                publication_date = datetime.strptime(contrato['publicationDate'], '%d-%m-%Y')
+                #- timedelta(days=1)
+                if publication_date.date() == today.date():
+                    if items is not None:
+                        contrato_data = processar_contrato(sessao, contrato)
+                        contrato_data = prepare_data(contrato_data)
+                        contratos.append(contrato_data)
+                        num_contratos += 1
+                        bar()
+                else:
+                    logger.success("Dados extraidos com sucesso")
+                    parar=True
+                    break
+        pagina += 1
+
+        #insert data
+        try:
+            db.insert_data_table('contratos_ext',contratos)
+            contratos.clear()
+            logger.success("dados inseridos com sucesso")
             
-
-            if not data or "items" not in data:
-                #TODO:ver isto
-                print("Fim dos contratos ou erro na resposta.")
-                break
-
-            items = data["items"]
-
-            with alive_bar(len(items), title=f"Página {pagina+1}") as bar:
-                for contrato in items:
-
-                    publication_date = datetime.strptime(contrato['publicationDate'], '%d-%m-%Y')
-                    #- timedelta(days=1)
-                    if publication_date.date() == today.date():
-                        if items is not None:
-                            contrato_data = processar_contrato(sessao, contrato)
-                            contrato_data = prepare_data(contrato_data)
-                            contratos.append(contrato_data)
-                            bar()
-                    else:
-                        logger.success("Dados extraidos com sucesso")
-                        parar=True
-                        break
-            pagina += 1
-
-            #insert data
-            try:
-                db.insert_data_table('contratos_ext',contratos)
-                contratos.clear()
-                logger.success("dados inseridos com sucesso")
-                
-            except Exception as e:
-                logger.error("ocorreu um erro a extrair os dados")
-                db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
+        except Exception as e:
+            logger.error("ocorreu um erro a extrair os dados")
+            db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
 
 
     except Exception as e:
@@ -227,7 +238,8 @@ def main():
         db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
         
     logger.info("Extração finalizada com sucesso")
-    db.change_status_extraction(log_id, None, "SUCESSO")
+    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
+    db.average_extrated_contracts(num_contratos)
 
 if __name__ == "__main__":
     main()

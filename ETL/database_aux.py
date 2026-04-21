@@ -260,3 +260,32 @@ def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status
     mydb.close()
     return None
 
+def average_extrated_contracts(num_contratos: int):
+    mydb = get_connection()
+    mycursor = mydb.cursor()
+
+    try:
+        insert_query = "INSERT INTO data_extracted (num_contratos) VALUES (%s)"
+        mycursor.execute(insert_query, (num_contratos))
+        mydb.commit()
+
+        last_id = mydb.insert_id()
+        logger.info(f"Número de contratos extraídos inseridos: {num_contratos} (ID: {last_id})")
+
+        # Calcula a média de contratos extraídos por dia
+        update_query = """
+            UPDATE data_extracted
+            SET media_contratos = (
+                SELECT AVG(num_contratos) FROM data_extracted
+            )
+            WHERE id = %s
+        """
+        mycursor.execute(update_query, (last_id))
+        average = mycursor.fetchone()[0]
+        logger.info(f"Média de contratos extraídos por dia: {average:.2f}")
+
+    except mysql.connector.Error as e:
+        logger.error(f"Erro ao calcular a média de contratos extraídos: {e}")
+    finally:
+        mycursor.close()
+        mydb.close()

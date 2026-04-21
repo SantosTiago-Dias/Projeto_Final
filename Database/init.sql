@@ -10,7 +10,12 @@ DROP Table If EXISTS contratos_transf;
 DROP Table If EXISTS entidade_transf;
 DROP TABLE IF EXISTS detalhes_contratos_transf;
 
-
+CREATE TABLE IF NOT EXISTS data_extracted(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    num_contratos INT,
+    media_contratos DECIMAL(15,2),
+    data_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS t_logs_extract (
     id              INT PRIMARY KEY AUTO_INCREMENT,
