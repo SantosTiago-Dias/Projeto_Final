@@ -32,14 +32,14 @@ BEGIN
     )
     SELECT
         id_contrato,
-        objeto,
-        descricao,
+        TRIM(objeto),
+        TRIM(descricao),
 
         STR_TO_DATE(data_publicacao, '%d-%m-%Y'),
         STR_TO_DATE(data_celebracao, '%d-%m-%Y'),
 
-        IFNULL(CAST(REPLACE(REPLACE(TRIM(TRAILING '€' FROM valor_contratual),'.', ''),',', '.') AS DECIMAL(15,2)),0),
-        IFNULL(CAST(TRIM(REPLACE(prazo_execucao, ' dias', '')) AS UNSIGNED),0),
+        CAST(REPLACE(REPLACE(TRIM(TRAILING '€' FROM valor_contratual),'.', ''),',', '.') AS DECIMAL(15,2)),
+        CAST(TRIM(REPLACE(prazo_execucao, ' dias', '')) AS UNSIGNED),
 
         local_execucao,
         procedimento_centralizado,
@@ -48,7 +48,7 @@ BEGIN
 
         STR_TO_DATE(data_fecho_contrato, '%d-%m-%Y'),
 
-        IFNULL(CAST(REPLACE(REPLACE(TRIM(TRAILING '€' FROM valor_total_efetivo),'.', ''),',', '.') AS DECIMAL(15,2)),0),
+        CAST(REPLACE(REPLACE(TRIM(TRAILING '€' FROM valor_total_efetivo),'.', ''),',', '.') AS DECIMAL(15,2)),
 
         regime,
 
@@ -91,7 +91,19 @@ BEGIN
 
         1 AS adjudicatario,
 
-        c.tipo_contrato,
+        (
+            SELECT GROUP_CONCAT(TRIM(jt.val) ORDER BY TRIM(jt.val) SEPARATOR ', ')
+            FROM JSON_TABLE(
+                CONCAT(
+                    '["',
+                    REPLACE(REPLACE(c.tipo_contrato, '<br/>', ','), ',', '","'),
+                    '"]'
+                ),
+                '$[*]' COLUMNS (
+                    val VARCHAR(255) PATH '$'
+                )
+            ) jt
+        ),
         c.tipo_procedimento,
         c.fundamentacao,
         c.justificacao_nao_escrita,
@@ -128,7 +140,19 @@ BEGIN
 
         0 AS adjudicatario,
 
-        c.tipo_contrato,
+        (
+            SELECT GROUP_CONCAT(TRIM(jt.val) ORDER BY TRIM(jt.val) SEPARATOR ', ')
+            FROM JSON_TABLE(
+                CONCAT(
+                    '["',
+                    REPLACE(REPLACE(c.tipo_contrato, '<br/>', ','), ',', '","'),
+                    '"]'
+                ),
+                '$[*]' COLUMNS (
+                    val VARCHAR(255) PATH '$'
+                )
+            ) jt
+        ),
         c.tipo_procedimento,
         c.fundamentacao,
         c.justificacao_nao_escrita,
@@ -579,13 +603,20 @@ BEGIN
         ON jc.justificacao = ct.justificacao_nao_escrita
     LEFT JOIN dim_data dd
         ON dd.data = dc.data_celebracao
-    WHERE NOT EXISTS (
+
+        WHERE NOT EXISTS (
         SELECT 1
         FROM fact_contratos f
         WHERE f.chave_contratos = dc.chave_contratos
           AND f.chave_entidade = de.chave_entidade
-          AND f.adjudicatario = ct.adjudicatario
-    );
+          AND f.adjudicante = deadjudicante.chave_entidade
+        )
+
+    GROUP BY 
+        dc.chave_contratos,
+        de.chave_entidade,
+        deadjudicante.chave_entidade;
+    
 
 END$$
 CREATE PROCEDURE init_dims()

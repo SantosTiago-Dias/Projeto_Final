@@ -21,7 +21,7 @@ def prepare_data(artigo:int,explain:str):
 
 def main():
     dictionary.verifiy_File_exists(CCP_FILE)
-    artigos_list_distinc=db.get_distinct_data('fundamentacao','contratos_ext')
+    artigos_list_distinc=db.get_distinct_data('fundamentacao','contratos_transf')
     
     log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
     logger.info("A inicar a população de dados dos artigos")

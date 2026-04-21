@@ -37,14 +37,14 @@ CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary (
     id_justificacao INT PRIMARY KEY AUTO_INCREMENT,
     justificacao    TEXT,
     descricao       TEXT,
-    UNIQUE (fundamentacao)
+    UNIQUE (justificacao(500))
 );
 
 CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary (
     id_fundamentacao INT PRIMARY KEY AUTO_INCREMENT,
     fundamentacao    VARCHAR(255),
     descricao        TEXT,
-    UNIQUE (justificacao)
+    UNIQUE (fundamentacao)
 );
 
 CREATE TABLE IF NOT EXISTS entidades_ext (
@@ -67,11 +67,11 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     cpvs                      VARCHAR(255),
     cpvsDesignation           VARCHAR(255),
     prazo_execucao            VARCHAR(255),
-    local_execucao            VARCHAR(255),
+    local_execucao            TEXT,
     fundamentacao             VARCHAR(255),
     procedimento_centralizado VARCHAR(10),
     num_acordos_quadro        VARCHAR(255),
-    desc_acordo_quadro        VARCHAR(255),
+    desc_acordo_quadro        TEXT,
     data_fecho_contrato       VARCHAR(10),
     valor_total_efetivo       VARCHAR(20),
     regime                    VARCHAR(255),
@@ -106,10 +106,10 @@ CREATE TABLE IF NOT EXISTS detalhes_contratos_transf (
     data_celebracao           DATE,
     valor_contratual          DECIMAL(15,2),
     prazo_execucao            INT,
-    local_execucao            VARCHAR(255),
+    local_execucao            TEXT,
     procedimento_centralizado TINYINT(1),
     num_acordos_quadro        VARCHAR(20),
-    desc_acordo_quadro        VARCHAR(255),
+    desc_acordo_quadro        TEXT,
     data_fecho_contrato       DATE,
     valor_total_efetivo       DECIMAL(15,2),
     regime                    VARCHAR(255),
@@ -162,10 +162,10 @@ CREATE TABLE IF NOT EXISTS dim_detalhes_contratos (
     data_celebracao           DATE,
     valor_contratual          DECIMAL(15,2),
     prazo_execucao            INT,
-    local_execucao            VARCHAR(255),
+    local_execucao            TEXT,
     procedimento_centralizado TINYINT(1),
     num_acordos_quadro        VARCHAR(20),
-    desc_acordo_quadro        VARCHAR(255),
+    desc_acordo_quadro        TEXT,
     data_fecho_contrato       DATE,
     valor_total_efetivo       DECIMAL(15,2),
     regime                    VARCHAR(255),
@@ -212,7 +212,7 @@ CREATE TABLE IF NOT EXISTS fact_contratos (
     chave_justificacao_nao_escrita INT,
     valor_contratual              DECIMAL(15,2),
     chave_data                     INT,
-    PRIMARY KEY (chave_contratos, chave_entidade),
+    PRIMARY KEY (chave_contratos, chave_entidade, adjudicante),
     FOREIGN KEY (chave_contratos) REFERENCES dim_detalhes_contratos(chave_contratos),
     FOREIGN KEY (chave_entidade)  REFERENCES dim_entidade(chave_entidade),
     FOREIGN KEY (chave_tipo_contrato) REFERENCES tipo_contrato_dictionary(id_tipo_contrato),
