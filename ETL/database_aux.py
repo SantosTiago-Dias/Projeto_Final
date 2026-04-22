@@ -247,15 +247,17 @@ def get_last_date_extracted():
 
 #Selecionar os novos campos na base de dados
 def get_distinct_data(nome_campo:str,table_name:str):
-    #Check if any table is save in database
+    
     mydb=get_connection()
     mycursor = mydb.cursor()
+
     #Para prevenir que é a base de dados que queremos
     query =f"SELECT DISTINCT {nome_campo} FROM {table_name};"
     mycursor.execute(query)
     data=data = [row[0] for row in mycursor.fetchall()]
     return data
 
+#Mudar status dos logs
 def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status: str, mensagem: str = None) -> int | None:
     mydb = get_connection()
     mycursor = mydb.cursor()
@@ -289,21 +291,27 @@ def average_extrated_contracts(num_contratos: int):
 
     try:
         insert_query = "INSERT INTO data_extracted (num_contratos) VALUES (%s)"
-        mycursor.execute(insert_query, (num_contratos))
+        mycursor.execute(insert_query, (num_contratos,))
         mydb.commit()
 
-        last_id = mydb.insert_id()
+        last_id = mycursor.lastrowid
         logger.info(f"Número de contratos extraídos inseridos: {num_contratos} (ID: {last_id})")
 
-        # Calcula a média de contratos extraídos por dia
         update_query = """
             UPDATE data_extracted
             SET media_contratos = (
-                SELECT AVG(num_contratos) FROM data_extracted
+                SELECT avg_val FROM (
+                    SELECT AVG(num_contratos) AS avg_val FROM data_extracted
+                ) AS tmp
             )
             WHERE id = %s
         """
-        mycursor.execute(update_query, (last_id))
+        mycursor.execute(update_query, (last_id,))
+        mydb.commit()
+
+        mycursor.execute(
+            "SELECT media_contratos FROM data_extracted WHERE id = %s", (last_id,)
+        )
         average = mycursor.fetchone()[0]
         logger.info(f"Média de contratos extraídos por dia: {average:.2f}")
 
@@ -312,6 +320,7 @@ def average_extrated_contracts(num_contratos: int):
     finally:
         mycursor.close()
         mydb.close()
+
 def ensure_dim_data(start_date: str = '2026-01-01', end_date: str = '2036-12-31'):
     mydb = get_connection()
     if not mydb:

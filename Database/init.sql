@@ -25,12 +25,12 @@ CREATE TABLE IF NOT EXISTS t_logs_extract (
     ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS t_logs_transformacao (
-                                                    id              INT PRIMARY KEY AUTO_INCREMENT,
-                                                    nome_objeto     VARCHAR(255) NOT NULL,
+    id              INT PRIMARY KEY AUTO_INCREMENT,
+    nome_objeto     VARCHAR(255) NOT NULL,
     status          ENUM('INICIO','SUCESSO','ERRO') NOT NULL DEFAULT 'INICIO',
     mensagem        TEXT,
     ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
+);
 
 CREATE TABLE IF NOT EXISTS t_logs_carregamento (
     id              INT PRIMARY KEY AUTO_INCREMENT,
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     concorrentes              TEXT,
     adjudicatarios            TEXT,
     link_pecas                VARCHAR(255),
-    observacoes               VARCHAR(255),
+    observacoes               TEXT,
     contrato_ecologico        VARCHAR(10),
     fundamentacao_ajuste_directo VARCHAR(255)
 );

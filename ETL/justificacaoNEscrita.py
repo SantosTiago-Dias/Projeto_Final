@@ -29,7 +29,7 @@ def main():
 
     for justi in justis_list_distinc:
 
-        #in case the justification is null
+        #if justification is null
         if not justi or not justi.strip():
             logger.warning("Justificação vazia ignorada.")
             continue

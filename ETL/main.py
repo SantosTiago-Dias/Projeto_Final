@@ -29,7 +29,9 @@ def main():
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
+    #endregion
 
+    #region Transformação
     try:
         db.execute_transformacao()
     except Exception as e:
@@ -37,11 +39,8 @@ def main():
         sys.exit(1)
     #endregion
 
-    #region Transformação e carregamento
+    #region População de dados
     try:
-
-        db.execute_transformacao()
-
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
         contrato_synonymos.main()
@@ -52,13 +51,17 @@ def main():
     except Exception as e:
         logger.error(f"Erro init_dims antes do load: {e}")
         sys.exit(1)
+    #endregion
     
+    #region  init_dims
     try:
         db.call_init_dims()  
     except Exception as e:
         logger.error(f"Erro init_dims antes do load: {e}")
         sys.exit(1)
+    #endregion
 
+    #region Load
     try:
         db.execute_load()
     

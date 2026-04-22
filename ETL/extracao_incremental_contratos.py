@@ -192,9 +192,10 @@ def main():
     try:
         data = listar_contratos(sessao, pagina)
         logger.info("A iniciar extração de contratos...")
+        #TODO:POR NORMAL DPS
         #while pagina < data['total'] and not parar:
         
-        #TODO:POR NORMAL DPS
+        
         data = listar_contratos(sessao, pagina)
 
         if not data or "items" not in data:
@@ -239,6 +240,7 @@ def main():
         
     logger.info("Extração finalizada com sucesso")
     db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
+    logger.info(f"Número de contratos extraidos: {num_contratos}")
     db.average_extrated_contracts(num_contratos)
 
 if __name__ == "__main__":

@@ -633,12 +633,7 @@ BEGIN
         WHERE f.chave_contratos = dc.chave_contratos
           AND f.chave_entidade = de.chave_entidade
           AND f.adjudicante = deadjudicante.chave_entidade
-        )
-
-    GROUP BY 
-        dc.chave_contratos,
-        de.chave_entidade,
-        deadjudicante.chave_entidade;
+        );
     
 
 END$$

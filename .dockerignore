@@ -1,3 +1,4 @@
 .env
 docs/*
-ETL/*
+ETL/*.json
+ETL/*__pycache__/*
