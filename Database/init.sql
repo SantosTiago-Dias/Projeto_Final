@@ -215,7 +215,7 @@ CREATE TABLE IF NOT EXISTS dim_cpv_contratos (
     FOREIGN KEY (chave_contrato) REFERENCES dim_detalhes_contratos(chave_contratos)
 );
 
-CREATE TABLE dim_data (
+CREATE TABLE IF NOT EXISTS dim_data (
     chave_date INT AUTO_INCREMENT PRIMARY KEY,
     data DATE,
     feriado VARCHAR(100),

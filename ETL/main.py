@@ -14,7 +14,7 @@ import justificacaoNEscrita as justificacao
 
 def main():
 
-
+    
     #region Connecção com a BD
     connection = db.get_connection()
     if not connection:
@@ -25,7 +25,7 @@ def main():
     #region Extração
     try:
         db.verify_database_exists()
-        #extracao_incremental_contratos.main()    
+        extracao_incremental_contratos.main()    
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
