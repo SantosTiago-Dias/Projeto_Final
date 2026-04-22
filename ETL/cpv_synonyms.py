@@ -13,12 +13,24 @@ TABLE_LOGS = 't_logs_extract'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
-def prepare_data(cpv:int,description:str):
+def prepare_data(cpv:int, cpv_description: str,description:str):
     data={
         'codigo':cpv,
-        'descricao':description,
+        'cpv_descricao': cpv_description,
+        'descricao':description
     }
     return data
+
+#TODO: pensar noutra forma para fazer isto 
+def get_cpv_description(cpv: int) -> str:
+    mydb = db.get_connection()
+    mycursor = mydb.cursor()
+    query = "SELECT cpv_descricao FROM cpv_contratos_transf WHERE cpv = %s LIMIT 1"
+    mycursor.execute(query, (cpv,))
+    result = mycursor.fetchone()
+    mycursor.close()
+    mydb.close()
+    return result[0] if result else None
  
 def main():
     dictionary.verifiy_File_exists(CACHE_FILE)
@@ -59,7 +71,8 @@ def main():
                     synonyms = response.choices[0].message.content.strip()
 
                     dictionary.add_value(CACHE_FILE,str(cpv),synonyms)
-                    db.insert_data_table(TABLE_NAME,[prepare_data(cpv,synonyms)])
+                    cpv_descricao = get_cpv_description(cpv)
+                    db.insert_data_table(TABLE_NAME,[prepare_data(cpv, cpv_descricao, synonyms)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break

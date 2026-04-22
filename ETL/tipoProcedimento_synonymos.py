@@ -21,7 +21,7 @@ def prepare_data(artigo:int,explain:str):
 
 def main():
     dictionary.verifiy_File_exists(CCP_FILE)
-    procedureType_list_distinc=db.get_distinct_data('tipo_procedimento','contratos_ext')
+    procedureType_list_distinc=db.get_distinct_data('tipo_procedimento','contratos_transf')
     
     logger.info("A inicar a população de dados dos Tipos de procedimento")
     log_id = db.change_status(None, TABLE_LOGS, TABLE_NAME, "INICIO")

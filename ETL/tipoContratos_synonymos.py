@@ -24,7 +24,7 @@ def prepare_data(artigo:int,explain:str):
 
 def main():
     dictionary.verifiy_File_exists(CCP_FILE)
-    contractType_list_distinc=db.get_distinct_data('tipo_contrato','contratos_ext')
+    contractType_list_distinc=db.get_distinct_data('tipo_contrato','contratos_transf')
     
     log_id = db.change_status(None,TABLE_LOGS,TABLE_NAME, "INICIO")
     logger.info("A inicar a população dos Tipos de contrato")

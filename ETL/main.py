@@ -27,10 +27,14 @@ def main():
         db.verify_database_exists()
         extracao_incremental_contratos.main()    
     except Exception as e:
-        #logger.error(f"Erro: {e}")
-        logger.exception(f"Erro: {e}")
+        logger.error(f"Erro: {e}")
         sys.exit(1)
-    
+
+    try:
+        db.execute_transformacao()
+    except Exception as e:
+        logger.error(f"Erro: {e}")
+        sys.exit(1)
     #endregion
 
     #region Transformação e carregamento
@@ -40,12 +44,22 @@ def main():
 
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
-        artigos_synonymos.main()
         contrato_synonymos.main()
         procedimento_Synonymos.main()
         justificacao.main()
+        artigos_synonymos.main()
         logger.info("Fim da população dados")
+    except Exception as e:
+        logger.error(f"Erro init_dims antes do load: {e}")
+        sys.exit(1)
+    
+    try:
+        db.call_init_dims()  
+    except Exception as e:
+        logger.error(f"Erro init_dims antes do load: {e}")
+        sys.exit(1)
 
+    try:
         db.execute_load()
     
     except Exception as e:
