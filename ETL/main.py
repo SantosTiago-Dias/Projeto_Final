@@ -25,7 +25,7 @@ def main():
     #region Extração
     try:
         db.verify_database_exists()
-        extracao_incremental_contratos.main()    
+        #extracao_incremental_contratos.main()    
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
@@ -52,19 +52,11 @@ def main():
         logger.error(f"Erro init_dims antes do load: {e}")
         sys.exit(1)
     #endregion
-    
-    #region  init_dims
-    try:
-        db.call_init_dims()  
-    except Exception as e:
-        logger.error(f"Erro init_dims antes do load: {e}")
-        sys.exit(1)
-    #endregion
 
     #region Load
     try:
         db.execute_load()
-    
+        db.ensure_dim_data()
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)

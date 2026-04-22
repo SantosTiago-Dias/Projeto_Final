@@ -4,8 +4,9 @@ import mysql.connector
 from mysql.connector import Error
 import os
 import math
-import re
+from datetime import datetime
 import requests
+
 
 load_dotenv('.env')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -126,28 +127,6 @@ def execute_transformacao():
     finally:
         mydb.close()
 
-def call_init_dims():
-    mydb = get_connection()
-    cur = mydb.cursor()
-
-    try:
-        cur.callproc("init_dims")
-
-        for result in cur.stored_results():
-            try:
-                result.fetchall()
-            except:
-                pass
-
-        while cur.nextset():
-            pass
-
-        mydb.commit()
-
-    finally:
-        cur.close()
-        mydb.close()
-
 def execute_load():
     mydb = get_connection()
     if not mydb:
@@ -158,7 +137,7 @@ def execute_load():
             "load_dim_entidade",
             "load_dim_detalhes_contratos",
             "load_dim_cpv_contratos",
-            "load_fact"
+            "load_fact",
         ]
 
         for proc in procedures:
@@ -321,61 +300,46 @@ def average_extrated_contracts(num_contratos: int):
         mycursor.close()
         mydb.close()
 
-def ensure_dim_data(start_date: str = '2026-01-01', end_date: str = '2036-12-31'):
-    mydb = get_connection()
+#Função responsavel por gerar a dimensãpo data e populacionar
+def ensure_dim_data():
+    mydb=get_connection()
+    start_date = '2026-01-01'
+    end_date = '2036-12-31'
+
     if not mydb:
         return
-
-    cur = mydb.cursor()
-
     try:
-        # 1. Verificar se a tabela existe
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM information_schema.tables
-            WHERE table_schema = DATABASE()
-            AND table_name = 'dim_data'
-        """)
-        exists = cur.fetchone()[0]
+        cur = mydb.cursor()
 
-        if not exists:
-            logger.warning("Tabela dim_data não existe.")
-            return
-
-        # 2. Verificar se tem dados
         cur.execute("SELECT COUNT(*) FROM dim_data")
         count = cur.fetchone()[0]
 
-        if count > 0:
-            logger.info(f"dim_data já populada ({count} registos). Skip.")
-            return
+        if count > 1:
+            cur.execute("SELECT ano FROM dim_data ORDER BY chave_date DESC LIMIT 1")
+            last_ano = cur.fetchone()[0]
+            
+            today = datetime.today()
+            last_ano = datetime.strptime(str(last_ano), "%Y").year
 
-        # 3. Executar procedure
-        logger.info("dim_data vazia. A gerar calendário...")
-
-        cur.callproc('load_dim_data', [start_date, end_date])
-        #load_eventos_naturais()
-
-        # limpar result sets
-        for result in cur.stored_results():
-            try:
-                result.fetchall()
-            except:
-                pass
-
-        while cur.nextset():
-            pass
-
-        mydb.commit()
-
-        logger.success("dim_data gerada com sucesso!")
-
+            if today.year >= last_ano:
+                new_start = f"{last_ano + 1}-01-01"
+                new_end   = f"{last_ano + 10}-12-31"
+                logger.info(f"A extender dim_data até {new_end}...")
+                cur.callproc('load_dim_data', [new_start, new_end])
+                mydb.commit()
+        else:
+            logger.info("dim_data vazia. A gerar calendário...")
+            cur.callproc('load_dim_data', [start_date, end_date])
+            mydb.commit()
+        
+        load_eventos_naturais()
     except Exception as e:
         logger.error(f"Erro ao garantir dim_data: {e}")
     finally:
         cur.close()
         mydb.close()
 
+#Função responsavel por carregar os eventos naturais na dim_data
 def load_eventos_naturais():
     mydb = get_connection()
     if not mydb:

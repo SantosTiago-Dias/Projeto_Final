@@ -9,7 +9,7 @@ from urllib3.util.retry import Retry
 import extracao_incremental_entidades as empresa
 from loguru import logger
 import database_aux as db
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
 
@@ -184,54 +184,52 @@ def main():
     contratos = []
     pagina = 0
     parar = False
-    #date of today
-    today = datetime.today()
+    yesterday = datetime.today() - timedelta(days=1)
     log_id = db.change_status(None, TABLE_LOGS,TABLE_NAME, "INICIO")
     num_contratos = 0
 
     try:
         data = listar_contratos(sessao, pagina)
         logger.info("A iniciar extração de contratos...")
-        #TODO:POR NORMAL DPS
-        #while pagina < data['total'] and not parar:
         
+        while pagina < data['total'] and not parar:
         
-        data = listar_contratos(sessao, pagina)
+            data = listar_contratos(sessao, pagina)
 
-        if not data or "items" not in data:
-            #TODO:ver isto
-            print("Fim dos contratos ou erro na resposta.")
-            #break
+            if not data or "items" not in data:
+                #TODO:ver isto
+                print("Fim dos contratos ou erro na resposta.")
+                #break
 
-        items = data["items"]
+            items = data["items"]
 
-        with alive_bar(len(items), title=f"Página {pagina+1}") as bar:
-            for contrato in items:
+            with alive_bar(len(items), title=f"Página {pagina+1}") as bar:
+                for contrato in items:
 
-                publication_date = datetime.strptime(contrato['publicationDate'], '%d-%m-%Y')
-                #- timedelta(days=1)
-                if publication_date.date() == today.date():
-                    if items is not None:
-                        contrato_data = processar_contrato(sessao, contrato)
-                        contrato_data = prepare_data(contrato_data)
-                        contratos.append(contrato_data)
-                        num_contratos += 1
-                        bar()
-                else:
-                    logger.success("Dados extraidos com sucesso")
-                    parar=True
-                    break
-        pagina += 1
+                    publication_date = datetime.strptime(contrato['publicationDate'], '%d-%m-%Y')
 
-        #insert data
-        try:
-            db.insert_data_table('contratos_ext',contratos)
-            contratos.clear()
-            logger.success("dados inseridos com sucesso")
-            
-        except Exception as e:
-            logger.error("ocorreu um erro a extrair os dados")
-            db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
+                    if publication_date.date() == yesterday.date():
+                        if items is not None:
+                            contrato_data = processar_contrato(sessao, contrato)
+                            contrato_data = prepare_data(contrato_data)
+                            contratos.append(contrato_data)
+                            num_contratos += 1
+                            bar()
+                    elif publication_date.date() < yesterday.date():
+                        logger.success("Dados extraidos com sucesso")
+                        parar = True
+                        break
+            pagina += 1
+
+            #insert data
+            try:
+                db.insert_data_table('contratos_ext',contratos)
+                contratos.clear()
+                logger.success("dados inseridos com sucesso")
+                
+            except Exception as e:
+                logger.error("ocorreu um erro a extrair os dados")
+                db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
 
 
     except Exception as e:
