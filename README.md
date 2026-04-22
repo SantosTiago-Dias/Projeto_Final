@@ -1,36 +1,42 @@
-# Projeto Final - Engenharia Informática 25/26
+# Final Project — Computer Engineering 25/26
 
-Final year project for Computer Engineering course (2025/2026).
+ETL pipeline that scrapes data from **Base**, transforms it, and loads it into a MySQL database, exposed via a REST API to a frontend.
 
-## Project Overview
+## Architecture
 
-This project implements an ETL (Extract, Transform, Load) pipeline with data processing and AI for population of data and integration capabilities.
+```
+Base → ETL (Python) → MySQL ← API (Laravel) ← Frontend (Vue 3)
+```
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Scraping / ETL | Python |
+| Database | MySQL |
+| Backend API | Laravel |
+| Frontend | Vue 3 |
+| Scheduler | [Ofelia](https://hub.docker.com/r/mcuadros/ofelia) |
+| Deployment | Docker |
+
+> Ofelia runs the ETL script every day at **00:10 AM**.
 
 ## Prerequisites
 
-If you want to use `docker` ensure you have `docker desktop`
-If you want to ``install`` ensure you have ``Python 3.8+`` installed on your system and some system you can see data like ``workbench``.
+- **Docker** — [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- **Python 3.8+** *(only for local installation)*
+- A MySQL client like [MySQL Workbench](https://www.mysql.com/products/workbench/) *(optional)*
+## Getting Started
 
-## Docker
-
-You can run this project with docker with command ``docker compose up -d --build``
-
-## Installation
-
-Install all required dependencies:
+### Docker (recommended)
 
 ```bash
-python -m pip install requests
-python -m pip install pandas
-python -m pip install alive-progress
-python -m pip install python-dotenv
-python -m pip install mysql-connector-python
-python -m pip install cerebras-cloud-sdk
-python -m pip install loguru
-python -m pip install openpyxl
+docker compose up -d --build
 ```
 
-Or install all at once:
+### Local Installation
+
+Install dependencies individually:
 
 ```bash
 pip install requests pandas alive-progress python-dotenv mysql-connector-python cerebras-cloud-sdk loguru openpyxl
@@ -38,11 +44,9 @@ pip install requests pandas alive-progress python-dotenv mysql-connector-python 
 
 ## Configuration
 
-1. Create a `.env` file from `.env.example`
-2. Go to cerebras web site `https://www.cerebras.ai/` and generate a key for you AI
-3. Change `.env` with you enviroment
-
-## Project Structure
-
-- Database -> Mysql scripts need to init database and procedures
-- ETL -> with py scripts for ETL
+1. Copy the example env file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Generate a Cerebras API key at [cerebras.ai](https://www.cerebras.ai/)
+3. Fill in your values in `.env`
