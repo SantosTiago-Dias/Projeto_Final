@@ -58,7 +58,7 @@ def verify_database_exists():
                         
                         mycursor.execute(clean_stmt)
                     except Exception as e:
-                        logger.error(f"Error executing statement: {e}")
+                        logger.warning(f"Error executing statement: {e}")
                         mydb.rollback()
                         return False
 
@@ -308,6 +308,8 @@ def ensure_dim_data():
 
     if not mydb:
         return
+
+    cur = None
     try:
         cur = mydb.cursor()
 
@@ -315,29 +317,36 @@ def ensure_dim_data():
         count = cur.fetchone()[0]
 
         if count > 1:
-            cur.execute("SELECT ano FROM dim_data ORDER BY chave_date DESC LIMIT 1")
-            last_ano = cur.fetchone()[0]
-            
-            today = datetime.today()
-            last_ano = datetime.strptime(str(last_ano), "%Y").year
+            cur.execute("SELECT ano FROM dim_data WHERE ano IS NOT NULL ORDER BY chave_date DESC LIMIT 1")
+            row = cur.fetchone()
 
-            if today.year >= last_ano:
-                new_start = f"{last_ano + 1}-01-01"
-                new_end   = f"{last_ano + 10}-12-31"
-                logger.info(f"A extender dim_data até {new_end}...")
-                cur.callproc('load_dim_data', [new_start, new_end])
+            if row is None or row[0] is None:
+                logger.warning("dim_data tem registos mas 'ano' está NULL. A regenerar calendário...")
+                cur.callproc('load_dim_data', [start_date, end_date])
                 mydb.commit()
+            else:
+                last_ano = int(row[0])
+                today = datetime.today()
+
+                if today.year >= last_ano:
+                    new_start = f"{last_ano + 1}-01-01"
+                    new_end   = f"{last_ano + 10}-12-31"
+                    logger.info(f"A extender dim_data até {new_end}...")
+                    cur.callproc('load_dim_data', [new_start, new_end])
+                    mydb.commit()
         else:
             logger.info("dim_data vazia. A gerar calendário...")
             cur.callproc('load_dim_data', [start_date, end_date])
             mydb.commit()
-        
+
         load_eventos_naturais()
     except Exception as e:
         logger.error(f"Erro ao garantir dim_data: {e}")
     finally:
-        cur.close()
-        mydb.close()
+        if cur:
+            cur.close()
+        if mydb:
+            mydb.close()
 
 #Função responsavel por carregar os eventos naturais na dim_data
 def load_eventos_naturais():
