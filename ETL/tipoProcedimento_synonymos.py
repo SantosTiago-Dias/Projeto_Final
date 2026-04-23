@@ -7,39 +7,33 @@ import database_aux as db
 import time
 
 load_dotenv(".env")
-DICTIONARY_FILE = "Justificacao_Nao_Escrita.json"
-TABLE_NAME = "justificacao_contrato_nao_escrito_dictionary"
-
+CCP_FILE = "Tipo_Procedimento.json"
+TABLE_NAME = "tipo_procedimento_dictionary"
+TABLE_LOGS = 't_logs_extract'
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
 def prepare_data(artigo:int,explain:str):
     data={
-        'justificacao':artigo,
+        'tipo':artigo,
         'descricao':explain,
     }
     return data
 
 def main():
-    dictionary.verifiy_File_exists(DICTIONARY_FILE)
-    justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_transf')
+    dictionary.verifiy_File_exists(CCP_FILE)
+    procedureType_list_distinc=db.get_distinct_data('tipo_procedimento','contratos_transf')
     
-    logger.info("A inicar a população dos Tipos de contrato")
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
+    logger.info("A inicar a população de dados dos Tipos de procedimento")
+    log_id = db.change_status(None, TABLE_LOGS, TABLE_NAME, "INICIO")
 
-    for justi in justis_list_distinc:
-
-        #in case the justification is null
-        if not justi or not justi.strip():
-            logger.warning("Justificação vazia ignorada.")
-            continue
-
-        if not dictionary.verify_id_exists(DICTIONARY_FILE,justi):
+    for proceduteType in procedureType_list_distinc:
+        if not dictionary.verify_id_exists(CCP_FILE,proceduteType):
             retries = 0
             while retries < 5:
                 try:
                     prompt = f"""Você é um sistema de classificação de compras públicas europeias.
 
-                    Justificação não escrita: {justi}
+                    Tipo de procidimento: {proceduteType}
 
                     Retorna EXATAMENTE UMA FRASE onde expliques esse arigo em liguagem corrente.
 
@@ -51,7 +45,7 @@ def main():
                     - SEM mudança de linha
 
                     FORMATO:
-                    {justi}: explicação simples.
+                    {proceduteType}: explicação simples.
                     """
 
                     response = client.chat.completions.create(
@@ -62,25 +56,24 @@ def main():
                     
                     explain = response.choices[0].message.content.strip()
 
-                    dictionary.add_value(DICTIONARY_FILE,str(justi),explain)
-                    db.insert_data_table(TABLE_NAME,[prepare_data(justi,explain)])
+                    dictionary.add_value(CCP_FILE,str(proceduteType),explain)
+                    db.insert_data_table(TABLE_NAME,[prepare_data(proceduteType,explain)])
                     
                     time.sleep(0.3)  # polite delay between requests
                     break
     
                 except RateLimitError:
                     wait = 30 * (2 ** retries)
-                    logger.warning(f"Rate limit hit for '{justi}'. Waiting {wait}s...")
+                    logger.warning(f"Rate limit hit for '{proceduteType}'. Waiting {wait}s...")
                     time.sleep(wait)
                     retries += 1
     
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
-                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+                    db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
                     break
-
-    logger.info("Fim de população dos tipo de contratos")
-    db.change_status_extraction(log_id, None, "SUCESSO")
+    logger.info("Fim de população dos tipos de procedimentos")
+    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

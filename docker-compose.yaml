@@ -1,0 +1,51 @@
+version: '3'
+services:
+    ofelia:
+      container_name: ofelia
+      image: mcuadros/ofelia:latest
+      depends_on:
+        - etl
+      volumes:
+        # Crucial: Mounts the Docker socket to allow Ofelia to control containers
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+      command: daemon --docker
+      restart: always
+
+    database:
+      container_name: database
+      build:
+        context: ./Database
+        dockerfile: Dockerfile
+      restart: on-failure:3
+      env_file: .env
+      volumes:
+        - db_data:/var/lib/mysql
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+        interval: 10s
+        timeout: 5s
+        retries: 3
+        start_period: 30s
+
+    etl:
+      container_name: ETL
+      build:
+        context: ./ETL
+        dockerfile: Dockerfile
+      env_file: .env
+      volumes:
+        - ./Database/init.sql:/app/init.sql
+        - ./Database/procedures.sql:/app/procedures.sql
+      command: tail -f /dev/null
+      depends_on:
+        database:
+          condition: service_healthy
+          restart: true
+      restart: always
+      labels:
+        - "ofelia.enabled=true"
+        - "ofelia.job-exec.date-job.schedule=0 10 0 * * *"
+        - "ofelia.job-exec.date-job.command=python main.py"
+
+volumes:
+  db_data:

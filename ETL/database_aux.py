@@ -4,22 +4,27 @@ import mysql.connector
 from mysql.connector import Error
 import os
 import math
-import re
+from datetime import datetime
 import requests
 
+
 load_dotenv('.env')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+INIT = os.path.join(BASE_DIR, 'init.sql')
+PROCEDURES = os.path.join(BASE_DIR, 'procedures.sql')
 
 def get_connection():
     try:
         return mysql.connector.connect(
-            host=os.getenv("DB_HOST"),
-            user=os.getenv("DB_USER"),
-            port=os.getenv("DB_PORT"),
-            password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_NAME")
+            host=os.getenv("MYSQL_HOST", "database"),
+            user=os.getenv("MYSQL_DB_USER", "root"),
+            port=int(os.getenv("MYSQL_PORT", 3306)),
+            password=os.getenv("MYSQL_ROOT_PASSWORD", ""),
+            database=os.getenv("MYSQL_DATABASE", "ETL")
         )
     except Error as e:
         logger.error(f"Erro ao conectar à BD: {e}")
+        return False
     
 def verify_database_exists():
     mydb = get_connection()
@@ -28,18 +33,18 @@ def verify_database_exists():
 
     mycursor = mydb.cursor()
     try:
-        mycursor.execute(f"USE {os.getenv('DB_NAME')}")
+        mycursor.execute(f"USE {os.getenv('MYSQL_DATABASE')}")
         mycursor.execute("SHOW TABLES")
         mycursor.fetchall()
 
-        with open('../Database/init.sql', 'r', encoding='utf-8') as f:
+        with open(INIT, 'r', encoding='utf-8') as f:
             sql = f.read()
             for statement in sql.split(';'):
                 statement = statement.strip()
                 if statement:
                     mycursor.execute(statement)
         
-        with open('../Database/procedures.sql', 'r', encoding='utf-8') as f:
+        with open(PROCEDURES, 'r', encoding='utf-8') as f:
             sql_content = f.read()
             
             statements = sql_content.split('$$')
@@ -71,6 +76,7 @@ def verify_database_exists():
    
 
 def execute_transformacao():
+    
     mydb = get_connection()
     if not mydb:
         return
@@ -86,7 +92,8 @@ def execute_transformacao():
         for proc in procedures:
             logger.info(f"A executar: {proc}")
 
-            # Cursor fresco por procedure — sem estado partilhado
+            log_id = change_status(None,'t_logs_transformacao',proc,"INICIO")
+
             cur = mydb.cursor()
             try:
                 cur.callproc(proc)
@@ -102,12 +109,13 @@ def execute_transformacao():
                     pass
 
                 mydb.commit()
+                change_status(log_id, 't_logs_transformacao', None, "SUCESSO")
                 logger.success(f"Concluído: {proc}")
 
             except mysql.connector.Error as e:
-                # Não faz rollback — TRUNCATE já não é reversível
                 logger.error(f"Erro em {proc}: {e}")
-                raise  # re-lança para parar as procedures seguintes
+                change_status(log_id, 't_logs_transformacao', None, "ERRO", mensagem=str(e))
+            
 
             finally:
                 cur.close()
@@ -117,28 +125,6 @@ def execute_transformacao():
     except mysql.connector.Error as e:
         logger.error(f"Erro na transformação: {e}")
     finally:
-        mydb.close()
-
-def call_init_dims():
-    mydb = get_connection()
-    cur = mydb.cursor()
-
-    try:
-        cur.callproc("init_dims")
-
-        for result in cur.stored_results():
-            try:
-                result.fetchall()
-            except:
-                pass
-
-        while cur.nextset():
-            pass
-
-        mydb.commit()
-
-    finally:
-        cur.close()
         mydb.close()
 
 def execute_load():
@@ -151,12 +137,12 @@ def execute_load():
             "load_dim_entidade",
             "load_dim_detalhes_contratos",
             "load_dim_cpv_contratos",
-            "load_fact"
+            "load_fact",
         ]
 
         for proc in procedures:
             logger.info(f"A executar: {proc}")
-
+            log_id = change_status(None,'t_logs_carregamento',proc,"INICIO")
             # Cursor fresco por procedure — sem estado partilhado
             cur = mydb.cursor()
             try:
@@ -173,12 +159,13 @@ def execute_load():
                     pass
 
                 mydb.commit()
+                change_status(log_id, 't_logs_carregamento', None, "SUCESSO")
                 logger.success(f"Concluído: {proc}")
 
             except mysql.connector.Error as e:
-                # Não faz rollback — TRUNCATE já não é reversível
                 logger.error(f"Erro em {proc}: {e}")
-                raise  # re-lança para parar as procedures seguintes
+                change_status(log_id, 't_logs_carregamento', None, "ERRO", mensagem=str(e))
+                
 
             finally:
                 cur.close()
@@ -239,34 +226,35 @@ def get_last_date_extracted():
 
 #Selecionar os novos campos na base de dados
 def get_distinct_data(nome_campo:str,table_name:str):
-    #Check if any table is save in database
+    
     mydb=get_connection()
     mycursor = mydb.cursor()
+
     #Para prevenir que é a base de dados que queremos
     query =f"SELECT DISTINCT {nome_campo} FROM {table_name};"
     mycursor.execute(query)
     data=data = [row[0] for row in mycursor.fetchall()]
     return data
 
-def change_status_extraction(id: int | None, table_name: str | None, status: str, mensagem: str = None) -> int | None:
+#Mudar status dos logs
+def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status: str, mensagem: str = None) -> int | None:
     mydb = get_connection()
     mycursor = mydb.cursor()
-
     match status:
         case "INICIO":
-            query = "INSERT INTO t_logs_extract (nome_tabela, status) VALUES (%s, 'INICIO')"
-            mycursor.execute(query, (table_name,))
+            query = "INSERT INTO "+table_logs+" (nome_objeto, status) VALUES (%s, 'INICIO')"
+            mycursor.execute(query, (nome_objeto,))
             mydb.commit()
             return mycursor.lastrowid  # retorna o id do novo registo
 
         case "SUCESSO":
-            query = "UPDATE t_logs_extract SET status = 'SUCESSO', ultima_extracao = NOW() WHERE id = %s"
-            mycursor.execute(query, (id,))  # tuple, não valor solto
+            query = "UPDATE "+table_logs+" SET status = 'SUCESSO', ultima_extracao = NOW() WHERE id = %s"
+            mycursor.execute(query, (id,))
             mydb.commit()
 
         case "ERRO":
-            query = "UPDATE t_logs_extract SET status = 'ERRO', mensagem = %s, ultima_extracao = NOW() WHERE id = %s"
-            mycursor.execute(query, (mensagem, id))  # tuple com os dois valores
+            query = "UPDATE "+table_logs+" SET status = 'ERRO', mensagem = %s, ultima_extracao = NOW() WHERE id = %s"
+            mycursor.execute(query, (mensagem, id)) 
             mydb.commit()
 
         case _:
@@ -276,61 +264,82 @@ def change_status_extraction(id: int | None, table_name: str | None, status: str
     mydb.close()
     return None
 
-def ensure_dim_data(start_date: str = '2026-01-01', end_date: str = '2036-12-31'):
+def average_extrated_contracts(num_contratos: int):
     mydb = get_connection()
-    if not mydb:
-        return
-
-    cur = mydb.cursor()
+    mycursor = mydb.cursor()
 
     try:
-        # 1. Verificar se a tabela existe
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM information_schema.tables
-            WHERE table_schema = DATABASE()
-            AND table_name = 'dim_data'
-        """)
-        exists = cur.fetchone()[0]
+        insert_query = "INSERT INTO data_extracted (num_contratos) VALUES (%s)"
+        mycursor.execute(insert_query, (num_contratos,))
+        mydb.commit()
 
-        if not exists:
-            logger.warning("Tabela dim_data não existe.")
-            return
+        last_id = mycursor.lastrowid
+        logger.info(f"Número de contratos extraídos inseridos: {num_contratos} (ID: {last_id})")
 
-        # 2. Verificar se tem dados
+        update_query = """
+            UPDATE data_extracted
+            SET media_contratos = (
+                SELECT avg_val FROM (
+                    SELECT AVG(num_contratos) AS avg_val FROM data_extracted
+                ) AS tmp
+            )
+            WHERE id = %s
+        """
+        mycursor.execute(update_query, (last_id,))
+        mydb.commit()
+
+        mycursor.execute(
+            "SELECT media_contratos FROM data_extracted WHERE id = %s", (last_id,)
+        )
+        average = mycursor.fetchone()[0]
+        logger.info(f"Média de contratos extraídos por dia: {average:.2f}")
+
+    except mysql.connector.Error as e:
+        logger.error(f"Erro ao calcular a média de contratos extraídos: {e}")
+    finally:
+        mycursor.close()
+        mydb.close()
+
+#Função responsavel por gerar a dimensãpo data e populacionar
+def ensure_dim_data():
+    mydb=get_connection()
+    start_date = '2026-01-01'
+    end_date = '2036-12-31'
+
+    if not mydb:
+        return
+    try:
+        cur = mydb.cursor()
+
         cur.execute("SELECT COUNT(*) FROM dim_data")
         count = cur.fetchone()[0]
 
-        if count > 0:
-            logger.info(f"dim_data já populada ({count} registos). Skip.")
-            return
+        if count > 1:
+            cur.execute("SELECT ano FROM dim_data ORDER BY chave_date DESC LIMIT 1")
+            last_ano = cur.fetchone()[0]
+            
+            today = datetime.today()
+            last_ano = datetime.strptime(str(last_ano), "%Y").year
 
-        # 3. Executar procedure
-        logger.info("dim_data vazia. A gerar calendário...")
-
-        cur.callproc('load_dim_data', [start_date, end_date])
-        #load_eventos_naturais()
-
-        # limpar result sets
-        for result in cur.stored_results():
-            try:
-                result.fetchall()
-            except:
-                pass
-
-        while cur.nextset():
-            pass
-
-        mydb.commit()
-
-        logger.success("dim_data gerada com sucesso!")
-
+            if today.year >= last_ano:
+                new_start = f"{last_ano + 1}-01-01"
+                new_end   = f"{last_ano + 10}-12-31"
+                logger.info(f"A extender dim_data até {new_end}...")
+                cur.callproc('load_dim_data', [new_start, new_end])
+                mydb.commit()
+        else:
+            logger.info("dim_data vazia. A gerar calendário...")
+            cur.callproc('load_dim_data', [start_date, end_date])
+            mydb.commit()
+        
+        load_eventos_naturais()
     except Exception as e:
         logger.error(f"Erro ao garantir dim_data: {e}")
     finally:
         cur.close()
         mydb.close()
 
+#Função responsavel por carregar os eventos naturais na dim_data
 def load_eventos_naturais():
     mydb = get_connection()
     if not mydb:

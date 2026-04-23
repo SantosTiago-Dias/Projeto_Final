@@ -3,9 +3,38 @@
 SET GLOBAL net_buffer_length  = 1000000;
 SET GLOBAL max_allowed_packet = 1000000000;
 
+/*Limpeza de tabelas*/
+DROP Table If EXISTS contratos_ext;
+DROP Table If EXISTS entidades_ext;
+DROP Table If EXISTS contratos_transf;
+DROP Table If EXISTS entidade_transf;
+DROP TABLE IF EXISTS detalhes_contratos_transf;
+
+CREATE TABLE IF NOT EXISTS data_extracted(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    num_contratos INT,
+    media_contratos DECIMAL(15,2),
+    data_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS t_logs_extract (
     id              INT PRIMARY KEY AUTO_INCREMENT,
-    nome_tabela     VARCHAR(50) NOT NULL,
+    nome_objeto     VARCHAR(50) NOT NULL,
+    status          ENUM('INICIO','SUCESSO','ERRO') NOT NULL DEFAULT 'INICIO',
+    mensagem        TEXT,
+    ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS t_logs_transformacao (
+    id              INT PRIMARY KEY AUTO_INCREMENT,
+    nome_objeto     VARCHAR(255) NOT NULL,
+    status          ENUM('INICIO','SUCESSO','ERRO') NOT NULL DEFAULT 'INICIO',
+    mensagem        TEXT,
+    ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS t_logs_carregamento (
+    id              INT PRIMARY KEY AUTO_INCREMENT,
+    nome_objeto     VARCHAR(50) NOT NULL,
     status          ENUM('INICIO','SUCESSO','ERRO') NOT NULL DEFAULT 'INICIO',
     mensagem        TEXT,
     ultima_extracao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -81,7 +110,7 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     concorrentes              TEXT,
     adjudicatarios            TEXT,
     link_pecas                VARCHAR(255),
-    observacoes               VARCHAR(255),
+    observacoes               TEXT,
     contrato_ecologico        VARCHAR(10),
     fundamentacao_ajuste_directo VARCHAR(255)
 );
@@ -186,7 +215,7 @@ CREATE TABLE IF NOT EXISTS dim_cpv_contratos (
     FOREIGN KEY (chave_contrato) REFERENCES dim_detalhes_contratos(chave_contratos)
 );
 
-CREATE TABLE dim_data (
+CREATE TABLE IF NOT EXISTS dim_data (
     chave_date INT AUTO_INCREMENT PRIMARY KEY,
     data DATE,
     feriado VARCHAR(100),
@@ -198,6 +227,7 @@ CREATE TABLE dim_data (
     nome_mes VARCHAR(20),
     abr_mes VARCHAR(5),
     data_extenso VARCHAR(100),
+    evento_natural VARCHAR(255),
     UNIQUE (data)
 );
 
@@ -221,3 +251,34 @@ CREATE TABLE IF NOT EXISTS fact_contratos (
     FOREIGN KEY (chave_justificacao_nao_escrita) REFERENCES justificacao_contrato_nao_escrito_dictionary(id_justificacao),
     FOREIGN KEY (chave_data) REFERENCES dim_data(chave_date)
 );
+
+
+-- =====================
+-- INSERTS DOS VALORES NULOS
+-- =====================
+
+INSERT IGNORE INTO dim_entidade (id_entidade, nif, nome, total_adjudicatario, num_contratos_adjudicatario, total_adjudicante, num_contratos_adjudicante, pais)
+VALUES (-1, NULL, 'ENTIDADE INVALIDA', 0, 0, 0, 0, 'N/A');
+
+INSERT IGNORE INTO dim_detalhes_contratos (id_contrato, objeto, descricao, data_publicacao, data_celebracao, valor_contratual, prazo_execucao,
+    local_execucao, procedimento_centralizado, num_acordos_quadro, desc_acordo_quadro, data_fecho_contrato, valor_total_efetivo,
+    regime, tipo_fim_contrato, crit_materiais, link_pecas, observacoes, contrato_ecologico, fundamentacao_ajuste_directo)
+VALUES (-1, 'N/A', 'CONTRATO INVALIDO', NULL, NULL, 0, 0, 'N/A', 0, 'N/A', 'N/A', NULL, 0, 'N/A', 'N/A', 0, 'N/A', 'N/A', 0, 'N/A');
+
+INSERT IGNORE INTO dim_data (data, feriado, fim_semana, dia, mes, ano, dia_semana, nome_mes, abr_mes, evento_natural, data_extenso)
+VALUES (NULL, 'N/A', NULL, NULL, NULL, NULL, 'N/A', 'N/A', 'N/A', 'N/A', 'DATA INVALIDA');
+
+INSERT IGNORE INTO cpv_dictionary (codigo, cpv_descricao, descricao)
+VALUES ('N/A', 'N/A', 'VALOR DESCONHECIDO');
+
+INSERT IGNORE INTO tipo_procedimento_dictionary (tipo, descricao)
+VALUES ('N/A', 'VALOR DESCONHECIDO');
+
+INSERT IGNORE INTO tipo_contrato_dictionary (tipo, descricao)
+VALUES ('N/A', 'VALOR DESCONHECIDO');
+
+INSERT IGNORE INTO justificacao_contrato_nao_escrito_dictionary (justificacao, descricao)
+VALUES ('N/A', 'VALOR DESCONHECIDO');
+
+INSERT IGNORE INTO fundamentacao_contrato_dictionary (fundamentacao, descricao)
+VALUES ('N/A', 'VALOR DESCONHECIDO');

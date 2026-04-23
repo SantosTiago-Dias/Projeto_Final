@@ -14,26 +14,32 @@ import justificacaoNEscrita as justificacao
 
 def main():
 
-
-    #Extração dos dados
     
+    #region Connecção com a BD
+    connection = db.get_connection()
+    if not connection:
+        logger.error("Não foi possivel estabelecer uma connecção com a base de dados")
+        sys.exit(1)
+    #endregion    
+
+    #region Extração
     try:
-        connection = db.get_connection()
-        if connection:
-            db.verify_database_exists()
-            extracao_incremental_contratos.main()
+        db.verify_database_exists()
+        extracao_incremental_contratos.main()    
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
+    #endregion
 
+    #region Transformação
     try:
         db.execute_transformacao()
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
+    #endregion
 
-    #População de dados
-    #TODO:Populacionar os dados dps
+    #region População de dados
     try:
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
@@ -42,29 +48,19 @@ def main():
         justificacao.main()
         artigos_synonymos.main()
         logger.info("Fim da população dados")
-    
-    except Exception as e:
-        logger.error(f"Erro: {e}")
-        sys.exit(1)
-
-    try:
-        db.ensure_dim_data('2024-01-01', '2036-12-31')
-    except Exception as e:
-        logger.error(f"Erro ao gerar dim_data: {e}")
-        sys.exit(1)
-
-    try:
-        db.call_init_dims()  
     except Exception as e:
         logger.error(f"Erro init_dims antes do load: {e}")
         sys.exit(1)
+    #endregion
 
+    #region Load
     try:
         db.execute_load()
+        db.ensure_dim_data()
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
-    
+    #endregion
 
 
 if __name__ == "__main__":

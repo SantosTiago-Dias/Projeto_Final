@@ -9,6 +9,7 @@ import time
 load_dotenv('.env')
 CACHE_FILE = 'dictonary_CPVs.json'
 TABLE_NAME = "cpv_dictionary"
+TABLE_LOGS = 't_logs_extract'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
@@ -35,7 +36,7 @@ def main():
     dictionary.verifiy_File_exists(CACHE_FILE)
     cpv_list_distinc=db.get_distinct_data('cpv','cpv_contratos_transf')
     
-    log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
+    log_id = db.change_status(None,TABLE_LOGS, TABLE_NAME, "INICIO")
     logger.info("A iniciar a população de dados dos cpv")
 
     for cpv in cpv_list_distinc:
@@ -84,11 +85,11 @@ def main():
     
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
-                    db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+                    db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
                     break
 
     logger.info("Fim de extração de cpv")
-    db.change_status_extraction(log_id, None, "SUCESSO")
+    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()

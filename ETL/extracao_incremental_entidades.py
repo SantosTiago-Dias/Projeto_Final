@@ -17,7 +17,7 @@ HEADERS = {
 }
 VERSION_SEARCH = "145.0"
 VERSION_DETAIL = "116.0"
-   
+TABLE_LOGS= "t_logs_extract"
 
 # Detalhes de cada entidade
 def extrair_detalhes(entidade_id:int):
@@ -54,7 +54,7 @@ def main(EntityID:int):
     #Procuro a entidade no dicionario se ja tiver
     if not dictonary.verify_id_exists(DICTIONARY_FILE,EntityID):
         logger.info(f"A extrair entidade {EntityID}")
-        log_id = db.change_status_extraction(None, TABLE_NAME, "INICIO")
+        log_id = db.change_status(None, TABLE_LOGS,TABLE_NAME, "INICIO")
         try:
             detalhes = extrair_detalhes(EntityID)
 
@@ -64,11 +64,11 @@ def main(EntityID:int):
                 descricao = detalhes.get('description')
                 dictonary.add_value(DICTIONARY_FILE, str(EntityID), descricao)
                 db.insert_data_table(TABLE_NAME, [prepare_data(detalhes)])
-                db.change_status_extraction(log_id, None, "SUCESSO")
+                db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
 
         except Exception as e:
             logger.exception(f"Não foi possivel encontrar a entidade {EntityID}: {e}\n")
-            db.change_status_extraction(log_id, None, "ERRO", mensagem=str(e))
+            db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
 
 if __name__ == "__main__":
     main(EntityID=1)
