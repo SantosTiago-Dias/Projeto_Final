@@ -25,7 +25,6 @@ VERSION_SEARCH = "101.0"
 VERSION_DETAIL = "101.0"
 PAGE_SIZE = 25
 MAX_PAGES = 1
-RETRIES = 5
 
 
 
@@ -43,7 +42,7 @@ def criar_sessao():
     return sessao
 
 #Lista de contratos
-def listar_contratos(sessao: requests.Session, pagina: int) :
+def listar_contratos(sessao: requests.Session, pagina: int, retries: int = 5):
     
     payload = {
         "type": "search_contratos",
@@ -57,18 +56,23 @@ def listar_contratos(sessao: requests.Session, pagina: int) :
     try:
         resposta = sessao.post(API_URL, data=payload, headers=HEADERS)
         resposta.raise_for_status()
-        #print(f"Conexão a {API_URL} com sucesso")
-        return resposta.json()
+        data = resposta.json()
+        
+        # Validate the response has actual content
+        if not data or "items" not in data or "total" not in data:
+            raise ValueError(f"Resposta inválida da API: {data}")
+        
+        return data
 
-    except requests.exceptions.RequestException as e:
+    except (requests.exceptions.RequestException, ValueError) as e:
         logger.error(f"Erro na listagem da página {pagina}: {e}")
-        if RETRIES > 0:
-            logger.info(f"Tentativa n {RETRIES}")
-            time.sleep(2 ** (5 - RETRIES))  # Exponential backoff
-            return listar_contratos(sessao, pagina)
+        if retries > 0:
+            logger.info(f"Tentativa {6 - retries} de 5")
+            #TODO: por a esperar mais tempo
+            time.sleep(2 ** (5 - retries))
+            return listar_contratos(sessao, pagina, retries - 1)
         else:
-            db.change_status(None, TABLE_LOGS, TABLE_NAME, "ERRO", mensagem=f"Erro ao tentar extrair dados:{e}")
-        return None
+            return None
 
 #Vai buscar os detalhes de cada contrato
 def extrair_detalhes(sessao: requests.Session, contrato_id: str):
@@ -186,12 +190,18 @@ def main():
     parar = False
     yesterday = datetime.today() - timedelta(days=1)
     log_id = db.change_status(None, TABLE_LOGS,TABLE_NAME, "INICIO")
-    num_contratos = 0
+    num_contratos = 0   
 
     try:
+        
         data = listar_contratos(sessao, pagina)
         logger.info("A iniciar extração de contratos...")
-        
+
+        if data is None:
+            logger.error("Não foi possível iniciar a extração de contratos.")
+            db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem="Não foi possível iniciar a extração de contratos.")
+            return
+
         while pagina < data['total'] and not parar:
         
             data = listar_contratos(sessao, pagina)
