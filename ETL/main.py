@@ -55,8 +55,8 @@ def main():
 
     #region Load
     try:
-        db.execute_load()
         db.ensure_dim_data()
+        db.execute_load()
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
