@@ -197,7 +197,8 @@ def insert_data_table(table_name: str, values: list, batch_size: int = 2000):
     placeholders = ", ".join(["%s"] * len(columns))
     cols_str = ", ".join(columns)
 
-    sql = f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders})"
+    #HACK: Para prevenir contratos duplicados, usamos INSERT IGNORE.
+    sql = f"INSERT IGNORE INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))})"
 
     try:
         for i in range(0, len(values), batch_size):

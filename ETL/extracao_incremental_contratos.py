@@ -233,7 +233,7 @@ def main():
 
             #insert data
             try:
-                db.insert_data_table('contratos_ext',contratos)
+                db.insert_data_table(TABLE_NAME,contratos)
                 contratos.clear()
                 logger.success("dados inseridos com sucesso")
                 
