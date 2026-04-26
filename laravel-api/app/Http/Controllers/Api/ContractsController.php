@@ -95,9 +95,8 @@ class ContractsController extends Controller
                     'tipo_procedimento' => $first->tipoProcedimento,
                     'data' => $first->data,
 
-                    'entidades' => $group->map(fn($r) => $r->entidade)->values(),
+                    'entidades' => $group->map(fn($r) => $r->entidade)->values()
 
-                    'valor_total' => $group->sum('valor_contratual')
                 ];
             })->values();
 
@@ -151,9 +150,8 @@ public function show($id)
         'tipo_procedimento' => $rows->first()->tipoProcedimento,
         'data' => $rows->first()->data,
 
-        'entidades' => $rows->map(fn($r) => $r->entidade),
+        'entidades' => $rows->map(fn($r) => $r->entidade)
 
-        'valor_total' => $rows->sum('valor_contratual')
     ]);
 }
 }
