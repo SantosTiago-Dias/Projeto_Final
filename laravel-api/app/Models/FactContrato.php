@@ -23,7 +23,7 @@ class FactContrato extends Model
         return $this->belongsTo(DimEntidade::class, 'chave_entidade');
     }
 
-    public function adjudicante()
+    public function adjudicanteRel()
     {
         return $this->belongsTo(DimEntidade::class, 'adjudicante');
     }

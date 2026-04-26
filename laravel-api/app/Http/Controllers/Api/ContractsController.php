@@ -57,7 +57,7 @@ class ContractsController extends Controller
             $query = FactContrato::with([
                 'contrato',
                 'entidade',
-                'adjudicante',
+                'adjudicanteRel',
                 'tipoContrato',
                 'tipoProcedimento',
                 'data'
@@ -90,7 +90,7 @@ class ContractsController extends Controller
 
                 return [
                     'contrato' => $first->contrato,
-                    'adjudicante' => $first->adjudicante,
+                    'adjudicanteRel' => $first->adjudicanteRel,
                     'tipo_contrato' => $first->tipoContrato,
                     'tipo_procedimento' => $first->tipoProcedimento,
                     'data' => $first->data,
@@ -132,7 +132,7 @@ public function show($id)
     $rows = FactContrato::with([
         'contrato',
         'entidade',
-        'adjudicante',
+        'adjudicanteRel',
         'tipoContrato',
         'tipoProcedimento',
         'data'
@@ -146,7 +146,7 @@ public function show($id)
 
     return response()->json([
         'contrato' => $rows->first()->contrato,
-        'adjudicante' => $rows->first()->adjudicante,
+        'adjudicanteRel' => $rows->first()->adjudicanteRel,
         'tipo_contrato' => $rows->first()->tipoContrato,
         'tipo_procedimento' => $rows->first()->tipoProcedimento,
         'data' => $rows->first()->data,
