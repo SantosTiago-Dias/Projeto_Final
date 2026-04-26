@@ -198,7 +198,7 @@ def insert_data_table(table_name: str, values: list, batch_size: int = 2000):
     cols_str = ", ".join(columns)
 
     #HACK: Para prevenir contratos duplicados, usamos INSERT IGNORE.
-    sql = f"INSERT IGNORE INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))})"
+    sql = f"""INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))}) ON DUPLICATE KEY UPDATE {', '.join([f"{col} = VALUES({col})" for col in columns])}"""
 
     try:
         for i in range(0, len(values), batch_size):
