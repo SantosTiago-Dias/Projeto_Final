@@ -189,9 +189,7 @@ def main():
     pagina = 0
     parar = False
     yesterday = datetime.today() - timedelta(days=1)
-    
     num_contratos = 0   
-
     
     try:
         while not parar:

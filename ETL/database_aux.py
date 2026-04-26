@@ -29,14 +29,17 @@ def get_connection():
 def verify_database_exists():
     mydb = get_connection()
     if not mydb:
+        logger.error("Não foi possível conectar à base de dados")
         return
 
     mycursor = mydb.cursor()
     try:
+
         mycursor.execute(f"USE {os.getenv('MYSQL_DATABASE')}")
         mycursor.execute("SHOW TABLES")
         mycursor.fetchall()
 
+        #To generate the tables from init.sql (if they don't exist)
         with open(INIT, 'r', encoding='utf-8') as f:
             sql = f.read()
             for statement in sql.split(';'):
@@ -44,6 +47,7 @@ def verify_database_exists():
                 if statement:
                     mycursor.execute(statement)
         
+        #To generate the procedures from procedures.sql (if they don't exist)
         with open(PROCEDURES, 'r', encoding='utf-8') as f:
             sql_content = f.read()
             
