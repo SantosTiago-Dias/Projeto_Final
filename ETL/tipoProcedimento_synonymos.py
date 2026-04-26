@@ -9,7 +9,7 @@ import time
 load_dotenv(".env")
 CCP_FILE = "Tipo_Procedimento.json"
 TABLE_NAME = "tipo_procedimento_dictionary"
-TABLE_LOGS = 't_logs_extract'
+TABLE_LOGS = 't_logs_transformacao'
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
 def prepare_data(artigo:int,explain:str):

@@ -308,37 +308,46 @@ def ensure_dim_data():
     end_date = '2036-12-31'
 
     if not mydb:
+        change_status(None,'t_logs_carregamento','dim_data','ERRO', mensagem="Não foi possível conectar à base de dados para para gerar a dimensão data")
         return
 
     cur = None
     try:
         cur = mydb.cursor()
-
         cur.execute("SELECT COUNT(*) FROM dim_data")
         count = cur.fetchone()[0]
 
+        
+        #Count if dim_data has records. 
+        # If it does, check the max year and extend if necessary. 
+        # If it doesn't, generate from start_date to end_date.
         if count > 1:
             cur.execute("SELECT ano FROM dim_data WHERE ano IS NOT NULL ORDER BY chave_date DESC LIMIT 1")
             row = cur.fetchone()
+            log_id = change_status(None,'t_logs_carregamento','dim_data',"INICIO")
+            last_ano = int(row[0])
+            today = datetime.today()
 
-            if row is None or row[0] is None:
-                logger.warning("dim_data tem registos mas 'ano' está NULL. A regenerar calendário...")
-                cur.callproc('load_dim_data', [start_date, end_date])
-                mydb.commit()
-            else:
-                last_ano = int(row[0])
-                today = datetime.today()
-
-                if today.year >= last_ano:
-                    new_start = f"{last_ano + 1}-01-01"
-                    new_end   = f"{last_ano + 10}-12-31"
+            if today.year >= last_ano:
+                new_start = f"{last_ano + 1}-01-01"
+                new_end   = f"{last_ano + 10}-12-31"
+                try:
                     logger.info(f"A extender dim_data até {new_end}...")
                     cur.callproc('load_dim_data', [new_start, new_end])
                     mydb.commit()
+                except Exception as e:
+                    logger.error(f"Erro ao estender dim_data: {e}")
+                    change_status(log_id, 't_logs_carregamento', None, "ERRO", mensagem=str(e))
         else:
-            logger.info("dim_data vazia. A gerar calendário...")
-            cur.callproc('load_dim_data', [start_date, end_date])
-            mydb.commit()
+            try:
+                log_id = change_status(None,'t_logs_carregamento','dim_data',"INICIO")
+                logger.info("dim_data vazia. A gerar calendário...")
+                cur.callproc('load_dim_data', [start_date, end_date])
+                mydb.commit()
+                change_status(log_id, 't_logs_carregamento', None, "SUCESSO")
+            except Exception as e:
+                logger.error(f"Erro ao gerar calendário para dim_data: {e}")
+                change_status(log_id, 't_logs_carregamento', None, "ERRO", mensagem=str(e))
 
         load_eventos_naturais()
     except Exception as e:

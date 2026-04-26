@@ -9,7 +9,7 @@ import time
 load_dotenv(".env")
 CCP_FILE = "ccp_por_artigo.json"
 TABLE_NAME = "fundamentacao_contrato_dictionary"
-TABLE_LOGS= "t_logs_extract"
+TABLE_LOGS= "t_logs_transformacao"
 
 
 client = Cerebras(api_key=os.getenv('API_KEY'))

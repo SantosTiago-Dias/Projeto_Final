@@ -189,28 +189,22 @@ def main():
     pagina = 0
     parar = False
     yesterday = datetime.today() - timedelta(days=1)
-    log_id = db.change_status(None, TABLE_LOGS,TABLE_NAME, "INICIO")
+    
     num_contratos = 0   
 
+    
     try:
-        
-        data = listar_contratos(sessao, pagina)
-        logger.info("A iniciar extração de contratos...")
+        while not parar:
 
-        if data is None:
-            logger.error("Não foi possível iniciar a extração de contratos.")
-            db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem="Não foi possível iniciar a extração de contratos.")
-            return
-
-        while pagina < data['total'] and not parar:
-        
             data = listar_contratos(sessao, pagina)
+            log_id = db.change_status(None, TABLE_LOGS,TABLE_NAME, "INICIO")
 
-            if not data or "items" not in data:
-                #TODO:ver isto
-                print("Fim dos contratos ou erro na resposta.")
-                #break
-
+            # If data is NULL 
+            if data is None:
+                logger.error(f"Falha ao obter dados para a página {pagina}. Encerrando extração.")
+                db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem="Não foi possível iniciar a extração de contratos.")
+                break
+            
             items = data["items"]
 
             with alive_bar(len(items), title=f"Página {pagina+1}") as bar:
@@ -235,19 +229,18 @@ def main():
             try:
                 db.insert_data_table(TABLE_NAME,contratos)
                 contratos.clear()
+                db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
                 logger.success("dados inseridos com sucesso")
                 
             except Exception as e:
                 logger.error("ocorreu um erro a extrair os dados")
                 db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
 
-
     except Exception as e:
         logger.exception(f"Não foi possível extrair os dados: {e}")
         db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
         
     logger.info("Extração finalizada com sucesso")
-    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
     logger.info(f"Número de contratos extraidos: {num_contratos}")
     db.average_extrated_contracts(num_contratos)
 
