@@ -228,7 +228,8 @@ CREATE TABLE IF NOT EXISTS dim_data (
     abr_mes VARCHAR(5),
     data_extenso VARCHAR(100),
     evento_natural VARCHAR(255),
-    UNIQUE (data)
+    UNIQUE (data),
+    UNIQUE (data_extenso)
 );
 
 CREATE TABLE IF NOT EXISTS fact_contratos (

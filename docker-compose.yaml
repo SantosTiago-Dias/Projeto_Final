@@ -8,8 +8,6 @@ services:
       volumes:
         # Crucial: Mounts the Docker socket to allow Ofelia to control containers
         - /var/run/docker.sock:/var/run/docker.sock:ro
-      ports:
-      - "127.0.0.1:8080:8080"
       command: daemon --docker
       restart: always
 
