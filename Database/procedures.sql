@@ -52,12 +52,12 @@ BEGIN
 
         regime,
 
-        IFNULL(tipo_fim_contrato, 'Não Aplicável'),
+        IFNULL(tipo_fim_contrato, 'Não aplicável.'),
 
         crit_materiais,
 
-        IFNULL(link_pecas, 'Não Aplicável'),
-        IFNULL(observacoes, 'Não Aplicável'),
+        IFNULL(link_pecas, 'Não aplicável.'),
+        IFNULL(observacoes, 'Não aplicável.'),
 
         contrato_ecologico,
         fundamentacao_ajuste_directo
@@ -485,7 +485,7 @@ BEGIN
                 WHEN d = Pascoa THEN 'Páscoa'
                 WHEN d = DATE_ADD(Pascoa, INTERVAL 60 DAY) THEN 'Corpo de Deus'
 
-                ELSE 'Não Aplicável'
+                ELSE 'Não aplicável.'
             END,
 
             -- fim de semana

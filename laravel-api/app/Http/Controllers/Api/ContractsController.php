@@ -95,7 +95,9 @@ class ContractsController extends Controller
                     'tipo_procedimento' => $first->tipoProcedimento,
                     'data' => $first->data,
 
-                    'entidades' => $group->map(fn($r) => $r->entidade)->values()
+                    'adjudicatario' => $group->firstWhere('adjudicatario', 1)?->entidade,
+
+                    'entidades' => $group->where('adjudicatario', 0)->map(fn($r) => $r->entidade)->values()
 
                 ];
             })->values();
@@ -150,7 +152,9 @@ public function show($id)
         'tipo_procedimento' => $rows->first()->tipoProcedimento,
         'data' => $rows->first()->data,
 
-        'entidades' => $rows->map(fn($r) => $r->entidade)
+        'adjudicatario' => $rows->firstWhere('adjudicatario', 1)?->entidade,
+
+        'entidades' => $rows->where('adjudicatario', 0)->map(fn($r) => $r->entidade)->values()
 
     ]);
 }
