@@ -4,8 +4,8 @@ import ContractDetail from '../components/ContractDetail.vue'
 
 const routes = [
   {
-    path: '/',
-    name: 'home',
+    path: '/contracts',
+    name: 'contracts-list',
     component: ContractsList
   },
   {
