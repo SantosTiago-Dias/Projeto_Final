@@ -49,7 +49,7 @@ class ContractsController extends Controller
         ], 500);
     }
     }*/
-
+    //TODO:sql Injection
     public function index(Request $request)
     {
         try {

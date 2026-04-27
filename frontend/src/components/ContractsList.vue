@@ -56,7 +56,7 @@ onMounted(async () => {
           <TableHead class="w-[22%]">Adjudicante</TableHead>
           <TableHead class="w-[12%] text-center">Tipo Contrato</TableHead>
           <TableHead class="w-[15%] text-center">Tipo Procedimento</TableHead>
-          <TableHead class="w-[10%] text-center">Data Assinatura</TableHead>
+          <TableHead class="w-[10%] text-center">Data Publicação</TableHead>
           <TableHead class="w-[8%] text-center">Valor</TableHead>
           <TableHead class="w-[5%] text-center"></TableHead>
         </TableRow>
@@ -67,7 +67,7 @@ onMounted(async () => {
           class="border-b hover:bg-gray-50 transition-colors">
 
           <TableCell class="px-2 py-2">
-            <div class="truncate font-semibold text-gray-900" :title="item.contrato.objeto">
+            <div class="line-clamp-5 whitespace-normal break-words leading-relaxed font-semibold text-gray-900" :title="item.contrato.objeto">
               {{ item.contrato.objeto }}
             </div>
           </TableCell>
@@ -79,21 +79,21 @@ onMounted(async () => {
           </TableCell>
 
           <TableCell class="text-center px-2 py-2">
-            <span class="truncate block text-xs bg-gray-100 px-2 py-1 rounded-md" :title="item.tipo_contrato.tipo">
+            <span class="whitespace-normal break-words leading-relaxed text-xs bg-gray-100 px-2 py-1 rounded-md" :title="item.tipo_contrato.descricao">
               {{ item.tipo_contrato.tipo }}
             </span>
           </TableCell>
 
           <TableCell class="text-center px-2 py-2">
-            <span class="truncate block text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md"
-              :title="item.tipo_procedimento.tipo">
+            <span class="whitespace-normal break-words leading-relaxed text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md"
+              :title="item.tipo_procedimento.descricao">
               {{ item.tipo_procedimento.tipo }}
             </span>
           </TableCell>
 
           <TableCell class="text-center px-2 py-2 text-gray-600">
             <div class="truncate">
-              {{ item.data.data }}
+              {{ item.contrato.data_publicacao }}
             </div>
           </TableCell>
 
