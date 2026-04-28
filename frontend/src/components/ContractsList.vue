@@ -2,15 +2,6 @@
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-
 import { Button } from "@/components/ui/button"
 
 const router = useRouter()
@@ -43,74 +34,100 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container space-y-6">
-    <h1 class="text-2xl font-bold">Contratos</h1>
+  <div class="container max-w-7xl mx-auto space-y-6">
 
-    <p v-if="loading">A carregar...</p>
+    <!-- HEADER -->
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-gray-900">Contratos</h1>
 
-    <Table v-else class="w-full text-sm table-fixed">
+      <span class="text-sm text-gray-500">
+        {{ contracts.length }} resultados
+      </span>
+    </div>
 
-      <TableHeader class="bg-gray-50 border-b">
-        <TableRow>
-          <TableHead class="w-[28%]">Objeto</TableHead>
-          <TableHead class="w-[22%]">Adjudicante</TableHead>
-          <TableHead class="w-[12%] text-center">Tipo Contrato</TableHead>
-          <TableHead class="w-[15%] text-center">Tipo Procedimento</TableHead>
-          <TableHead class="w-[10%] text-center">Data Publicação</TableHead>
-          <TableHead class="w-[8%] text-center">Valor</TableHead>
-          <TableHead class="w-[5%] text-center"></TableHead>
-        </TableRow>
-      </TableHeader>
+    <p v-if="loading" class="text-gray-500">
+      A carregar...
+    </p>
 
-      <TableBody>
-        <TableRow v-for="item in contracts" :key="item.contrato.chave_contratos"
-          class="border-b hover:bg-gray-50 transition-colors">
+    <div v-else class="space-y-4">
 
-          <TableCell class="px-2 py-2">
-            <div class="line-clamp-5 whitespace-normal break-words leading-relaxed font-semibold text-gray-900" :title="item.contrato.objeto">
+      <div
+        v-for="item in contracts"
+        :key="item.contrato.chave_contratos"
+        class="bg-white border rounded-xl shadow-sm hover:shadow-md transition p-5 space-y-4"
+      >
+
+        <div class="flex justify-between gap-4">
+
+          <div class="space-y-1">
+            <h2
+              class="font-semibold text-gray-900 leading-snug line-clamp-2"
+              :title="item.contrato.objeto"
+            >
               {{ item.contrato.objeto }}
+            </h2>
+
+            <div class="text-xs text-gray-500">
+              ID {{ item.contrato.id_contrato }}
             </div>
-          </TableCell>
+          </div>
 
-          <TableCell class="px-2 py-2">
-            <div class="whitespace-normal break-words leading-relaxed text-gray-700" :title="item.adjudicanteRel.nome">
-              {{ item.adjudicanteRel.nome }}
+          <div class="text-right">
+            <div class="text-green-600 font-bold text-lg">
+              {{ formatCurrency(item.contrato.valor_contratual) }}
             </div>
-          </TableCell>
-
-          <TableCell class="text-center px-2 py-2">
-            <span class="whitespace-normal break-words leading-relaxed text-xs bg-gray-100 px-2 py-1 rounded-md" :title="item.tipo_contrato.descricao">
-              {{ item.tipo_contrato.tipo }}
-            </span>
-          </TableCell>
-
-          <TableCell class="text-center px-2 py-2">
-            <span class="whitespace-normal break-words leading-relaxed text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md"
-              :title="item.tipo_procedimento.descricao">
-              {{ item.tipo_procedimento.tipo }}
-            </span>
-          </TableCell>
-
-          <TableCell class="text-center px-2 py-2 text-gray-600">
-            <div class="truncate">
+            <div class="text-xs text-gray-400">
               {{ item.contrato.data_publicacao }}
             </div>
-          </TableCell>
+          </div>
 
-          <TableCell class="text-center px-2 py-2 font-semibold text-green-600">
-            {{ formatCurrency(item.contrato.valor_contratual) }}
-          </TableCell>
+        </div>
 
-          <TableCell class="text-center px-2 py-2">
-            <Button variant="outline" size="sm" class="h-7 px-2 text-xs"
-              @click="goToDetails(item.contrato.chave_contratos)">
-              Detalhes
-            </Button>
-          </TableCell>
+        <div class="grid md:grid-cols-2 gap-4">
 
-        </TableRow>
-      </TableBody>
+          <div>
+            <div class="text-xs text-gray-400">Adjudicante</div>
+            <div class="font-medium text-gray-800 line-clamp-2">
+              {{ item.adjudicanteRel.nome }}
+            </div>
+          </div>
 
-    </Table>
+          <div>
+            <div class="text-xs text-gray-400">Adjudicatário</div>
+            <div class="font-medium text-green-700 line-clamp-2">
+              {{ item.adjudicatario?.nome }}
+            </div>
+          </div>
+
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+
+          <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700" :title="item.tipo_contrato.descricao">
+            {{ item.tipo_contrato.tipo }}
+          </span>
+
+          <span class="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700" :title="item.tipo_procedimento.descricao">
+            {{ item.tipo_procedimento.tipo }} 
+          </span>
+
+        </div>
+
+        <div class="flex justify-end pt-2 border-t">
+
+          <Button
+            variant="outline"
+            size="sm"
+            class="h-8 px-4 text-xs"
+            @click="goToDetails(item.contrato.chave_contratos)"
+          >
+            Ver detalhes
+          </Button>
+
+        </div>
+
+      </div>
+
+    </div>
   </div>
 </template>
