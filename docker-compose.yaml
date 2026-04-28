@@ -15,11 +15,9 @@ services:
       container_name: database
       build:
         context: ./Database
-        dockerfile: Dockerfile
-      restart: on-failure:3
       env_file: .env
       ports:
-      - "3306:3306"
+        - "3306:3306"
       volumes:
         - db_data:/var/lib/mysql
       healthcheck:
@@ -28,6 +26,19 @@ services:
         timeout: 5s
         retries: 3
         start_period: 30s
+
+    laravel:
+      container_name: laravel-api
+      build:
+        context: ./laravel-api
+      volumes:
+        - ./laravel-api:/app
+      ports:
+        - "8000:8000"
+      depends_on:
+        - database
+      env_file:
+        - ./laravel-api/.env
 
     etl:
       container_name: ETL
