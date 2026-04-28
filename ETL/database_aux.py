@@ -13,6 +13,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INIT = os.path.join(BASE_DIR, 'init.sql')
 PROCEDURES = os.path.join(BASE_DIR, 'procedures.sql')
 
+#Função para obter a connecção com a base de dados
 def get_connection():
     try:
         return mysql.connector.connect(
@@ -24,13 +25,11 @@ def get_connection():
         )
     except Error as e:
         logger.error(f"Erro ao conectar à BD: {e}")
-        return False
-    
+        raise SystemExit("Não foi possível conectar à base de dados. A encerrar...") from None
+        
+#Função para verificar se a base de dados existe e criar as tabelas e procedures necessárias
 def verify_database_exists():
     mydb = get_connection()
-    if not mydb:
-        logger.error("Não foi possível conectar à base de dados")
-        return
 
     mycursor = mydb.cursor()
     try:
@@ -78,7 +77,7 @@ def verify_database_exists():
         mycursor.close()
         mydb.close()
    
-
+#Função para executar as procedures de transformação
 def execute_transformacao():
     
     mydb = get_connection()
@@ -131,6 +130,7 @@ def execute_transformacao():
     finally:
         mydb.close()
 
+#Função para executar as procedures de load
 def execute_load():
     mydb = get_connection()
     if not mydb:
@@ -181,12 +181,12 @@ def execute_load():
     finally:
         mydb.close()
 
-
-
+#Função para obter as colunas de uma tabela
 def get_table_columns(cursor, table_name: str) -> list:
     cursor.execute(f"SHOW COLUMNS FROM {table_name}")
     return [row[0] for row in cursor.fetchall()]
 
+#Função para inserir dados em batch
 def insert_data_table(table_name: str, values: list, batch_size: int = 2000):
     if not values:
         logger.warning(f"Nenhuns dados para inserir na tabela {table_name}")
@@ -223,11 +223,23 @@ def sanitize(value):
         return None
     return value
 
-#Para ver a ultima data extraida
-#Caso aconteça algo e não de para extrair os dados
-#Talvez fazer uma base de dados para isto
-def get_last_date_extracted():
-    return 'data'
+#Media de contratos extraidos por dia
+def get_average_contracts_extracted()->float|None:
+    mydb=get_connection()
+    mycursor = mydb.cursor()
+
+    try:
+        query = "SELECT media_contratos FROM data_extracted ORDER BY id DESC LIMIT 1;"
+        mycursor.execute(query)
+        result = mycursor.fetchone()
+        logger.info(f"Média de contratos extraídos por dia: {result[0] if result else 'N/A'}")
+        if result:
+            return float(result[0])
+        else:
+            return None
+    except mysql.connector.Error as e:
+        logger.error(f"Erro ao obter média de contratos extraídos: {e}")
+        return None
 
 #Selecionar os novos campos na base de dados
 def get_distinct_data(nome_campo:str,table_name:str):
@@ -258,8 +270,12 @@ def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status
             mydb.commit()
 
         case "ERRO":
-            query = "UPDATE "+table_logs+" SET status = 'ERRO', mensagem = %s, ultima_extracao = NOW() WHERE id = %s"
-            mycursor.execute(query, (mensagem, id)) 
+            if id is None:
+                query = "INSERT INTO " + table_logs + " (status, nome_objeto, mensagem, ultima_extracao) VALUES ('ERRO', %s, %s, NOW())"
+                mycursor.execute(query, (nome_objeto, mensagem))
+            else:
+                query = "UPDATE " + table_logs + " SET status = 'ERRO', mensagem = %s, ultima_extracao = NOW() WHERE id = %s"
+                mycursor.execute(query, (mensagem, id))
             mydb.commit()
 
         case _:
@@ -269,6 +285,7 @@ def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status
     mydb.close()
     return None
 
+#Função para ir buscar a media de contratos extraidos
 def average_extrated_contracts(num_contratos: int):
     mydb = get_connection()
     mycursor = mydb.cursor()
