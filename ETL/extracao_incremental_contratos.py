@@ -25,7 +25,6 @@ VERSION_SEARCH = "101.0"
 VERSION_DETAIL = "101.0"
 PAGE_SIZE = 25
 MAX_PAGES = 1
-RETRIES = 5
 
 
 
@@ -43,7 +42,7 @@ def criar_sessao():
     return sessao
 
 #Lista de contratos
-def listar_contratos(sessao: requests.Session, pagina: int) :
+def listar_contratos(sessao: requests.Session, pagina: int, retries: int = 5):
     
     payload = {
         "type": "search_contratos",
@@ -57,18 +56,24 @@ def listar_contratos(sessao: requests.Session, pagina: int) :
     try:
         resposta = sessao.post(API_URL, data=payload, headers=HEADERS)
         resposta.raise_for_status()
-        #print(f"Conexão a {API_URL} com sucesso")
-        return resposta.json()
+        data = resposta.json()
+        
+        # Validate the response has actual content
+        if not data or "items" not in data or "total" not in data:
+            raise ValueError(f"Resposta inválida da API: {data}")
+        
+        return data
 
-    except requests.exceptions.RequestException as e:
+    except (requests.exceptions.RequestException, ValueError) as e:
         logger.error(f"Erro na listagem da página {pagina}: {e}")
-        if RETRIES > 0:
-            logger.info(f"Tentativa n {RETRIES}")
-            time.sleep(2 ** (5 - RETRIES))  # Exponential backoff
-            return listar_contratos(sessao, pagina)
+        if retries > 0:
+            logger.info(f"Tentativa {6 - retries} de 5")
+            wait_seconds = 30 * 60  # 30 minutes
+            logger.info(f"A aguardar 30 minutos antes de tentar novamente...")
+            time.sleep(wait_seconds)
+            return listar_contratos(sessao, pagina, retries - 1)
         else:
-            db.change_status(None, TABLE_LOGS, TABLE_NAME, "ERRO", mensagem=f"Erro ao tentar extrair dados:{e}")
-        return None
+            return None
 
 #Vai buscar os detalhes de cada contrato
 def extrair_detalhes(sessao: requests.Session, contrato_id: str):
@@ -178,29 +183,24 @@ def prepare_data(contrato:dict):
     }
     return contrato_data
 
-
-def main():
-    sessao = criar_sessao()
+def extracion_contracts(sessao:requests.session):
     contratos = []
     pagina = 0
     parar = False
     yesterday = datetime.today() - timedelta(days=1)
-    log_id = db.change_status(None, TABLE_LOGS,TABLE_NAME, "INICIO")
-    num_contratos = 0
-
+    num_contratos = 0   
+    
     try:
-        data = listar_contratos(sessao, pagina)
-        logger.info("A iniciar extração de contratos...")
-        
-        while pagina < data['total'] and not parar:
-        
+        while not parar:
+            
             data = listar_contratos(sessao, pagina)
 
-            if not data or "items" not in data:
-                #TODO:ver isto
-                print("Fim dos contratos ou erro na resposta.")
-                #break
-
+            # If data is NULL 
+            if data is None:
+                logger.error(f"Falha ao obter dados para a página {pagina}. A cancelar extração.")
+                db.change_status(None, TABLE_LOGS, TABLE_NAME, "ERRO", mensagem="Não foi possível iniciar a extração de contratos.")
+                break
+            
             items = data["items"]
 
             with alive_bar(len(items), title=f"Página {pagina+1}") as bar:
@@ -222,22 +222,36 @@ def main():
             pagina += 1
 
             #insert data
-            try:
-                db.insert_data_table('contratos_ext',contratos)
-                contratos.clear()
-                logger.success("dados inseridos com sucesso")
-                
-            except Exception as e:
-                logger.error("ocorreu um erro a extrair os dados")
-                db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
+            if contratos:
+                log_id = db.change_status(None, TABLE_LOGS,TABLE_NAME, "INICIO")
+                try:
+                    
+                    db.insert_data_table(TABLE_NAME,contratos)
+                    contratos.clear()
+                    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
+                except Exception as e:
+                    logger.error("ocorreu um erro a extrair os dados")
+                    db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
 
-
+        return num_contratos
     except Exception as e:
         logger.exception(f"Não foi possível extrair os dados: {e}")
-        db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
+        db.change_status(None,TABLE_LOGS, None, "ERRO", mensagem=str(e))
         
-    logger.info("Extração finalizada com sucesso")
-    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
+
+def main():
+    sessao = criar_sessao()
+    
+    num_contratos = 0
+    #num_contratos = extracion_contracts(sessao)
+    average_contratos = db.get_average_contracts_extracted()
+
+    if average_contratos is not None:
+        if float(num_contratos) < float(average_contratos):
+            logger.info(f"Número de contratos extraídos ({num_contratos}) é inferior à média histórica ({average_contratos}). Repetindo extração.")
+            #num_contratos = extracion_contracts(sessao)
+            
+    logger.success("Extração finalizada com sucesso")
     logger.info(f"Número de contratos extraidos: {num_contratos}")
     db.average_extrated_contracts(num_contratos)
 

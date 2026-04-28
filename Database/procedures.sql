@@ -411,7 +411,7 @@ BEGIN
 
 END$$
 
-
+DROP PROCEDURE IF EXISTS load_dim_data$$
 CREATE PROCEDURE load_dim_data(IN data_inicio DATE, IN data_fim DATE)
 BEGIN
     DECLARE d DATE;

@@ -1,62 +1,64 @@
 services:
+    ofelia:
+      container_name: ofelia
+      image: mcuadros/ofelia:latest
+      depends_on:
+        etl:
+          condition: service_started
+      volumes:
+        # Crucial: Mounts the Docker socket to allow Ofelia to control containers
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+      command: daemon --docker
+      restart: always
 
-  ofelia:
-    # Crucial: Mounts the Docker socket to allow Ofelia to control containers
-    container_name: ofelia
-    image: mcuadros/ofelia:latest
-    depends_on:
-      - etl
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    command: daemon --docker
-    restart: always
+    database:
+      container_name: database
+      build:
+        context: ./Database
+      env_file: .env
+      ports:
+        - "3306:3306"
+      volumes:
+        - db_data:/var/lib/mysql
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+        interval: 10s
+        timeout: 5s
+        retries: 3
+        start_period: 30s
 
-  database:
-    container_name: database
-    build:
-      context: ./Database
-    env_file: .env
-    ports:
-      - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+    laravel:
+      container_name: laravel-api
+      build:
+        context: ./laravel-api
+      volumes:
+        - ./laravel-api:/app
+      ports:
+        - "8000:8000"
+      depends_on:
+        - database
+      env_file:
+        - ./laravel-api/.env
 
-  etl:
-    container_name: ETL
-    build:
-      context: ./ETL
-    env_file: .env
-    volumes:
-      - ./Database/init.sql:/app/init.sql
-      - ./Database/procedures.sql:/app/procedures.sql
-    command: tail -f /dev/null
-    depends_on:
-      database:
-        condition: service_healthy
-    restart: always
-    labels:
-      - "ofelia.enabled=true"
-      - "ofelia.job-exec.date-job.schedule=0 10 0 * * *"
-      - "ofelia.job-exec.date-job.command=python main.py"
-
-  laravel:
-    container_name: laravel-api
-    build:
-      context: ./laravel-api
-    volumes:
-      - ./laravel-api:/app
-    ports:
-      - "8000:8000"
-    depends_on:
-      - database
-    env_file:
-      - ./laravel-api/.env
+    etl:
+      container_name: ETL
+      build:
+        context: ./ETL
+        dockerfile: Dockerfile
+      env_file: .env
+      volumes:
+        - ./Database/init.sql:/app/init.sql
+        - ./Database/procedures.sql:/app/procedures.sql
+      command: tail -f /dev/null
+      depends_on:
+        database:
+          condition: service_healthy
+          restart: true
+      restart: always
+      labels:
+        ofelia.enabled: "true"
+        ofelia.job-exec.date-job.schedule: "0 10 0 * * *"
+        ofelia.job-exec.date-job.command: "sh -c 'python main.py > /proc/1/fd/1 2>&1'"
 
 volumes:
   db_data:
