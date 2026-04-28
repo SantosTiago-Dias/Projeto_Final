@@ -36,7 +36,7 @@ def extrair_detalhes(entidade_id:int,retries:int=3):
         print(f"Erro ao extrair detalhe {entidade_id}: {resposta.status_code}")
         if retries > 0:
             logger.info(f"Tentativa {3 - retries} de 3")
-            wait_seconds = 30 * 60  # 30 minutes
+            wait_seconds = 10 
             logger.info(f"A aguardar 30 minutos antes de tentar novamente...")
             time.sleep(wait_seconds)
             return extrair_detalhes(entidade_id, retries - 1)
