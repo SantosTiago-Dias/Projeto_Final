@@ -33,7 +33,9 @@ def main():
 
     #region Transformação
     try:
+        logger.info("A iniciar transformação de dados")
         db.execute_transformacao()
+        logger.success("Fim da transformação de dados")
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
@@ -55,8 +57,10 @@ def main():
 
     #region Load
     try:
+        logger.info("A iniciar carregamento de dados")
         db.execute_load()
         db.ensure_dim_data()
+        logger.success("Fim do carregamento de dados")
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)

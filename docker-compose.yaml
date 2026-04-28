@@ -3,7 +3,8 @@ services:
       container_name: ofelia
       image: mcuadros/ofelia:latest
       depends_on:
-        - etl
+        etl:
+          condition: service_started
       volumes:
         # Crucial: Mounts the Docker socket to allow Ofelia to control containers
         - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -44,9 +45,9 @@ services:
           restart: true
       restart: always
       labels:
-        - "ofelia.enabled=true"
-        - "ofelia.job-exec.date-job.schedule=0 10 0 * * *"
-        - "ofelia.job-exec.date-job.command=python main.py"
+        ofelia.enabled: "true"
+        ofelia.job-exec.date-job.schedule: "0 10 0 * * *"
+        ofelia.job-exec.date-job.command: "sh -c 'python main.py > /proc/1/fd/1 2>&1'"
 
 volumes:
   db_data:

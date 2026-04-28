@@ -9,7 +9,7 @@ import time
 load_dotenv(".env")
 TABLE_NAME = "tipo_contrato_dictionary"
 CCP_FILE = "Tipo_Contrato.json"
-TABLE_LOGS = 't_logs_extract'
+TABLE_LOGS = 't_logs_transformacao'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 

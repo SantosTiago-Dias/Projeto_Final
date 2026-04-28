@@ -9,7 +9,7 @@ import time
 load_dotenv(".env")
 DICTIONARY_FILE = "Justificacao_Nao_Escrita.json"
 TABLE_NAME = "justificacao_contrato_nao_escrito_dictionary"
-TABLE_LOGS = 't_logs_extract'
+TABLE_LOGS = 't_logs_transformacao'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 

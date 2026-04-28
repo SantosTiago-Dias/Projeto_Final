@@ -20,7 +20,7 @@ VERSION_DETAIL = "116.0"
 TABLE_LOGS= "t_logs_extract"
 
 # Detalhes de cada entidade
-def extrair_detalhes(entidade_id:int):
+def extrair_detalhes(entidade_id:int,retries:int=3):
 
     payload = {
         "type": "detail_entidades",
@@ -34,7 +34,14 @@ def extrair_detalhes(entidade_id:int):
         return resposta.json()
     else:
         print(f"Erro ao extrair detalhe {entidade_id}: {resposta.status_code}")
-        return None
+        if retries > 0:
+            logger.info(f"Tentativa {3 - retries} de 3")
+            wait_seconds = 30 * 60  # 30 minutes
+            logger.info(f"A aguardar 30 minutos antes de tentar novamente...")
+            time.sleep(wait_seconds)
+            return extrair_detalhes(entidade_id, retries - 1)
+        else:
+            return None
 
 
 def prepare_data(entidade:dict):
@@ -60,6 +67,8 @@ def main(EntityID:int):
 
             if not detalhes or not isinstance(detalhes, dict):
                 logger.warning(f"Entidade {EntityID} não encontrada ou inválida")
+                db.insert_data_table(TABLE_NAME, [prepare_data({'id':EntityID, 'nif':'Não Disponivel', 'description':'Não Disponivel', 'location':'Não Disponivel'})])
+                db.change_status(log_id,TABLE_LOGS, None, "ERRO", f"Entidade {EntityID} não encontrada ou inválida")
             else:
                 descricao = detalhes.get('description')
                 dictonary.add_value(DICTIONARY_FILE, str(EntityID), descricao)
