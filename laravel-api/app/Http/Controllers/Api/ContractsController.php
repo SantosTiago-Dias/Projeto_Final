@@ -8,53 +8,13 @@ use Illuminate\Http\Request;
 
 class ContractsController extends Controller
 {
-    /*
-    public function index(Request $request)
-    {
-        try {
-        $query = FactContrato::with([
-            'contrato',
-            'entidade',
-            'adjudicante',
-            'tipoContrato',
-            'tipoProcedimento',
-            'data'
-        ]);
-
-        if ($request->from) {
-            $query->whereHas('data', fn($q) =>
-                $q->where('data', '>=', $request->from));
-        }
-
-        if ($request->to) {
-            $query->whereHas('data', fn($q) =>
-                $q->where('data', '<=', $request->to));
-        }
-
-        if ($request->min_valor) {
-            $query->where('valor_contratual', '>=', $request->min_valor);
-        }
-
-        if ($request->max_valor) {
-            $query->where('valor_contratual', '<=', $request->max_valor);
-        }
-
-        return response()->json(
-            $query->paginate($request->get('per_page', 50))
-        );
-
-    } catch (\Throwable $e) {
-        return response()->json([
-            'error' => $e->getMessage()
-        ], 500);
-    }
-    }*/
     //TODO:sql Injection
     public function index(Request $request)
     {
         try {
 
             $query = FactContrato::with([
+                'contrato.cpvs.cpv',
                 'contrato',
                 'entidade',
                 'adjudicanteRel',
@@ -113,24 +73,10 @@ class ContractsController extends Controller
         }
     }
 
-/*
-    public function show($id)
-    {
-        $data = FactContrato::with([
-            'contrato',
-            'entidade',
-            'adjudicante',
-            'tipoContrato',
-            'tipoProcedimento',
-            'data'
-        ])->where('chave_contratos', $id)->get();
-
-        return response()->json($data);
-    }
-*/
 public function show($id)
 {
     $rows = FactContrato::with([
+        'contrato.cpvs.cpv',
         'contrato',
         'entidade',
         'adjudicanteRel',

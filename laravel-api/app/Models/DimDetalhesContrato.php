@@ -10,4 +10,10 @@ class DimDetalhesContrato extends Model
     protected $table = 'dim_detalhes_contratos';
     protected $primaryKey = 'chave_contratos';
     public $timestamps = false;
+
+    public function cpvs()
+{
+    return $this->hasMany(DimCpvContrato::class, 'chave_contrato', 'chave_contratos');
 }
+}
+
