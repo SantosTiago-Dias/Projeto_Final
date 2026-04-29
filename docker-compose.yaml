@@ -38,7 +38,7 @@ services:
         - api/.env
 
     etl:
-      container_name: ETL
+      container_name: etl
       build:
         context: ./ETL
         dockerfile: Dockerfile
