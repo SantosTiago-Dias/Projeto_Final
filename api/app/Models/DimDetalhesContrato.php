@@ -12,8 +12,8 @@ class DimDetalhesContrato extends Model
     public $timestamps = false;
 
     public function cpvs()
-{
-    return $this->hasMany(DimCpvContrato::class, 'chave_contrato', 'chave_contratos');
-}
+    {
+        return $this->hasMany(DimCpvContrato::class, 'chave_contrato', 'chave_contratos');
+    }
 }
 

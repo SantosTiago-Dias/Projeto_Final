@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ContractsResource;
+use App\Http\Resources\FactsResource;
 use App\Models\FactContrato;
 use Illuminate\Http\Request;
 
@@ -13,63 +15,14 @@ class ContractsController extends Controller
     {
         try {
 
-            $query = FactContrato::with([
-                'contrato.cpvs.cpv',
-                'contrato',
-                'entidade',
-                'adjudicanteRel',
-                'tipoContrato',
-                'tipoProcedimento',
-                'data'
-            ]);
+            $data=FactContrato::with('contrato.cpvs.cpv','contrato','entidade','concorrentes','tipo_contrato','tipo_procedimento','data')->paginate(25);
 
-            // filtros
-            if ($request->from) {
-                $query->whereHas('data', fn($q) =>
-                    $q->where('data', '>=', $request->from));
-            }
+            //TODO:APLICAR FILTROS
 
-            if ($request->to) {
-                $query->whereHas('data', fn($q) =>
-                    $q->where('data', '<=', $request->to));
-            }
-
-            if ($request->min_valor) {
-                $query->where('valor_contratual', '>=', $request->min_valor);
-            }
-
-            if ($request->max_valor) {
-                $query->where('valor_contratual', '<=', $request->max_valor);
-            }
-
-            $rows = $query->get();
-
-            // agrupar por contrato
-            $grouped = $rows->groupBy('chave_contratos')->map(function ($group) {
-                $first = $group->first();
-
-                return [
-                    'contrato' => $first->contrato,
-                    'adjudicanteRel' => $first->adjudicanteRel,
-                    'tipo_contrato' => $first->tipoContrato,
-                    'tipo_procedimento' => $first->tipoProcedimento,
-                    'data' => $first->data,
-
-                    'adjudicatario' => $group->firstWhere('adjudicatario', 1)?->entidade,
-
-                    'entidades' => $group->where('adjudicatario', 0)->map(fn($r) => $r->entidade)->values()
-
-                ];
-            })->values();
-
-            return response()->json([
-                'data' => $grouped
-            ]);
+            return FactsResource::collection($data);
 
         } catch (\Throwable $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 500);
+            abort(500, 'Error'. $e->getMessage());
         }
     }
 

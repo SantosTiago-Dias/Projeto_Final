@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FactContrato extends Model
 {
@@ -13,32 +15,32 @@ class FactContrato extends Model
     protected $primaryKey = null;
     public $incrementing = false;
 
-    public function contrato()
+    public function contrato(): BelongsTo
     {
         return $this->belongsTo(DimDetalhesContrato::class, 'chave_contratos');
     }
 
-    public function entidade()
+    public function entidade(): BelongsTo
     {
         return $this->belongsTo(DimEntidade::class, 'chave_entidade');
     }
 
-    public function adjudicanteRel()
+    public function concorrentes(): HasMany
     {
-        return $this->belongsTo(DimEntidade::class, 'adjudicante');
+        return $this->hasMany(FactContrato::class, 'chave_contratos', 'chave_contratos')->with('entidade');
     }
 
-    public function tipoContrato()
+    public function tipo_contrato(): BelongsTo
     {
         return $this->belongsTo(TipoContrato::class, 'chave_tipo_contrato');
     }
 
-    public function tipoProcedimento()
+    public function tipo_procedimento(): BelongsTo
     {
         return $this->belongsTo(TipoProcedimento::class, 'chave_tipo_procedimento');
     }
 
-    public function data()
+    public function data(): BelongsTo
     {
         return $this->belongsTo(DimData::class, 'chave_data');
     }
