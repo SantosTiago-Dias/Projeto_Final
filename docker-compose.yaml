@@ -27,18 +27,15 @@ services:
         retries: 3
         start_period: 30s
 
-    laravel:
-      container_name: laravel-api
+    api:
+      container_name: api
       build:
-        context: ./laravel-api
-      volumes:
-        - ./laravel-api:/app
-      ports:
-        - "8000:8000"
+        context: api
+        dockerfile: Dockerfile
       depends_on:
         - database
       env_file:
-        - ./laravel-api/.env
+        - api/.env
 
     etl:
       container_name: ETL
