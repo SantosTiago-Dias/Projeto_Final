@@ -14,11 +14,11 @@ class ContractsController extends Controller
     {
         try {
 
-            $data=FactContrato::with('contrato.cpvs.cpv','contrato','entidade','concorrentes','tipo_contrato','tipo_procedimento','data')->paginate(25);
+            $contratos=FactContrato::with('contrato.cpvs.cpv','contrato','entidade','concorrentes','tipo_contrato','tipo_procedimento','data')->paginate(25);
 
             //TODO:APLICAR FILTROS
 
-            return FactsResource::collection($data);
+            return FactsResource::collection($contratos);
 
         } catch (\Throwable $e) {
             abort(500, 'Error'. $e->getMessage());
@@ -27,14 +27,20 @@ class ContractsController extends Controller
 
     public function show($id)
     {
-        $data = FactContrato::with('contrato.cpvs.cpv','contrato','entidade','concorrentes','tipo_contrato','tipo_procedimento','data')
-            ->where('chave_contratos', $id)
-            ->first();
+        try
+        {
+            $data = FactContrato::with('contrato.cpvs.cpv','contrato','entidade','concorrentes','tipo_contrato','tipo_procedimento','data')
+                ->where('chave_contratos', $id)
+                ->first();
 
-        if (!$data) {
-            abort(404);
+            if (!$data) {
+                abort(404);
+            }
+
+            return new FactsResource($data);
+        } catch (\Throwable $e) {
+            abort(500, 'Error'. $e->getMessage());
         }
 
-        return new FactsResource($data);
     }
 }
