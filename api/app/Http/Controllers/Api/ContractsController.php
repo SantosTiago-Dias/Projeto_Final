@@ -10,8 +10,7 @@ use Illuminate\Http\Request;
 
 class ContractsController extends Controller
 {
-    //TODO:sql Injection
-    public function index(Request $request)
+    public function index()
     {
         try {
 
@@ -26,35 +25,16 @@ class ContractsController extends Controller
         }
     }
 
-public function show($id)
-{
-    $rows = FactContrato::with([
-        'contrato.cpvs.cpv',
-        'contrato',
-        'entidade',
-        'adjudicanteRel',
-        'tipoContrato',
-        'tipoProcedimento',
-        'data'
-    ])
-    ->where('chave_contratos', $id)
-    ->get();
+    public function show($id)
+    {
+        $data = FactContrato::with('contrato.cpvs.cpv','contrato','entidade','concorrentes','tipo_contrato','tipo_procedimento','data')
+            ->where('chave_contratos', $id)
+            ->first();
 
-    if ($rows->isEmpty()) {
-        abort(404);
+        if (!$data) {
+            abort(404);
+        }
+
+        return new FactsResource($data);
     }
-
-    return response()->json([
-        'contrato' => $rows->first()->contrato,
-        'adjudicanteRel' => $rows->first()->adjudicanteRel,
-        'tipo_contrato' => $rows->first()->tipoContrato,
-        'tipo_procedimento' => $rows->first()->tipoProcedimento,
-        'data' => $rows->first()->data,
-
-        'adjudicatario' => $rows->firstWhere('adjudicatario', 1)?->entidade,
-
-        'entidades' => $rows->where('adjudicatario', 0)->map(fn($r) => $r->entidade)->values()
-
-    ]);
-}
 }
