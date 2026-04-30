@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FactContrato extends Model
@@ -22,12 +23,18 @@ class FactContrato extends Model
 
     public function entidade(): BelongsTo
     {
-        return $this->belongsTo(DimEntidade::class, 'chave_entidade');
+        return $this->belongsTo(DimEntidade::class, 'adjudicante');
+    }
+
+    public function entidade_concorrente(): BelongsTo
+    {
+        return $this->belongsTo(DimEntidade::class, 'chave_entidade', 'chave_entidade');
     }
 
     public function concorrentes(): HasMany
     {
-        return $this->hasMany(FactContrato::class, 'chave_contratos', 'chave_contratos')->with('entidade');
+        return $this->hasMany(FactContrato::class, 'chave_contratos', 'chave_contratos')
+            ->with('entidade_concorrente');
     }
 
     public function tipo_contrato(): BelongsTo

@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\ContractsResource;
 use App\Http\Resources\FactsResource;
 use App\Models\FactContrato;
-use Illuminate\Http\Request;
 
 class ContractsController extends Controller
 {

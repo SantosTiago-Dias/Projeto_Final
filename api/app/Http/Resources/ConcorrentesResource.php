@@ -15,7 +15,7 @@ class ConcorrentesResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'entidade' => new EntidadeResource($this->entidade),
+            'entidade' => new EntidadeResource($this->entidade_concorrente),
             'adjudicatario' => $this->adjudicatario,
         ];
     }

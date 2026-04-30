@@ -4,9 +4,8 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use function Sodium\add;
 
-class FactsResource extends JsonResource
+class ListaContratosEntidadeResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,15 +14,11 @@ class FactsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-
         return [
             'chave_contrato'=>$this->chave_contratos,
             'contrato' => new ContractsResource($this->contrato),
             'adjudicante' => new EntidadeResource($this->entidade),
             'concorrentes' => ConcorrentesResource::collection($this->concorrentes),
-            'tipo_contrato' => new TipoContratoResource($this->tipo_contrato),
-            'tipo_procedimento' => new TipoProcedimentoResource($this->tipo_procedimento),
-            'data' => new DateResource($this->data)
         ];
     }
 }
