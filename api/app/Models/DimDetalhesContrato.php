@@ -15,5 +15,10 @@ class DimDetalhesContrato extends Model
     {
         return $this->hasMany(DimCpvContrato::class, 'chave_contrato', 'chave_contratos');
     }
+
+    public function fact_contrato()
+    {
+        return $this->hasMany(FactContrato::class, 'chave_contratos', 'chave_contratos');
+    }
 }
 

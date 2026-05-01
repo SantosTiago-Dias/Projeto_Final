@@ -12,23 +12,15 @@ class ContractsController extends Controller
     public function index()
     {
         try {
+            $contratos = DimDetalhesContrato::with([
+                'fact_contrato.entidade',
+                'fact_contrato.tipo_contrato',
+                'fact_contrato.tipo_procedimento',
+                'fact_contrato.data',
+                'fact_contrato.concorrentes',
+            ])->where('chave_contratos','!=',1)->paginate(25);
 
-            $all = FactContrato::with('contrato.cpvs.cpv', 'contrato', 'entidade', 'concorrentes', 'tipo_contrato', 'tipo_procedimento', 'data')
-                ->get()
-                ->unique('chave_contratos')
-                ->values();
-            //TODO:APLICAR FILTROS
-
-            $perPage = 25;
-            $page = request()->input('page', 1);
-
-            $contratos = new LengthAwarePaginator(
-                $all->forPage($page, $perPage), // items for current page
-                $all->count(),                  // total items
-                $perPage,
-                $page,
-                ['path' => request()->url()]    // keeps URL correct
-            );
+            //TODO:FILTROS
 
             return FactsResource::collection($contratos);
 

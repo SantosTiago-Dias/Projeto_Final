@@ -12,20 +12,20 @@
 
       <div
           v-for="contract in contracts"
-          :key="contract.contrato.chave_contratos"
+          :key="contract.chave_contratos"
           class="bg-white border border-gray-100 rounded-xl p-5 flex flex-col gap-4"
       >
 
         <!-- Title + Value -->
         <div class="flex justify-between items-start gap-4">
           <div class="flex-1 min-w-0">
-            <h2 class="text-[15px] font-medium text-gray-900 line-clamp-2 leading-snug" :title="contract.contrato.objeto">
-              {{ contract.contrato.objeto }}
+            <h2 class="text-[15px] font-medium text-gray-900 line-clamp-2 leading-snug" :title="contract.objeto">
+              {{ contract.objeto }}
             </h2>
           </div>
           <div class="text-right shrink-0">
-            <p class="text-[17px] font-medium text-green-700">Valor Contratual:{{ formatCurrency(contract.contrato.valor_contratual) }}</p>
-            <p class="text-xs text-gray-400 mt-1">Data de publicação:{{ contract.contrato.data_publicacao }}</p>
+            <p class="text-[17px] font-medium text-green-700">Valor Contratual: {{ formatCurrency(contract.valor_contratual) }}</p>
+            <p class="text-xs text-gray-400 mt-1">Data de publicação: {{ contract.data_publicacao }}</p>
           </div>
         </div>
 

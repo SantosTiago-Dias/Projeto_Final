@@ -17,13 +17,29 @@ class FactsResource extends JsonResource
     {
 
         return [
-            'chave_contrato'=>$this->chave_contratos,
-            'contrato' => new ContractsResource($this->contrato),
-            'adjudicante' => new EntidadeResource($this->entidade),
-            'concorrentes' => ConcorrentesResource::collection($this->concorrentes),
-            'tipo_contrato' => new TipoContratoResource($this->tipo_contrato),
-            'tipo_procedimento' => new TipoProcedimentoResource($this->tipo_procedimento),
-            'data' => new DateResource($this->data)
+            'chave_contratos'    => $this->chave_contratos,
+            'id_contrato'        => $this->id_contrato,
+            'objeto'             => $this->objeto,
+            'descricao'          => $this->descricao,
+            'data_publicacao'    => $this->data_publicacao,
+            'valor_contratual'   => $this->valor_contratual,
+            'adjudicante'        => $this->whenLoaded('fact_contrato', fn() =>
+                new EntidadeResource($this->fact_contrato->first()->entidade)
+            ),
+            'tipo_contrato'      => $this->whenLoaded('fact_contrato', fn() =>
+                new TipoContratoResource($this->fact_contrato->first()->tipo_contrato)
+            ),
+            'tipo_procedimento'  => $this->whenLoaded('fact_contrato', fn() =>
+                new TipoProcedimentoResource($this->fact_contrato->first()->tipo_procedimento)
+            ),
+            'data'               => $this->whenLoaded('fact_contrato', fn() =>
+                new DateResource($this->fact_contrato->first()->data)
+            ),
+
+            // Concorrentes from the first fact row
+            'concorrentes'       => $this->whenLoaded('fact_contrato', fn() =>
+                ConcorrentesResource::collection($this->fact_contrato->first()->concorrentes ?? collect())
+            ),
         ];
     }
 }
