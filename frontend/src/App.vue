@@ -8,7 +8,6 @@
       <div class="logo">
         <router-link to="/">DB_FAIR</router-link>
       </div>
-
     </div>
   </nav>
   <main>

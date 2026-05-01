@@ -1,27 +1,45 @@
 <script setup>
-import { onMounted, ref } from "vue"
+import { onMounted, ref, computed } from "vue"
+import { useAPIStore } from "@/store/api.js"
+import { useRoute } from "vue-router"
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {  Calendar, Euro, FileText, Users } from "lucide-vue-next"
+import CPVList from "@/components/ui/CPV/CPV.vue";
+
+const apiStore = useAPIStore()
+const route = useRoute()
 
 const contract = ref(null)
 const loading = ref(true)
+const error = ref(null)
 
-function formatCurrency(value) {
+const formatCurrency = (value) => {
+  if (!value) return "---"
   return new Intl.NumberFormat("pt-PT", {
     style: "currency",
     currency: "EUR",
   }).format(Number(value))
 }
 
-function formatBool(value) {
-  return value === 1 || value === true ? "Sim" : "Não"
+const formatDate = (date) => {
+  if (!date) return "---"
+  return new Date(date).toLocaleDateString("pt-PT")
 }
 
+
 onMounted(async () => {
-  const id = window.location.pathname.split("/").pop()
+
+  const id = route.params.id
 
   try {
-    const res = await fetch(`http://localhost:8000/api/contracts/${id}`)
-    contract.value = await res.json()
+    const res = await apiStore.getDetailContracts(id)
+    contract.value = res.data
   } catch (err) {
+    error.value = "Não foi possível carregar os detalhes do contrato."
     console.error(err)
   } finally {
     loading.value = false
@@ -30,169 +48,149 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container max-w-6xl mx-auto space-y-8">
-
-    <p v-if="loading" class="text-gray-500">A carregar...</p>
-
-    <div v-if="contract" class="space-y-8">
-
+  <div class="container max-w-5xl py-10 px-4 md:px-0 mx-auto space-y-8">
       <!-- HEADER -->
-      <div class="space-y-2">
-        <h1 class="text-3xl font-bold text-gray-900">
-          {{ contract.contrato.objeto }}
+      <header class="space-y-4">
+        <div class="flex items-center gap-2">
+          <Badge variant="outline" class="uppercase tracking-wider">Contrato Público</Badge>
+          <Badge v-if="contract?.procedimento_centralizado === 1" variant="secondary">Procedimento Centralizado</Badge>
+        </div>
+        <h1 class="text-3xl font-extrabold tracking-tight lg:text-4xl text-slate-900 leading-tight">
+          {{ contract.objeto }}
         </h1>
+      </header>
 
-        <div class="text-sm text-gray-500">
-          ID {{ contract.contrato.id_contrato }}
+      <!-- KEY METRICS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card class="bg-primary/5 border-none shadow-none">
+          <CardHeader class="pb-2">
+            <CardDescription class="flex items-center gap-2">
+              <Euro class="h-4 w-4" /> Valor Contratual
+            </CardDescription>
+            <CardTitle class="text-2xl text-primary">{{ formatCurrency(contract.valor_contratual) }}</CardTitle>
+          </CardHeader>
+        </Card>
+
+        <Card class="shadow-sm">
+          <CardHeader class="pb-2">
+            <CardDescription class="flex items-center gap-2">
+              <Calendar class="h-4 w-4" /> Publicação
+            </CardDescription>
+            <CardTitle class="text-xl">{{ formatDate(contract.data_publicacao) }}</CardTitle>
+          </CardHeader>
+        </Card>
+
+        <Card class="shadow-sm">
+          <CardHeader class="pb-2">
+            <CardDescription class="flex items-center gap-2">
+              <Calendar class="h-4 w-4" /> Celebração
+            </CardDescription>
+            <CardTitle class="text-xl">{{ formatDate(contract.data_celebracao) }}</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- MAIN INFO -->
+        <div class="lg:col-span-2 space-y-8">
+          <section>
+            <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+              <FileText class="h-5 w-5 text-muted-foreground" />
+              Descrição do Objeto
+            </h3>
+            <p class="text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-lg border">
+              {{ contract.descricao || 'Sem descrição disponível.' }}
+            </p>
+          </section>
+
+          <!-- CONCORRENTES TABLE -->
+          <Card>
+            <CardHeader>
+              <CardTitle class="text-lg flex items-center gap-2">
+                <Users class="h-5 w-5" /> Entidades Envolvidas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Entidade</TableHead>
+                    <TableHead>NIF</TableHead>
+                    <TableHead class="text-right">Papel</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <!-- Adjudicante -->
+                  <TableRow>
+                    <TableCell class="font-medium text-blue-700">{{ contract.adjudicante.nome }}</TableCell>
+                    <TableCell>{{ contract.adjudicante.nif }}</TableCell>
+                    <TableCell class="text-right"><Badge variant="outline">Adjudicante</Badge></TableCell>
+                  </TableRow>
+                  <!-- Concorrentes -->
+                  <TableRow v-for="c in contract.concorrentes" :key="c.id">
+                    <TableCell class="font-medium">{{ c.entidade.nome }}</TableCell>
+                    <TableCell>{{ c.entidade.nif }}</TableCell>
+                    <TableCell class="text-right">
+                      <Badge :variant="c.adjudicatario ? 'default' : 'secondary'">
+                        {{ c.adjudicatario ? 'Adjudicatário' : 'Concorrente' }}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+
+        <!-- SIDEBAR INFO -->
+        <div class="space-y-6">
+          <!-- CPVs -->
+          <Card>
+            <CardHeader class="pb-3">
+              <CardTitle class="text-sm font-bold uppercase text-muted-foreground tracking-wider">CPV Códigos</CardTitle>
+            </CardHeader>
+            <CardContent class="flex flex-wrap gap-2">
+              <div class="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
+                <CPVList :cpvs="contract.cpvs" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- DETAILS LIST -->
+          <Card>
+            <CardHeader class="pb-3">
+              <CardTitle class="text-sm font-bold uppercase text-muted-foreground tracking-wider">Detalhes Adicionais</CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-4 text-sm">
+              <div>
+                <span class="font-medium block mb-1">Regime</span>
+                <span class="text-muted-foreground">{{ contract.regime }}</span>
+              </div>
+              <Separator />
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <span class="font-medium block mb-1 text-xs">Ecológico</span>
+                  <Badge :variant="contract.contrato_ecologico ? 'default' : 'outline'">
+                    {{ contract.contrato_ecologico ? 'Sim' : 'Não' }}
+                  </Badge>
+                </div>
+                <div>
+                  <span class="font-medium block mb-1 text-xs">Acordo Quadro</span>
+                  <Badge variant="outline">{{ contract.num_acordos_quadro || 'Não' }}</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      <!-- RESUMO -->
-      <section class="bg-white border rounded-xl shadow-sm p-5 space-y-4">
-
-        <div class="grid md:grid-cols-3 gap-4">
-          <div>
-            <div class="text-xs text-gray-400">Valor</div>
-            <div class="text-lg font-bold text-green-600">
-              {{ formatCurrency(contract.contrato.valor_contratual) }}
-            </div>
-          </div>
-
-          <div>
-            <div class="text-xs text-gray-400">Publicação</div>
-            <div>{{ contract.contrato.data_publicacao }}</div>
-          </div>
-
-          <div>
-            <div class="text-xs text-gray-400">Celebração</div>
-            <div>{{ contract.contrato.data_celebracao }}</div>
-          </div>
-        </div>
-
-        <div class="text-sm text-gray-700">
-          {{ contract.contrato.descricao }}
-        </div>
-
-      </section>
-
-      <!-- ENTIDADES -->
-      <div class="grid md:grid-cols-2 gap-6">
-
-        <section class="bg-white border rounded-xl p-5">
-          <h2 class="font-semibold mb-2">Adjudicante</h2>
-          <div>{{ contract.adjudicanteRel?.nome }}</div>
-          <div class="text-xs text-gray-400">
-            NIF {{ contract.adjudicanteRel?.nif }}
-          </div>
-        </section>
-
-        <section class="bg-white border rounded-xl p-5">
-          <h2 class="font-semibold text-green-700 mb-2">Adjudicatário</h2>
-          <div>{{ contract.adjudicatario?.nome }}</div>
-          <div class="text-xs text-gray-400">
-            NIF {{ contract.adjudicatario?.nif }}
-          </div>
-        </section>
-
-      </div>
-
-      <!-- CPVs -->
-      <section class="bg-white border rounded-xl p-5">
-        <div class="text-xs text-gray-400 mb-2">CPVs</div>
-
-        <div v-if="contract.contrato?.cpvs?.length" class="flex flex-wrap gap-2">
-          <span
-            v-for="(c, i) in contract.contrato.cpvs"
-            :key="i"
-            class="px-2 py-1 bg-gray-100 rounded text-xs font-mono"
-          >
-            {{ c.cpv?.codigo }} - {{ c.cpv?.cpv_descricao }}
-          </span>
-        </div>
-
-        <span v-else class="text-gray-400 text-sm">
-          Não aplicável
-        </span>
-      </section>
-
-      <!-- FLAGS -->
-      <section class="flex flex-wrap gap-2">
-
-        <span class="px-2 py-1 text-xs bg-gray-100 rounded">
-          Ecológico: {{ formatBool(contract.contrato.contrato_ecologico) }}
-        </span>
-
-        <span class="px-2 py-1 text-xs bg-gray-100 rounded">
-          Critérios: {{ formatBool(contract.contrato.crit_materiais) }}
-        </span>
-
-        <span class="px-2 py-1 text-xs bg-gray-100 rounded">
-          Centralizado: {{ formatBool(contract.contrato.procedimento_centralizado) }}
-        </span>
-
-      </section>
-
-      <!-- CONCORRENTES (NOVO) -->
-      <section   v-if="contract.entidades?.length > 0"
-class="bg-white border rounded-xl p-5">
-
-        <h2 class="font-semibold text-gray-900 mb-4">
-          Concorrentes
-        </h2>
-
-        <div class="space-y-3">
-
-          <div
-            v-for="(ent, i) in contract.entidades"
-            :key="i"
-            class="flex justify-between items-center border-b pb-2 last:border-0"
-          >
-
-            <div>
-              <div class="font-medium text-gray-800">
-                {{ ent.nome }}
-              </div>
-
-              <div class="text-xs text-gray-400">
-                NIF {{ ent.nif }}
-              </div>
-            </div>
-
-            <div class="text-xs text-gray-500">
-              {{ ent.num_contratos_adjudicatario }} contratos
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-      <!-- OUTROS -->
-      <section class="bg-white border rounded-xl p-5 space-y-2 text-sm">
-
-        <div>
-          <span class="text-xs text-gray-400">Regime</span><br>
-          {{ contract.contrato.regime }}
-        </div>
-
-        <div>
-          <span class="text-xs text-gray-400">Acordo Quadro</span><br>
-          {{ contract.contrato.num_acordos_quadro }} - {{ contract.contrato.desc_acordo_quadro }}
-        </div>
-
-        <div>
-          <span class="text-xs text-gray-400">Observações</span><br>
-          {{ contract.contrato.observacoes }}
-        </div>
-
-      </section>
+      <!-- FOOTER INFO -->
+      <footer v-if="contract.observacoes" class="pt-6 border-t">
+        <h4 class="text-sm font-semibold mb-2 italic text-muted-foreground text-center">Observações</h4>
+        <p class="text-sm text-muted-foreground text-center max-w-2xl mx-auto">
+          {{ contract.observacoes }}
+        </p>
+      </footer>
 
     </div>
-
-    <p v-if="!loading && !contract" class="text-gray-500">
-      Contrato não encontrado
-    </p>
-
-  </div>
 </template>

@@ -65,7 +65,7 @@
               variant="outline"
               size="sm"
               class="text-xs h-8 px-4"
-              @click="goToDetails(contract.chave_contrato)"
+              @click="goToDetails(contract.chave_contratos)"
           >
             Ver detalhes →
           </Button>
@@ -95,9 +95,10 @@ const loading = ref(true)
 
 const changePage = (page) => {
   if (page >= 1 && page <= response.value.meta.last_page) {
-    getAllUsers(page)
+    apiStore.getListContracts(page)
   }
 }
+
 onMounted(async () => {
   try {
     const response = await apiStore.getListContracts()
