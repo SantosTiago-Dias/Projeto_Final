@@ -16,6 +16,7 @@ class FactContrato extends Model
     protected $primaryKey = null;
     public $incrementing = false;
 
+
     public function contrato(): BelongsTo
     {
         return $this->belongsTo(DimDetalhesContrato::class, 'chave_contratos');
