@@ -3,12 +3,13 @@ import { onMounted, ref, computed } from "vue"
 import { useAPIStore } from "@/store/api.js"
 import { useRoute } from "vue-router"
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {  Calendar, Euro, FileText, Users } from "lucide-vue-next"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card/index.ts"
+import { Badge } from "@/components/ui/badge/index.ts"
+import { Separator } from "@/components/ui/separator/index.ts"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table/index.ts"
+import { Pin,  Calendar, Euro, FileText, Users } from "lucide-vue-next"
 import CPVList from "@/components/ui/CPV/CPV.vue";
+import {Button} from "@/components/ui/button/index.ts";
 
 const apiStore = useAPIStore()
 const route = useRoute()
@@ -50,6 +51,9 @@ onMounted(async () => {
 <template>
   <div class="container max-w-5xl py-10 px-4 md:px-0 mx-auto space-y-8">
       <!-- HEADER -->
+    <Button>
+      <router-link to="/">Voltar atras</router-link>
+    </Button>
       <header class="space-y-4">
         <div class="flex items-center gap-2">
           <Badge variant="outline" class="uppercase tracking-wider">Contrato Público</Badge>
@@ -140,6 +144,16 @@ onMounted(async () => {
               </Table>
             </CardContent>
           </Card>
+
+          <section>
+            <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Pin class="h-5 w-5 text-muted-foreground" />
+              Local de Execução
+            </h3>
+            <p class="text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-lg border">
+              {{ contract.local_execucao || 'Sem local de execução disponível.' }}
+            </p>
+          </section>
         </div>
 
         <!-- SIDEBAR INFO -->

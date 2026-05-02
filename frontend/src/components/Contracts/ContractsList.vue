@@ -94,7 +94,7 @@ const page = ref([])
 const loading = ref(true)
 
 const changePage = (page) => {
-  if (page >= 1 && page <= response.value.meta.last_page) {
+  if (page >= 1 && page <= page.meta.last_page) {
     apiStore.getListContracts(page)
   }
 }
