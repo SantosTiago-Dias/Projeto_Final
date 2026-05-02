@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\EntidadeResource;
 use App\Http\Resources\ListaContratosEntidadeResource;
+use App\Models\DimDetalhesContrato;
 use App\Models\DimEntidade;
 use App\Models\FactContrato;
 use Illuminate\Http\Request;
@@ -39,7 +40,7 @@ class EntidadeController extends Controller
                 abort(404, 'Entidade not found');
             }
 
-            return $entidades;
+            return new EntidadeResource($entidades);
         } catch (\Throwable $e) {
             abort(500, 'Error'. $e->getMessage());
         }
@@ -49,11 +50,18 @@ class EntidadeController extends Controller
     {
         $entidade = DimEntidade::where('id_entidade', $id)->first();
 
-        if (!$entidade)
+        if (!$entidade ||  $id === 1)
         {
             abort(404, 'Entidade not found');
         }
-        $contratos = FactContrato::with('contrato','entidade','concorrentes')->where('adjudicante',$entidade->chave_entidade)->orWhere('chave_entidade',$entidade->chave_entidade)->paginate(25);
+
+        $contratos = DimDetalhesContrato::with([
+            'fact_contrato.entidade',
+            'fact_contrato.tipo_contrato',
+            'fact_contrato.tipo_procedimento',
+            'fact_contrato.data',
+            'fact_contrato.concorrentes'
+        ])->where('adjudicante',$entidade->chave_entidade)->orWhere('chave_entidade',$entidade->chave_entidade)->paginate(25);
 
         return ListaContratosEntidadeResource::collection($contratos);
     }
