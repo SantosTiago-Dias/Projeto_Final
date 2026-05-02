@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Pin,  Calendar, Euro, FileText, Users } from "lucide-vue-next"
 import CPVList from "@/components/ui/CPV/CPV.vue";
 import {Button} from "@/components/ui/button/index.ts";
+import router from "@/router/index.js";
 
 const apiStore = useAPIStore()
 const route = useRoute()
@@ -52,7 +53,12 @@ onMounted(async () => {
   <div class="container max-w-5xl py-10 px-4 md:px-0 mx-auto space-y-8">
       <!-- HEADER -->
     <Button>
-      <router-link to="/">Voltar atras</router-link>
+      <button
+          @click="$router.back()"
+          class="flex items-center gap-1"
+      >
+        ← Voltar atrás
+      </button>
     </Button>
       <header class="space-y-4">
         <div class="flex items-center gap-2">

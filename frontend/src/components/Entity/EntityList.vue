@@ -71,13 +71,13 @@
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                <tr v-for="contract in entityContracts" :key="contract.id" class="hover:bg-blue-50/50">
+                <tr v-for="contract in entityContracts" :key="contract.id" class="hover:bg-blue-50/50" @click="goToContract(contract.chave_contratos)">
                   <td class="px-4 py-3">
-                    <p class="text-sm font-medium text-gray-800 line-clamp-1">{{ contract.objeto }}</p>
+                    <p class="text-sm font-medium text-gray-800 line-clamp-1">{{ contract.objeto ?? 'Sem título' }}</p>
                     <p class="text-[10px] text-gray-400">{{ formatDate(contract.data_publicacao) }}</p>
                   </td>
                   <td class="px-4 py-3 text-right text-sm font-bold text-gray-900">
-                    {{ formatPrice(contract.preco_contratual) }}
+                    {{ formatPrice(contract.valor_contratual) }}
                   </td>
                 </tr>
                 </tbody>
@@ -97,6 +97,8 @@
 import { ref, onMounted } from "vue"
 import { useAPIStore } from "@/store/api.js"
 import { Button } from "@/components/ui/button"
+import router from "@/router/index.js";
+import {useRoute} from "vue-router";
 
 const apiStore = useAPIStore()
 
@@ -104,6 +106,7 @@ const apiStore = useAPIStore()
 const entities = ref([])
 const meta = ref(null)
 const loading = ref(true)
+const route = useRoute()
 
 // Modal State
 const isModalOpen = ref(false)
@@ -150,6 +153,10 @@ const closeModal = () => {
   isModalOpen.value = false
   selectedEntity.value = null
   entityContracts.value = []
+}
+
+const goToContract = (id) => {
+  router.push(`/contracts/${id}`)
 }
 
 // Helpers
