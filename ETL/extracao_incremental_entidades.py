@@ -68,6 +68,7 @@ def main(EntityID:int):
             if not detalhes or not isinstance(detalhes, dict):
                 logger.warning(f"Entidade {EntityID} não encontrada ou inválida")
                 db.insert_data_table(TABLE_NAME, [prepare_data({'id':EntityID, 'nif':'Não Disponivel', 'description':'Não Disponivel', 'location':'Não Disponivel'})])
+                dictonary.add_value(DICTIONARY_FILE, str(EntityID), "Não Disponivel")
                 db.change_status(log_id,TABLE_LOGS, None, "ERRO", f"Entidade {EntityID} não encontrada ou inválida")
             else:
                 descricao = detalhes.get('description')
