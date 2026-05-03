@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS entidade_transf (
     total_adjudicante           DECIMAL(15,2),
     num_contratos_adjudicante   INT,
     pais                        VARCHAR(255),
+    distrito                    VARCHAR(255),
     UNIQUE (id_entidade)
 );
 
@@ -179,6 +180,7 @@ CREATE TABLE IF NOT EXISTS dim_entidade (
     total_adjudicante           DECIMAL(15,2),
     num_contratos_adjudicante   INT,
     pais                        VARCHAR(255),
+    distrito                    VARCHAR(255),
     UNIQUE (id_entidade)
 );
 

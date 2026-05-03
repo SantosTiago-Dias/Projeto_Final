@@ -211,6 +211,7 @@ INSERT INTO entidade_transf (
     nif,
     nome,
     pais,
+    distrito,
     total_adjudicatario,
     num_contratos_adjudicatario,
     total_adjudicante,
@@ -221,6 +222,7 @@ SELECT
     e.nif,
     UPPER(TRIM(e.nome)),
     IFNULL(e.pais, 'N/A'),
+    'N/A',
     0, 0, 0, 0
 
 FROM entidades_ext e
@@ -313,7 +315,8 @@ INSERT INTO dim_entidade (
     num_contratos_adjudicatario,
     total_adjudicante,
     num_contratos_adjudicante,
-    pais
+    pais,
+    distrito
 )
 SELECT
     e.id_entidade,
@@ -323,7 +326,8 @@ SELECT
     e.num_contratos_adjudicatario,
     e.total_adjudicante,
     e.num_contratos_adjudicante,
-    e.pais
+    e.pais,
+    e.distrito
 FROM entidade_transf e
 WHERE NOT EXISTS (
     SELECT 1

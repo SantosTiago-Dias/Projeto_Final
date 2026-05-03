@@ -25,7 +25,7 @@ def main():
     #region Extração
     try:
         db.verify_database_exists()
-        extracao_incremental_contratos.main()    
+        extracao_incremental_contratos.main()
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
@@ -35,6 +35,7 @@ def main():
     try:
         logger.info("A iniciar transformação de dados")
         db.execute_transformacao()
+        db.enrich_entidades_transf()
         logger.success("Fim da transformação de dados")
     except Exception as e:
         logger.error(f"Erro: {e}")

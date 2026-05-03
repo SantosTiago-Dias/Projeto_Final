@@ -6,6 +6,7 @@ import os
 import math
 from datetime import datetime
 import requests
+import time
 
 
 load_dotenv('.env')
@@ -437,6 +438,110 @@ def load_eventos_naturais():
 
     except Exception as e:
         logger.error(f"Erro ao carregar eventos naturais: {e}")
+
+    finally:
+        cursor.close()
+        mydb.close()
+
+
+def get_distrito_from_nominatim(query: str) -> str | None:
+    try:
+        url = "https://nominatim.openstreetmap.org/search"
+        params = {
+            "q": query,
+            "format": "json",
+            "addressdetails": 1,
+            "limit": 1
+        }
+
+        headers = {
+            "User-Agent": "etl-project/1.0"
+        }
+
+        response = requests.get(url, params=params, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        data = response.json()
+
+        if not data:
+            return None
+
+        address = data[0].get("address", {})
+        return address.get("county")
+
+    except Exception as e:
+        logger.error(f"Erro no Nominatim: {e}")
+        return None
+
+
+
+def enrich_entidades_transf():
+    mydb = get_connection()
+    if not mydb:
+        return
+
+    cursor = mydb.cursor(dictionary=True)
+
+    try:
+        logger.info("A enriquecer entidades_transf com distrito...")
+
+        query = """
+        SELECT id_entidade, nome, pais, distrito
+        FROM entidade_transf
+        """
+        cursor.execute(query)
+        entidades = cursor.fetchall()
+
+        updates = 0
+
+        for ent in entidades:
+
+            # já preenchido → ignora
+            if ent["distrito"] and ent["distrito"]!='N/A':
+                continue
+
+            nome = ent["nome"]
+            morada = ent["pais"]
+
+            distrito = None
+
+            # tentar pelo nome
+            if nome:
+                distrito = get_distrito_from_nominatim(nome)
+
+
+            # fallback: segundo parâmetro da morada
+            if not distrito and morada:
+                partes = [p.strip() for p in morada.split(",")]
+
+                if len(partes) >= 2:
+                    distrito = partes[1]  # ex: Évora
+                else:
+                    distrito = "N/A"
+
+            # fallback final
+            if not distrito:
+                distrito = "N/A"
+
+            update_sql = """
+            UPDATE entidade_transf
+            SET distrito = %s
+            WHERE id_entidade = %s
+            """
+
+            cursor.execute(update_sql, (distrito, ent["id_entidade"]))
+            updates += 1
+
+            # evitar bloqueio da API
+            time.sleep(1)
+
+        mydb.commit()
+        logger.success(f"entidades_transf atualizada! {updates} registos")
+
+    except Exception as e:
+        logger.error(f"Erro no enrich entidades_transf: {e}")
 
     finally:
         cursor.close()
