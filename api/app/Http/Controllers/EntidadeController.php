@@ -32,15 +32,7 @@ class EntidadeController extends Controller
         }
 
         try {
-
-            $entidades = DimEntidade::where('id_entidade', $id)->get();
-
-            if ($entidades->isEmpty())
-            {
-                abort(404, 'Entidade not found');
-            }
-
-            return new EntidadeResource($entidades);
+                return DimEntidade::all()->firstOrFail('id_entidade', $id);
         } catch (\Throwable $e) {
             abort(500, 'Error'. $e->getMessage());
         }

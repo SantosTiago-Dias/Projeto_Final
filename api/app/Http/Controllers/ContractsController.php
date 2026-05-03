@@ -2,26 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TipoContratoEnum;
+use App\Enums\TipoProcedimentoEnum;
+use App\Filters\ContratoFilter;
+use App\Http\Requests\ContratoFilterRequest;
 use App\Http\Resources\DetailsContractResource;
 use App\Http\Resources\ListContractsResource;
 use App\Models\DimDetalhesContrato;
-use App\Models\FactContrato;
-use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\TipoContrato;
+use Illuminate\Http\JsonResponse;
 
 class ContractsController extends Controller
 {
-    public function index()
+    public function index(ContratoFilterRequest $request)
     {
         try {
-            $contratos = DimDetalhesContrato::with([
-                'fact_contrato.entidade',
-                'fact_contrato.tipo_contrato',
-                'fact_contrato.tipo_procedimento',
-                'fact_contrato.data',
-                'fact_contrato.concorrentes'
-            ])->where('chave_contratos','!=',1)->paginate(25);
+            $request->validated();
+            $query = DimDetalhesContrato::with(['fact_contrato.entidade','fact_contrato.tipo_contrato','fact_contrato.tipo_procedimento','fact_contrato.data','fact_contrato.concorrentes'])->where('chave_contratos','!=',1);
 
             //TODO:FILTROS
+            $contratos = ContratoFilter::apply($query, $request->validated())->paginate(25);
 
             return ListContractsResource::collection($contratos);
 
@@ -58,5 +58,13 @@ class ContractsController extends Controller
             abort(500, 'Error'. $e->getMessage());
         }
 
+    }
+
+    public function getFilters(): JsonResponse
+    {
+        return response()->json([
+            'TipoContrato' => TipoContratoEnum::toArray(),
+            'TipoProcedimento' => TipoProcedimentoEnum::toArray(),
+        ]);
     }
 }

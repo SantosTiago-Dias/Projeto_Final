@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('contracts')->group(function () {
     Route::get('/', [ContractsController::class, 'index']);
+    Route::get('/getFilters', [ContractsController::class, 'getFilters']);
     Route::get('/{id}', [ContractsController::class, 'show']);
+
 });
 
 Route::prefix('entidades')->group(function () {
