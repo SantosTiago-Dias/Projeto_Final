@@ -12,16 +12,15 @@ class ContratoFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tipo_contrato'          => ['nullable', new Enum(TipoContratoEnum::class)],
-            'tipo_procedimento'      => ['nullable', new Enum(TipoProcedimentoEnum::class)],
-            'data_publicacao_inicio' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:data_publicacao_fim'],
-            'data_publicacao_fim'    => ['nullable', 'date_format:Y-m-d', 'after_or_equal:data_publicacao_inicio'],
-            'valor_contratual'       => ['nullable', 'numeric','min:0'],
-            'prazo_execucao'         => ['nullable', 'integer','min:0'],
-            'cpvs'                    => ['nullable', 'string','regex:/^\d{8}-\d$/'],
-            'contrato_ecologico'   => ['nullable', 'in:0,1'],
+            'tipo_contrato'             => ['nullable', new Enum(TipoContratoEnum::class)],
+            'tipo_procedimento'         => ['nullable', new Enum(TipoProcedimentoEnum::class)],
+            'data_publicacao_inicio'    => ['nullable', 'date_format:Y-m-d', 'before_or_equal:data_publicacao_fim'],
+            'data_publicacao_fim'       => ['nullable', 'date_format:Y-m-d', 'after_or_equal:data_publicacao_inicio'],
+            'valor_contratual'          => ['nullable', 'numeric','min:0'],
+            'prazo_execucao'            => ['nullable', 'integer','min:0'],
+            'cpvs'                      => ['nullable', 'string', 'max:100', 'regex:/^[\pL\s\-]+$/u'],
+            'contrato_ecologico'        => ['nullable', 'in:0,1'],
             'procedimento_centralizado' => ['nullable', 'in:0,1'],
-
         ];
     }
 
@@ -38,7 +37,7 @@ class ContratoFilterRequest extends FormRequest
             'valor_contratual.min'             => 'O valor contratual não pode ser negativo.',
             'prazo_execucao.integer' => 'O prazo de execução deve ser um número inteiro válido.',
             'prazo_execucao.min'     => 'O prazo de execução não pode ser negativo.',
-            'cpv.regex' => 'CPV invalido',
+            'cpvs.regex' => 'CPV invalido',
             'contrato_ecologico.in' => 'Contrato sustentavel invalido',
             'procedimento_centralizado.in' => 'Procedimento invalido',
 

@@ -24,7 +24,12 @@ class ContratoFilter
         $query=$query->when($filters['prazo_execucao'] ?? null , fn($q, $v) =>$q->where('prazo_execucao','<=', $v));
 
         //CPV
-        $query=$query->when($filters['cpvs'] ?? null, fn($q, $v) =>$q->whereHas('cpvs.cpv', fn($q2) => $q2->whereIn('codigo', (array) $v)));
+        if ($filters['cpvs'] ?? false)
+        {
+            $keyword = strip_tags($filters['cpvs']);
+            $query = $query->when($keyword, fn($q, $v) => $q->whereHas('cpvs.cpv', fn($q2) => $q2->where('descricao', 'LIKE', '%' . $keyword . '%')));
+        }
+
 
         //contrato ecologico
         $query=$query->when($filters['contrato_ecologico'] ?? null , fn($q, $v) =>$q->where('contrato_ecologico','=',$v));
