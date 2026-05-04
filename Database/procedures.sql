@@ -336,6 +336,52 @@ WHERE TRIM(cpv.value) <> '';
 
 END$$
 
+DROP PROCEDURE IF EXISTS normalizar_lookup;
+
+DELIMITER $$
+
+CREATE PROCEDURE normalizar_lookup(
+    IN p_table VARCHAR(100),
+    IN p_column VARCHAR(100)
+)
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE v_abr VARCHAR(100);
+    DECLARE v_corr VARCHAR(100);
+
+    DECLARE cur CURSOR FOR
+        SELECT abr, abr_correta FROM lookup_abreviaturas;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO v_abr, v_corr;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        SET @v_abr = v_abr;
+        SET @v_corr = v_corr;
+
+        SET @sql = CONCAT(
+            'UPDATE ', p_table, '
+             SET ', p_column, ' = REPLACE(', p_column, ', ?, ?)
+             WHERE ', p_column, ' LIKE CONCAT("%", ?, "%")'
+        );
+
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt USING @v_abr, @v_corr, @v_abr;
+        DEALLOCATE PREPARE stmt;
+
+    END LOOP;
+
+    CLOSE cur;
+END$$
+
+DELIMITER ;
+
 -- =============================================
 -- LOAD PROCEDURES
 -- =============================================

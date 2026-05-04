@@ -124,6 +124,44 @@ def execute_transformacao():
             finally:
                 cur.close()
 
+        # BLOCO SEPARADO PARA NORMALIZAÇÃO (com parâmetros)
+        logger.info("A executar: normalizar_lookup")
+
+        normalizacoes = [
+            ('DB_CP.detalhes_contratos_transf', 'descricao'),
+            ('DB_CP.detalhes_contratos_transf', 'objeto'),
+            ('DB_CP.entidade_transf', 'nome')
+            # ('DB_CP.outra_tabela', 'outra_coluna')
+        ]
+
+        for tabela, coluna in normalizacoes:
+            proc_name = f"normalizar_lookup({tabela}.{coluna})"
+            log_id = change_status(None,'t_logs_transformacao',proc_name,"INICIO")
+
+            cur = mydb.cursor()
+            try:
+                cur.callproc('normalizar_lookup', [tabela, coluna])
+
+                for result in cur.stored_results():
+                    try:
+                        result.fetchall()
+                    except Exception:
+                        pass
+
+                while cur.nextset():
+                    pass
+
+                mydb.commit()
+                change_status(log_id, 't_logs_transformacao', None, "SUCESSO")
+                logger.success(f"Normalizado: {tabela}.{coluna}")
+
+            except mysql.connector.Error as e:
+                logger.error(f"Erro na normalização {tabela}.{coluna}: {e}")
+                change_status(log_id, 't_logs_transformacao', None, "ERRO", mensagem=str(e))
+
+            finally:
+                cur.close()
+
         logger.info("Transformação concluída com sucesso!")
 
     except mysql.connector.Error as e:

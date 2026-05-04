@@ -285,3 +285,22 @@ VALUES ('N/A', 'VALOR DESCONHECIDO');
 
 INSERT IGNORE INTO fundamentacao_contrato_dictionary (fundamentacao, descricao)
 VALUES ('N/A', 'VALOR DESCONHECIDO');
+
+CREATE TABLE IF NOT EXISTS lookup_abreviaturas(
+    abr VARCHAR(255),
+    abr_correta VARCHAR(255)
+);
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('L.D.A.','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('L. D. A.','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('LDA.','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('L.D.A','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('LD.ª','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('L.DA','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('E.P.E.','EPE');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('E. P. E.','EPE');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('EPE.','EPE');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('E.P.E','EPE');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('S.A.','SA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('S.A','SA');
+
+
