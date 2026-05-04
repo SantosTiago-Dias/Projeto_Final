@@ -1,10 +1,10 @@
 
 
-DROP FUNCTION IF EXISTS normalizar_lista;
+DROP FUNCTION IF EXISTS normalizar;
 
 DELIMITER $$
 
-CREATE FUNCTION normalizar_lista(input TEXT)
+CREATE FUNCTION normalizar(input TEXT)
     RETURNS TEXT
     DETERMINISTIC
 BEGIN
@@ -15,6 +15,43 @@ BEGIN
     END IF;
 
     SET result = REGEXP_REPLACE(input, '(?i)<br\\s*/?>', '; ');
+    SET result = TRIM(result);
+
+    RETURN result;
+END$$
+
+DELIMITER ;
+
+DROP FUNCTION IF EXISTS normalizar_sc;
+
+DELIMITER $$
+
+CREATE FUNCTION normalizar_sc(input TEXT)
+    RETURNS TEXT
+    DETERMINISTIC
+BEGIN
+    DECLARE result TEXT;
+
+    IF input IS NULL OR input = '' THEN
+        RETURN NULL;
+    END IF;
+
+    SET result = input;
+
+
+    SET result = REGEXP_REPLACE(
+            result,
+            ' C/ ?([[:alpha:]]{2,})',
+            ' COM \\1'
+                 );
+
+
+    SET result = REGEXP_REPLACE(
+            result,
+            ' S/ ?([[:alpha:]]{2,})',
+            ' SEM \\1'
+                 );
+
     SET result = TRIM(result);
 
     RETURN result;
@@ -56,8 +93,8 @@ BEGIN
     )
 SELECT
     id_contrato,
-    UPPER(normalizar_lista(objeto)),
-    UPPER(normalizar_lista(descricao)),
+    normalizar_sc(UPPER(normalizar(objeto))),
+    normalizar_sc(UPPER(normalizar(descricao))),
 
     STR_TO_DATE(data_publicacao, '%d-%m-%Y'),
     STR_TO_DATE(data_celebracao, '%d-%m-%Y'),
@@ -65,7 +102,7 @@ SELECT
     CAST(REPLACE(REPLACE(TRIM(TRAILING '€' FROM valor_contratual),'.', ''),',', '.') AS DECIMAL(15,2)),
     CAST(TRIM(REPLACE(prazo_execucao, ' dias', '')) AS UNSIGNED),
 
-    UPPER(normalizar_lista(local_execucao)),
+    UPPER(normalizar(local_execucao)),
     procedimento_centralizado,
     num_acordos_quadro,
     desc_acordo_quadro,
@@ -115,8 +152,8 @@ SELECT
 
     1 AS adjudicatario,
 
-    normalizar_lista(c.tipo_contrato),
-    normalizar_lista(c.tipo_procedimento),
+    normalizar(c.tipo_contrato),
+    normalizar(c.tipo_procedimento),
     c.fundamentacao,
     c.justificacao_nao_escrita,
 
@@ -164,8 +201,8 @@ SELECT
 
     0 AS adjudicatario,
 
-    normalizar_lista(c.tipo_contrato),
-    normalizar_lista(c.tipo_procedimento),
+    normalizar(c.tipo_contrato),
+    normalizar(c.tipo_procedimento),
     c.fundamentacao,
     c.justificacao_nao_escrita,
 
