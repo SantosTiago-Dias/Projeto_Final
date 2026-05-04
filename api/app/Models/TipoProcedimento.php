@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Resources\TipoProcedimentoResource;
 use Illuminate\Database\Eloquent\Model;
 
 class TipoProcedimento extends Model

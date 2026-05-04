@@ -4,7 +4,10 @@ namespace App\Http\Requests;
 
 use App\Enums\TipoContratoEnum;
 use App\Enums\TipoProcedimentoEnum;
+use App\Models\TipoContrato;
+use App\Models\TipoProcedimento;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 class ContratoFilterRequest extends FormRequest
@@ -12,8 +15,8 @@ class ContratoFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tipo_contrato'             => ['nullable', new Enum(TipoContratoEnum::class)],
-            'tipo_procedimento'         => ['nullable', new Enum(TipoProcedimentoEnum::class)],
+            'tipo_contrato'     => ['nullable', Rule::exists(TipoContrato::class, 'id_tipo_contrato')->where(fn($q) => $q->where('id_tipo_contrato', '!=', 1))],
+            'tipo_procedimento' => ['nullable', Rule::exists(TipoProcedimento::class, 'id_tipo_procedimento')->where(fn($q) => $q->where('id_tipo_procedimento', '!=', 1))],
             'data_publicacao_inicio'    => ['nullable', 'date_format:Y-m-d', 'before_or_equal:data_publicacao_fim'],
             'data_publicacao_fim'       => ['nullable', 'date_format:Y-m-d', 'after_or_equal:data_publicacao_inicio'],
             'valor_contratual'          => ['nullable', 'numeric','min:0'],

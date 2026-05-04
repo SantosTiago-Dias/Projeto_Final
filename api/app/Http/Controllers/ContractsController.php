@@ -8,8 +8,11 @@ use App\Filters\ContratoFilter;
 use App\Http\Requests\ContratoFilterRequest;
 use App\Http\Resources\DetailsContractResource;
 use App\Http\Resources\ListContractsResource;
+use App\Http\Resources\TipoContratoResource;
+use App\Http\Resources\TipoProcedimentoResource;
 use App\Models\DimDetalhesContrato;
 use App\Models\TipoContrato;
+use App\Models\TipoProcedimento;
 use Illuminate\Http\JsonResponse;
 
 class ContractsController extends Controller
@@ -63,8 +66,12 @@ class ContractsController extends Controller
     public function getFilters(): JsonResponse
     {
         return response()->json([
-            'TipoContrato' => TipoContratoEnum::toArray(),
-            'TipoProcedimento' => TipoProcedimentoEnum::toArray(),
+            'TipoContrato' => TipoContratoResource::collection(
+                TipoContrato::where('id_tipo_contrato', '!=', 1)->get()
+            ),
+            'TipoProcedimento' => TipoProcedimentoResource::collection(
+                TipoProcedimento::where('id_tipo_procedimento', '!=', 1)->get()
+            ),
         ]);
     }
 }
