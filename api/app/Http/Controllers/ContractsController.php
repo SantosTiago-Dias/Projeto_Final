@@ -18,7 +18,7 @@ class ContractsController extends Controller
     {
         try {
             $request->validated();
-            $query = DimDetalhesContrato::with(['fact_contrato.entidade','fact_contrato.tipo_contrato','fact_contrato.tipo_procedimento','fact_contrato.data','fact_contrato.concorrentes'])->where('chave_contratos','!=',1);
+            $query = DimDetalhesContrato::with(['cpvs','fact_contrato.entidade','fact_contrato.tipo_contrato','fact_contrato.tipo_procedimento','fact_contrato.data','fact_contrato.concorrentes'])->where('chave_contratos','!=',1);
 
             //TODO:FILTROS
             $contratos = ContratoFilter::apply($query, $request->validated())->paginate(25);

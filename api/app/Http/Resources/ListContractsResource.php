@@ -23,6 +23,10 @@ class ListContractsResource extends JsonResource
             'descricao'          => $this->descricao,
             'data_publicacao'    => $this->data_publicacao,
             'valor_contratual'   => $this->valor_contratual,
+            'contrato_ecologico' => $this->contrato_ecologico,
+            'prazo_execucao' => $this->prazo_execucao,
+            'procedimento_centralizado' => $this->procedimento_centralizado,
+
             'cpvs'               => CPVResource::collection($this->cpvs),
             'adjudicante'        => $this->whenLoaded('fact_contrato', fn() => new EntidadeResource($this->fact_contrato->first()->entidade)),
             'tipo_contrato'      => $this->whenLoaded('fact_contrato', fn() => new TipoContratoResource($this->fact_contrato->first()->tipo_contrato)),

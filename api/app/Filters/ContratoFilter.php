@@ -13,6 +13,25 @@ class ContratoFilter
         //Tipo_procedimento
         $query=$query->when($filters['tipo_procedimento'] ?? null, fn($q, $v) =>$q->whereRelation('fact_contrato.tipo_procedimento', 'tipo', 'like', "%$v%"));
 
+        //Data
+        $query=$query->when($filters['data_publicacao_inicio'] ?? null, fn($q, $v) =>$q->whereRelation('fact_contrato.data', 'data', '>=', $v));
+        $query=$query->when($filters['data_publicacao_fim'] ?? null, fn($q, $v) =>$q->whereRelation('fact_contrato.data', 'data','<=', $v));
+
+        //valor contratual
+        $query=$query->when($filters['valor_contratual'] ?? null , fn($q, $v) =>$q->where('valor_contratual','<=', $v));
+
+        //prazo de execucao
+        $query=$query->when($filters['prazo_execucao'] ?? null , fn($q, $v) =>$q->where('prazo_execucao','<=', $v));
+
+        //CPV
+        $query=$query->when($filters['cpvs'] ?? null, fn($q, $v) =>$q->whereHas('cpvs.cpv', fn($q2) => $q2->whereIn('codigo', (array) $v)));
+
+        //contrato ecologico
+        $query=$query->when($filters['contrato_ecologico'] ?? null , fn($q, $v) =>$q->where('contrato_ecologico','=',$v));
+
+        //procedimento centralizado
+        $query=$query->when($filters['procedimento_centralizado'] ?? null , fn($q, $v) =>$q->where('procedimento_centralizado','=', $v));
+
         return $query;
     }
 }
