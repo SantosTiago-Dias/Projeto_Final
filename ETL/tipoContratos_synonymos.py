@@ -13,32 +13,50 @@ TABLE_LOGS = 't_logs_transformacao'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
+KNOWN_CONTRACT_TYPES = {
+    'Aquisição de bens móveis':         'aquisição de bens móveis: contrato para compra de produtos, equipamentos ou outros bens materiais por parte de uma entidade pública.',
+    'Aquisição de serviços':            'aquisição de serviços: contrato para contratação de serviços especializados prestados por terceiros a uma entidade pública.',
+    'Concessão de obras públicas':      'concessão de obras públicas: contrato que atribui a uma empresa privada o direito de construir e explorar uma infraestrutura pública.',
+    'Concessão de serviços públicos':   'concessão de serviços públicos: contrato que atribui a um privado a gestão de um serviço de utilidade pública, como transporte ou abastecimento.',
+    'Empreitadas de obras públicas':    'empreitadas de obras públicas: contrato para execução de trabalhos de construção ou reabilitação de infraestruturas públicas.',
+    'Locação de bens móveis':           'locação de bens móveis: contrato de aluguer de equipamentos, viaturas ou outros bens materiais por uma entidade pública.',
+    'Sociedade':                        'sociedade: contrato que formaliza uma parceria entre entidades públicas e privadas para a realização conjunta de projetos ou serviços.',
+    'Outros':                           'outros: categoria residual para contratos que não se enquadram em nenhuma das tipologias definidas.',
+}
 
 
-def prepare_data(artigo:int,explain:str):
-    data={
-        'tipo':artigo,
-        'descricao':explain,
+def prepare_data(artigo: str, explain: str):
+    return {
+        'tipo': artigo,
+        'descricao': explain,
     }
-    return data
 
-def main():
-    dictionary.verifiy_File_exists(CCP_FILE)
-    contractType_list_distinc=db.get_distinct_data('tipo_contrato','contratos_transf')
-    
-    log_id = db.change_status(None,TABLE_LOGS,TABLE_NAME, "INICIO")
-    logger.info("A inicar a população dos Tipos de contrato")
 
-    for contractType in contractType_list_distinc:
-        if not dictionary.verify_id_exists(CCP_FILE,contractType):
+def seed_contract_types(log_id: int):
+    try:
+        for contract_type, explanation in KNOWN_CONTRACT_TYPES.items():
+            if not dictionary.verify_id_exists(CCP_FILE, contract_type):
+                dictionary.add_value(CCP_FILE, str(contract_type), explanation)
+                db.insert_data_table(TABLE_NAME, [prepare_data(contract_type, explanation)])
+                logger.info(f"Seeded known contract type: {contract_type}")
+    except Exception as e:
+        logger.error(f"ERROR: {e}")
+        db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem=str(e))
+
+
+def new_types_contracts(log_id: int):
+    contract_type_list = db.get_distinct_data('tipo_contrato', 'contratos_transf')
+
+    for contract_type in contract_type_list:
+        if not dictionary.verify_id_exists(CCP_FILE, contract_type):
             retries = 0
             while retries < 5:
                 try:
                     prompt = f"""Você é um sistema de classificação de compras públicas europeias.
 
-                    Tipo de contrato: {contractType}
+                    Tipo de contrato: {contract_type}
 
-                    Retorna EXATAMENTE UMA FRASE onde expliques esse arigo em liguagem corrente.
+                    Retorna EXATAMENTE UMA FRASE onde expliques esse artigo em linguagem corrente.
 
                     REGRAS ESTRITAS:
                     - Responda APENAS com a frase
@@ -46,9 +64,10 @@ def main():
                     - SEM quebras de linha, SEM pontuação extra
                     - SEM observações
                     - SEM mudança de linha
+                    - TUDO EM LOWERCASE
 
                     FORMATO:
-                    {contractType}: explicação simples.
+                    {contract_type}: explicação simples.
                     """
 
                     response = client.chat.completions.create(
@@ -56,27 +75,45 @@ def main():
                         messages=[{"role": "user", "content": prompt}],
                         max_completion_tokens=100,
                     )
-                    
+
                     explain = response.choices[0].message.content.strip()
 
-                    dictionary.add_value(CCP_FILE,str(contractType),explain)
-                    db.insert_data_table(TABLE_NAME,[prepare_data(contractType,explain)])
-                    
-                    time.sleep(0.3)  # polite delay between requests
+                    dictionary.add_value(CCP_FILE, str(contract_type), explain)
+                    db.insert_data_table(TABLE_NAME, [prepare_data(contract_type, explain)])
+
+                    time.sleep(0.3)
                     break
-    
+
                 except RateLimitError:
                     wait = 30 * (2 ** retries)
-                    logger.warning(f"Rate limit hit for '{contractType}'. Waiting {wait}s...")
-                    db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem=str(e))
+                    logger.warning(f"Rate limit hit for '{contract_type}'. Waiting {wait}s...")
                     time.sleep(wait)
                     retries += 1
-    
+
                 except Exception as e:
                     logger.error(f"ERROR: {e}")
+                    db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem=str(e))
                     break
-    logger.info("Fim de população dos tipo de contratos")
-    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
+
+
+def main():
+    dictionary.verifiy_File_exists(CCP_FILE)
+    log_id = db.change_status(None, TABLE_LOGS, TABLE_NAME, "INICIO")
+
+    try:
+        logger.info("A iniciar população de dados fixos dos Tipos de Contrato")
+        seed_contract_types(log_id)
+
+        logger.info("A verificar novos Tipos de Contrato na base de dados")
+        new_types_contracts(log_id)
+
+        logger.info("Fim de população dos tipos de contrato")
+        db.change_status(log_id, TABLE_LOGS, None, "SUCESSO")
+
+    except Exception as e:
+        logger.error(f"ERRO: {e}")
+        db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem=str(e))
+
 
 if __name__ == "__main__":
     main()

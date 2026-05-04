@@ -4,8 +4,12 @@ import {inject} from "vue";
 export const useAPIStore = defineStore('api', () => {
     const API_BASE_URL = inject('apiBaseURL')
 
-    const getListContracts = () =>{
-        return axios.get(`${API_BASE_URL}/contracts`)
+    const getListContracts = (params = {}) =>{
+        return axios.get(`${API_BASE_URL}/contracts`,{params})
+    }
+
+    const getFilterListContracts = () =>{
+        return axios.get(`${API_BASE_URL}/contracts/getFilters`)
     }
 
     const getDetailContracts= (id) =>{
@@ -27,6 +31,7 @@ export const useAPIStore = defineStore('api', () => {
 
     return {
         getListContracts,
+        getFilterListContracts,
         getDetailContracts,
         getListEntity,
         getDetailEntity,
