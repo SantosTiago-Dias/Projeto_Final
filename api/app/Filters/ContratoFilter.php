@@ -18,7 +18,8 @@ class ContratoFilter
         $query=$query->when($filters['data_publicacao_fim'] ?? null, fn($q, $v) =>$q->whereRelation('fact_contrato.data', 'data','<=', $v));
 
         //valor contratual
-        $query=$query->when($filters['valor_contratual'] ?? null , fn($q, $v) =>$q->where('valor_contratual','<=', $v));
+        $query=$query->when($filters['valor_contratual_menor_que'] ?? null , fn($q, $v) =>$q->where('valor_contratual','<=', $v));
+        $query=$query->when($filters['valor_contratual_maior_que'] ?? null , fn($q, $v) =>$q->where('valor_contratual','>=', $v));
 
         //prazo de execucao
         $query=$query->when($filters['prazo_execucao'] ?? null , fn($q, $v) =>$q->where('prazo_execucao','<=', $v));
@@ -26,8 +27,9 @@ class ContratoFilter
         //CPV
         if ($filters['cpvs'] ?? false)
         {
+
             $keyword = strip_tags($filters['cpvs']);
-            $query = $query->when($keyword, fn($q, $v) => $q->whereHas('cpvs.cpv', fn($q2) => $q2->where('descricao', 'LIKE', '%' . $keyword . '%')));
+            $query = $query->when($keyword, fn($q, $v) => $q->whereHas('cpvs.cpv', fn($q2) => $q2->where('descricao', 'LIKE', '%' . $keyword . '%')->orWhere('cpv_descricao', 'LIKE', '%' . $keyword . '%')->orWhere('codigo', '=',$keyword)));
         }
 
 

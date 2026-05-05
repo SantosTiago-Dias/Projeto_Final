@@ -45,18 +45,16 @@ The ETL (Extract, Transform, Load) pipeline processes contract data and related 
 **File:** `database_aux.py` → `execute_transformacao()`
 
 **Purpose:** Clean and restructure raw data into dimensional model
-- Creates or updates dimension tables:
-  - `DimCpv` (Classification codes)
-  - `DimData` (Dates)
-  - `DimDetalhesContrato` (Contract details)
-  - `DimEntidade` (Entities/Organizations)
-  - `TipoContrato` (Contract types)
-  - `TipoProcedimento` (Procedure types)
+
+- Data is transfrom from `extrac` tables and is saved in:
+  - `cpv_contratos_transf` (Classification codes)
+  - `contratos_transf` (Contract details)
+  - `entidade_transf` (Entities/Organizations)
 
 **What happens:**
 - Applies business logic transformations
 - Normalizes and structures data into star schema
-- Creates fact and dimension relationships
+- Prepare data for to be loaded for final model
 
 ---
 
@@ -165,7 +163,7 @@ Each phase has try-catch blocks that:
 ---
 
 ## Execution Time Estimate
-- Total pipeline: ~1-2 (depending on data volume)
+- Total pipeline: ~4-5 hours(depending on data volume)
 - Longest phase: Typically LOAD (full fact table population)
 
 ## Logging
