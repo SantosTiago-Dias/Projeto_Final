@@ -6,7 +6,7 @@
       <p class="text-sm text-gray-400 mt-1">{{ page.total || 0 }} resultados encontrados</p>
     </div>
 
-    <!-- Filtros (Regras Aplicadas) -->
+    <!-- Filtros -->
     <div class="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -14,26 +14,18 @@
           <label class="block text-xs font-medium text-gray-500 mb-1 uppercase">Tipo de Contrato</label>
           <select v-model="filters.tipo_contrato" class="w-full text-sm border-gray-300 rounded-lg">
             <option :value="null">Todos</option>
-            <option
-                v-for="tipoContrato in listTipoContratos"
-                :key="tipoContrato.value"
-                :value="tipoContrato.value"
-            >
-              {{ tipoContrato.label }}
+            <option v-for="tipoContrato in listTipoContratos" :key="tipoContrato.id" :value="tipoContrato.id">
+              {{ tipoContrato.tipo }}
             </option>
           </select>
         </div>
 
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1 uppercase">Tipo de Procedimento</label>
-          <select v-model="filters.tipo_contrato" class="w-full text-sm border-gray-300 rounded-lg">
+          <select v-model="filters.tipo_procedimento" class="w-full text-sm border-gray-300 rounded-lg">
             <option :value="null">Todos</option>
-            <option
-                v-for="tipoProcedimento in listTipoProcedimento"
-                :key="tipoProcedimento.value"
-                :value="tipoProcedimento.value"
-            >
-              {{ tipoProcedimento.label }}
+            <option v-for="tipoProcedimento in listTipoProcedimento" :key="tipoProcedimento.id" :value="tipoProcedimento.id">
+              {{ tipoProcedimento.tipo }}
             </option>
           </select>
         </div>
@@ -45,8 +37,7 @@
 
         <div>
           <label class="block text-xs font-medium text-gray-500 mb-1 uppercase">Valor Mínimo (€)</label>
-          <input type="number" v-model="filters.valor_contratual" min="0"
-                 class="w-full text-sm border-gray-300 rounded-lg" />
+          <input type="number" v-model="filters.valor_contratual" min="0" class="w-full text-sm border-gray-300 rounded-lg" />
         </div>
 
         <div>
@@ -65,6 +56,7 @@
           </button>
           <button @click="resetFilters" class="px-4 py-2 text-gray-400 hover:text-gray-600 text-sm">Limpar</button>
         </div>
+
       </div>
     </div>
 
@@ -78,7 +70,7 @@
           class="bg-white border border-gray-100 rounded-xl overflow-hidden transition-all duration-300"
           :class="{'ring-2 ring-green-500 shadow-lg': contract._isOpen}"
       >
-        <!-- Header do Card (Sempre Visível) -->
+        <!-- Header do Card -->
         <div
             class="p-5 cursor-pointer flex justify-between items-start gap-4 hover:bg-gray-50 transition"
             @click="toggleContract(contract)"
@@ -99,7 +91,7 @@
           </div>
         </div>
 
-        <!-- Conteúdo Expansível (Model Open/Close) -->
+        <!-- Conteúdo Expansível -->
         <div v-show="contract._isOpen" class="px-5 pb-5 pt-2 border-t border-gray-50 bg-gray-50/50">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -128,12 +120,11 @@
               </div>
               <div>
                 <p class="text-[11px] uppercase tracking-wide text-gray-400">CPVs</p>
-                <ul class="text-xs space-y-1 text-gray-600 mt-1" v-for="c in contract.cpvs">
+                <ul class="text-xs space-y-1 text-gray-600 mt-1" v-for="c in contract.cpvs" :key="c.codigo">
                   <li class="relative group cursor-default">
-                    <strong>{{c.codigo}}</strong>: {{c.cpv_descricao}}
-                    <span class="absolute bottom-full left-0 mb-1 hidden group-hover:block
-                   bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 max-w-xs">
-                      {{c.descricao}}
+                    <strong>{{ c.codigo }}</strong>: {{ c.cpv_descricao }}
+                    <span class="absolute bottom-full left-0 mb-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 max-w-xs">
+                      {{ c.descricao }}
                     </span>
                   </li>
                 </ul>
@@ -160,6 +151,7 @@
               @click="fetchContracts(page.current_page + 1)"
               :disabled="page.current_page === page.last_page">Próximo ›</button>
     </div>
+
   </div>
 </template>
 
@@ -178,7 +170,6 @@ const loading = ref(true)
 const listTipoContratos = ref([])
 const listTipoProcedimento = ref([])
 
-// Regras de Validação aplicadas no Frontend
 const filters = reactive({
   tipo_contrato: null,
   tipo_procedimento: null,
@@ -194,14 +185,12 @@ const filters = reactive({
 const fetchContracts = async (pageNumber = 1) => {
   loading.value = true
   try {
-    // Limpar filtros nulos/vazios para a query string
     const queryParams = Object.fromEntries(
         Object.entries(filters).filter(([_, v]) => v !== '' && v !== null)
     )
 
     const response = await apiStore.getListContracts({ page: pageNumber, ...queryParams })
 
-    // Adicionamos a propriedade _isOpen a cada contrato para controlar o toggle individual
     contracts.value = response.data.data.map(item => ({
       ...item,
       _isOpen: false
@@ -227,7 +216,6 @@ const resetFilters = () => {
 onMounted(async () => {
   fetchContracts()
 
-  //Load Contracts Type and procedure type
   let res = await apiStore.getFilterListContracts()
   listTipoContratos.value = res.data.TipoContrato
   listTipoProcedimento.value = res.data.TipoProcedimento

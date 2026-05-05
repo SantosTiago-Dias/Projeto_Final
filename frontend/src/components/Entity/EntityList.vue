@@ -135,13 +135,10 @@ const openModal = async (entity) => {
     // We use the ID from the clicked entity to fetch its specific contracts
     const [ resEntityDetails,resEntityContracts] = await Promise.all([
         apiStore.getDetailEntity(entity.id_entidade),
-        apiStore.getListContracts(entity.id_entidade)
+        apiStore.getListContractofEntity(entity.id_entidade)
     ])
     entityDetails.value = resEntityDetails.data
     entityContracts.value = resEntityContracts.data.data
-
-    console.log(entityDetails)
-    console.log(entityContracts)
   } catch (err) {
     console.error("Erro ao carregar contratos:", err)
   } finally {

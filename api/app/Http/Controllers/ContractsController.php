@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\TipoContratoEnum;
-use App\Enums\TipoProcedimentoEnum;
 use App\Filters\ContratoFilter;
 use App\Http\Requests\ContratoFilterRequest;
 use App\Http\Resources\DetailsContractResource;
