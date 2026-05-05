@@ -16,8 +16,8 @@ export const useAPIStore = defineStore('api', () => {
         return axios.get(`${API_BASE_URL}/contracts/${id}`)
     }
 
-    const getListEntity = () =>{
-        return axios.get(`${API_BASE_URL}/entidades`)
+    const getListEntity = (params = {}) =>{
+        return axios.get(`${API_BASE_URL}/entidades`,{params})
     }
 
     const getDetailEntity= (id) =>{

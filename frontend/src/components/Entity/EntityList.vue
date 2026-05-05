@@ -30,6 +30,71 @@
       </div>
     </div>
 
+    <!-- PAGINATION -->
+    <div v-if="meta && meta.last_page > 1" class="mt-6 flex items-center justify-between gap-4">
+      <p class="text-sm text-gray-400">
+        Página {{ meta.current_page }} de {{ meta.last_page }}
+      </p>
+      <div class="flex items-center gap-1">
+        <!-- First Page -->
+        <button
+            @click="goToPage(1)"
+            :disabled="meta.current_page === 1"
+            class="h-8 w-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            title="Primeira página"
+        >
+          «
+        </button>
+
+        <!-- Previous Page -->
+        <button
+            @click="goToPage(meta.current_page - 1)"
+            :disabled="meta.current_page === 1"
+            class="h-8 w-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            title="Página anterior"
+        >
+          ‹
+        </button>
+
+        <!-- Page Number Buttons -->
+        <template v-for="page in visiblePages" :key="page">
+          <span v-if="page === '...'" class="h-8 w-8 flex items-center justify-center text-sm text-gray-400">…</span>
+          <button
+              v-else
+              @click="goToPage(page)"
+              :class="[
+              'h-8 w-8 flex items-center justify-center rounded-lg text-sm transition-colors font-medium',
+              page === meta.current_page
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
+            ]"
+          >
+            {{ page }}
+          </button>
+        </template>
+
+        <!-- Next Page -->
+        <button
+            @click="goToPage(meta.current_page + 1)"
+            :disabled="meta.current_page === meta.last_page"
+            class="h-8 w-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            title="Próxima página"
+        >
+          ›
+        </button>
+
+        <!-- Last Page -->
+        <button
+            @click="goToPage(meta.last_page)"
+            :disabled="meta.current_page === meta.last_page"
+            class="h-8 w-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            title="Última página"
+        >
+          »
+        </button>
+      </div>
+    </div>
+
     <!-- MODAL OVERLAY -->
     <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="closeModal">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -94,11 +159,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue"
+import { ref, computed, onMounted } from "vue"
 import { useAPIStore } from "@/store/api.js"
 import { Button } from "@/components/ui/button"
 import router from "@/router/index.js";
-import {useRoute} from "vue-router";
+import { useRoute } from "vue-router";
 
 const apiStore = useAPIStore()
 
@@ -115,27 +180,51 @@ const selectedEntity = ref(null)
 const entityContracts = ref([])
 const entityDetails = ref([])
 
-const fetchEntities = async () => {
+const fetchEntities = async (page = 1) => {
   loading.value = true
   try {
-    const response = await apiStore.getListEntity()
+    const response = await apiStore.getListEntity({ page })
     entities.value = response.data.data
     meta.value = response.data.meta
-
   } catch (err) { console.error(err) }
   finally { loading.value = false }
 }
+
+const goToPage = (page) => {
+  if (page < 1 || page > meta.value.last_page) return
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  fetchEntities(page)
+}
+
+// Builds the visible page range with ellipsis, e.g. 1 … 4 5 6 … 20
+const visiblePages = computed(() => {
+  if (!meta.value) return []
+  const { current_page: current, last_page: last } = meta.value
+  const pages = []
+  const delta = 1 // pages on each side of current
+
+  const range = []
+  for (let i = Math.max(2, current - delta); i <= Math.min(last - 1, current + delta); i++) {
+    range.push(i)
+  }
+
+  pages.push(1)
+  if (range[0] > 2) pages.push('...')
+  pages.push(...range)
+  if (range[range.length - 1] < last - 1) pages.push('...')
+  if (last > 1) pages.push(last)
+
+  return pages
+})
 
 const openModal = async (entity) => {
   selectedEntity.value = entity
   isModalOpen.value = true
   loadingDetails.value = true
-  console.log(entity)
   try {
-    // We use the ID from the clicked entity to fetch its specific contracts
-    const [ resEntityDetails,resEntityContracts] = await Promise.all([
-        apiStore.getDetailEntity(entity.id_entidade),
-        apiStore.getListContractofEntity(entity.id_entidade)
+    const [resEntityDetails, resEntityContracts] = await Promise.all([
+      apiStore.getDetailEntity(entity.id_entidade),
+      apiStore.getListContractofEntity(entity.id_entidade)
     ])
     entityDetails.value = resEntityDetails.data
     entityContracts.value = resEntityContracts.data.data
