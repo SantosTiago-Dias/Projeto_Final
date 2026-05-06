@@ -3,7 +3,7 @@
 
     <div class="mb-8">
       <h1 class="text-2xl font-medium text-gray-900">Contratos</h1>
-      
+    
     </div>
 
     <!-- Filtros -->
