@@ -3,7 +3,7 @@
 
     <div class="mb-8">
       <h1 class="text-2xl font-medium text-gray-900">Contratos</h1>
-      <p class="text-sm text-gray-400 mt-1">{{ meta.total || 0 }} resultados encontrados</p>
+      
     </div>
 
     <!-- Filtros -->
