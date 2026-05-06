@@ -152,7 +152,19 @@ SELECT
 
     1 AS adjudicatario,
 
-    normalizar(c.tipo_contrato),
+    (
+        SELECT GROUP_CONCAT(TRIM(jt.val) ORDER BY TRIM(jt.val) SEPARATOR ', ')
+        FROM JSON_TABLE(
+                     CONCAT(
+                             '["',
+                             REPLACE(REPLACE(c.tipo_contrato, '<br/>', ','), ',', '","'),
+                             '"]'
+                     ),
+                     '$[*]' COLUMNS (
+                         val VARCHAR(255) PATH '$'
+                         )
+             ) jt
+    ),
     normalizar(c.tipo_procedimento),
     c.fundamentacao,
     c.justificacao_nao_escrita,
@@ -201,7 +213,19 @@ SELECT
 
     0 AS adjudicatario,
 
-    normalizar(c.tipo_contrato),
+    (
+        SELECT GROUP_CONCAT(TRIM(jt.val) ORDER BY TRIM(jt.val) SEPARATOR ', ')
+        FROM JSON_TABLE(
+                     CONCAT(
+                             '["',
+                             REPLACE(REPLACE(c.tipo_contrato, '<br/>', ','), ',', '","'),
+                             '"]'
+                     ),
+                     '$[*]' COLUMNS (
+                         val VARCHAR(255) PATH '$'
+                         )
+             ) jt
+    ),
     normalizar(c.tipo_procedimento),
     c.fundamentacao,
     c.justificacao_nao_escrita,
