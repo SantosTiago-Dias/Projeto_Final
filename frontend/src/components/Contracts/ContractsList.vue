@@ -7,54 +7,100 @@
     </div>
 
     <!-- Filtros -->
-    <div class="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
+
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
+
 
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1 uppercase">Tipo de Contrato</label>
-          <select v-model="filters.tipo_contrato" class="w-full text-sm border-gray-300 rounded-lg">
+          <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+            Valor Mínimo (€)
+          </label>
+          <input type="number"
+                 v-model="filters.valor_contratual_maior_que"
+                 class="w-full h-9 text-sm border-gray-300 rounded-lg" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+            Valor Máximo (€)
+          </label>
+          <input type="number"
+                 v-model="filters.valor_contratual_menor_que"
+                 class="w-full h-9 text-sm border-gray-300 rounded-lg" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+            Data Início
+          </label>
+          <input type="date"
+                 v-model="filters.data_publicacao_inicio"
+                 class="w-full h-9 text-sm border-gray-300 rounded-lg" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+            Data Fim
+          </label>
+          <input type="date"
+                 v-model="filters.data_publicacao_fim"
+                 class="w-full h-9 text-sm border-gray-300 rounded-lg" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+            Tipo de Contrato
+          </label>
+          <select v-model="filters.tipo_contrato"
+                  class="w-full h-9 text-sm border-gray-300 rounded-lg">
             <option :value="null">Todos</option>
-            <option v-for="tipoContrato in listTipoContratos" :key="tipoContrato.id" :value="tipoContrato.id">
+            <option v-for="tipoContrato in listTipoContratos"
+                    :key="tipoContrato.id"
+                    :value="tipoContrato.id">
               {{ tipoContrato.tipo }}
             </option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1 uppercase">Tipo de Procedimento</label>
-          <select v-model="filters.tipo_procedimento" class="w-full text-sm border-gray-300 rounded-lg">
+          <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+            Tipo de Procedimento
+          </label>
+          <select v-model="filters.tipo_procedimento"
+                  class="w-full h-9 text-sm border-gray-300 rounded-lg">
             <option :value="null">Todos</option>
-            <option v-for="tipoProcedimento in listTipoProcedimento" :key="tipoProcedimento.id" :value="tipoProcedimento.id">
+            <option v-for="tipoProcedimento in listTipoProcedimento"
+                    :key="tipoProcedimento.id"
+                    :value="tipoProcedimento.id">
               {{ tipoProcedimento.tipo }}
             </option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1 uppercase">CPV</label>
-          <input type="text" v-model="filters.cpvs" class="w-full text-sm border-gray-300 rounded-lg focus:ring-green-500" placeholder="Insira uma palavra sobre o tema que quer procurar" />
+          <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+            CPV
+          </label>
+          <input type="text"
+                 v-model="filters.cpvs"
+                 placeholder="Pesquisar..."
+                 class="w-full h-9 text-sm border-gray-300 rounded-lg" />
         </div>
 
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1 uppercase">Valor Mínimo (€)</label>
-          <input type="number" v-model="filters.valor_contratual" min="0" class="w-full text-sm border-gray-300 rounded-lg" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1 uppercase">Data Início</label>
-          <input type="date" v-model="filters.data_publicacao_inicio" class="w-full text-sm border-gray-300 rounded-lg" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1 uppercase">Data Fim</label>
-          <input type="date" v-model="filters.data_publicacao_fim" class="w-full text-sm border-gray-300 rounded-lg" />
-        </div>
 
         <div class="flex items-end gap-2">
-          <button @click="fetchContracts()" class="flex-1 bg-green-700 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition">
+          <button
+              @click="fetchContracts()"
+              class="flex-1 h-9 bg-green-700 text-white text-sm rounded-lg font-medium hover:bg-green-800 transition">
             Filtrar
           </button>
-          <button @click="resetFilters" class="px-4 py-2 text-gray-400 hover:text-gray-600 text-sm">Limpar</button>
+
+          <button
+              @click="resetFilters"
+              class="h-9 px-3 text-sm text-gray-500 hover:text-gray-700">
+            Limpar
+          </button>
         </div>
 
       </div>
@@ -232,7 +278,8 @@ const filters = reactive({
   tipo_procedimento: null,
   data_publicacao_inicio: '',
   data_publicacao_fim: '',
-  valor_contratual: null,
+  valor_contratual_menor_que: null,
+  valor_contratual_maior_que: null,
   prazo_execucao: null,
   cpvs: '',
   contrato_ecologico: null,
