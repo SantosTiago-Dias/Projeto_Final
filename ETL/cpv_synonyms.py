@@ -76,7 +76,7 @@ def main():
                     break
 
     logger.info("Fim de extração de cpv")
-    #db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
+    db.change_status(log_id,TABLE_LOGS, None, "SUCESSO")
 
 if __name__ == "__main__":
     main()
