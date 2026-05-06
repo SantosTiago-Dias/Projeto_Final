@@ -3,7 +3,7 @@
 
     <div class="mb-8">
       <h1 class="text-2xl font-medium text-gray-900">Contratos</h1>
-      <p class="text-sm text-gray-400 mt-1">{{ page.total || 0 }} resultados encontrados</p>
+      <p class="text-sm text-gray-400 mt-1">{{ meta.total || 0 }} resultados encontrados</p>
     </div>
 
     <!-- Filtros -->
@@ -141,7 +141,8 @@
       </div>
     </div>
 
-    <!-- Pagination -->
+    <!-- Paginação -->
+    <!-- PAGINATION -->
     <div v-if="meta && meta.last_page > 1" class="mt-6 flex items-center justify-between gap-4">
       <p class="text-sm text-gray-400">
         Página {{ meta.current_page }} de {{ meta.last_page }}
@@ -153,7 +154,9 @@
             :disabled="meta.current_page === 1"
             class="h-8 w-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             title="Primeira página"
-        >«</button>
+        >
+          «
+        </button>
 
         <!-- Previous Page -->
         <button
@@ -161,21 +164,25 @@
             :disabled="meta.current_page === 1"
             class="h-8 w-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             title="Página anterior"
-        >‹</button>
+        >
+          ‹
+        </button>
 
-        <!-- Page Numbers -->
-        <template v-for="p in visiblePages" :key="p">
-          <span v-if="p === '...'" class="h-8 w-8 flex items-center justify-center text-sm text-gray-400">…</span>
+        <!-- Page Number Buttons -->
+        <template v-for="page in visiblePages" :key="page">
+          <span v-if="page === '...'" class="h-8 w-8 flex items-center justify-center text-sm text-gray-400">…</span>
           <button
               v-else
-              @click="goToPage(p)"
+              @click="goToPage(page)"
               :class="[
               'h-8 w-8 flex items-center justify-center rounded-lg text-sm transition-colors font-medium',
-              p === meta.current_page
-                ? 'bg-green-700 text-white shadow-sm'
+              page === meta.current_page
+                ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-gray-600 hover:bg-gray-100'
             ]"
-          >{{ p }}</button>
+          >
+            {{ page }}
+          </button>
         </template>
 
         <!-- Next Page -->
@@ -184,7 +191,9 @@
             :disabled="meta.current_page === meta.last_page"
             class="h-8 w-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             title="Próxima página"
-        >›</button>
+        >
+          ›
+        </button>
 
         <!-- Last Page -->
         <button
@@ -192,14 +201,18 @@
             :disabled="meta.current_page === meta.last_page"
             class="h-8 w-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             title="Última página"
-        >»</button>
+        >
+          »
+        </button>
       </div>
     </div>
+
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from "vue"
+import {ref, onMounted, reactive, computed} from "vue"
 import { useRouter } from "vue-router"
 import { useAPIStore } from "@/store/api.js"
 import { Button } from "@/components/ui/button/index.ts"
@@ -207,11 +220,12 @@ import { Button } from "@/components/ui/button/index.ts"
 const router = useRouter()
 const apiStore = useAPIStore()
 
+const meta = ref(null)
 const contracts = ref([])
-const page = ref({ current_page: 1, last_page: 1 })
 const loading = ref(true)
 const listTipoContratos = ref([])
 const listTipoProcedimento = ref([])
+
 
 const filters = reactive({
   tipo_contrato: null,
@@ -225,27 +239,54 @@ const filters = reactive({
   procedimento_centralizado: null
 })
 
-const fetchContracts = async (pageNumber = 1) => {
+const fetchContracts = async (page = 1) => {
   loading.value = true
   try {
     const queryParams = Object.fromEntries(
         Object.entries(filters).filter(([_, v]) => v !== '' && v !== null)
     )
 
-    const response = await apiStore.getListContracts({ page: pageNumber, ...queryParams })
+    const response = await apiStore.getListContracts({ page: page, ...queryParams })
 
     contracts.value = response.data.data.map(item => ({
       ...item,
       _isOpen: false
     }))
 
-    page.value = response.data.meta
+    meta.value = response.data.meta
   } catch (err) {
     console.error("Falha ao carregar dados:", err)
   } finally {
     loading.value = false
   }
 }
+
+const goToPage = (page) => {
+  if (page < 1 || page > meta.value.last_page) return
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  fetchContracts(page)
+}
+
+// Builds the visible page range with ellipsis, e.g. 1 … 4 5 6 … 20
+const visiblePages = computed(() => {
+  if (!meta.value) return []
+  const { current_page: current, last_page: last } = meta.value
+  const pages = []
+  const delta = 1 // pages on each side of current
+
+  const range = []
+  for (let i = Math.max(2, current - delta); i <= Math.min(last - 1, current + delta); i++) {
+    range.push(i)
+  }
+
+  pages.push(1)
+  if (range[0] > 2) pages.push('...')
+  pages.push(...range)
+  if (range[range.length - 1] < last - 1) pages.push('...')
+  if (last > 1) pages.push(last)
+
+  return pages
+})
 
 const toggleContract = (contract) => {
   contract._isOpen = !contract._isOpen
