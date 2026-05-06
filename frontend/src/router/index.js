@@ -1,10 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ContractsList from '../components/ContractsList.vue'
-import ContractDetail from '../components/ContractDetail.vue'
+import ContractsList from '../components/Contracts/ContractsList.vue'
+import ContractDetail from '../components/Contracts/ContractDetail.vue'
+import EntityList from "@/components/Entity/EntityList.vue";
 
 const routes = [
   {
-    path: '/contracts',
+    path: '/',
     name: 'contracts-list',
     component: ContractsList
   },
@@ -13,6 +14,11 @@ const routes = [
     name: 'contract-detail',
     component: ContractDetail,
     props: true
+  },
+  {
+    path: '/entidades',
+    name: 'entity-list',
+    component: EntityList
   }
 ]
 

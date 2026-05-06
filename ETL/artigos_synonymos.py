@@ -45,7 +45,7 @@ def main():
                     - SEM quebras de linha, SEM pontuação extra
                     - SEM observações
                     - SEM mudança de linha
-
+                    - TUDO EM LOWERCASE
                     FORMATO:
                     {artigo}: explicação simples.
                     """
