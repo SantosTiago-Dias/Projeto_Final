@@ -242,16 +242,21 @@ def get_average_contracts_extracted()->float|None:
         return None
 
 #Selecionar os novos campos na base de dados
-def get_distinct_data(nome_campo:str,table_name:str):
+def get_distinct_data(nome_campo: str, table_name: str):
     
-    mydb=get_connection()
+    mydb = get_connection()
     mycursor = mydb.cursor()
 
-    #Para prevenir que é a base de dados que queremos
-    query =f"SELECT DISTINCT {nome_campo} FROM {table_name};"
+    query = f"SELECT DISTINCT {nome_campo} FROM {table_name};"
     mycursor.execute(query)
-    data=data = [row[0] for row in mycursor.fetchall()]
-    return data
+    rows = mycursor.fetchall()
+
+    # If only one column requested, return flat list (keeps backward compatibility)
+    if len(rows) == 0 or len(rows[0]) == 1:
+        return [row[0] for row in rows]
+    
+    # Multiple columns: return list of tuples
+    return rows
 
 #Mudar status dos logs
 def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status: str, mensagem: str = None) -> int | None:

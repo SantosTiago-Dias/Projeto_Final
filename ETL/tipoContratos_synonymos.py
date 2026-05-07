@@ -14,14 +14,14 @@ TABLE_LOGS = 't_logs_transformacao'
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
 KNOWN_CONTRACT_TYPES = {
-    'Aquisição de bens móveis':         'aquisição de bens móveis: contrato para compra de produtos, equipamentos ou outros bens materiais por parte de uma entidade pública.',
-    'Aquisição de serviços':            'aquisição de serviços: contrato para contratação de serviços especializados prestados por terceiros a uma entidade pública.',
-    'Concessão de obras públicas':      'concessão de obras públicas: contrato que atribui a uma empresa privada o direito de construir e explorar uma infraestrutura pública.',
-    'Concessão de serviços públicos':   'concessão de serviços públicos: contrato que atribui a um privado a gestão de um serviço de utilidade pública, como transporte ou abastecimento.',
-    'Empreitadas de obras públicas':    'empreitadas de obras públicas: contrato para execução de trabalhos de construção ou reabilitação de infraestruturas públicas.',
-    'Locação de bens móveis':           'locação de bens móveis: contrato de aluguer de equipamentos, viaturas ou outros bens materiais por uma entidade pública.',
-    'Sociedade':                        'sociedade: contrato que formaliza uma parceria entre entidades públicas e privadas para a realização conjunta de projetos ou serviços.',
-    'Outros':                           'outros: categoria residual para contratos que não se enquadram em nenhuma das tipologias definidas.',
+    'Aquisição de bens móveis': 'Compra de produtos e materiais, desde computadores e papelaria até veículos ou maquinaria.',
+    'Aquisição de serviços': 'Contratação de tarefas ou especialistas, como limpeza, segurança, consultoria ou manutenção de software.',
+    'Concessão de obras públicas': 'A entidade privada constrói uma obra (ex: uma autoestrada) e ganha o direito de a explorar e cobrar pelo seu uso durante anos.',
+    'Concessão de serviços públicos': 'Um privado fica responsável por gerir um serviço público (ex: águas ou transportes municipais) em nome do Estado.',
+    'Empreitadas de obras públicas': 'Contrato para fazer uma obra específica, como construir uma escola, alcatroar uma rua ou reparar uma ponte.',
+    'Locação de bens móveis': 'Aluguer de equipamentos ou veículos. A entidade paga para usar, mas o bem não passa a ser dela.',
+    'Sociedade': 'Criação de uma parceria ou empresa mista entre o Estado e privados para gerir um projeto ou negócio em conjunto.',
+    'Outros': 'Contratos que, pela sua natureza muito específica ou rara, não encaixam nas categorias acima.',
 }
 
 
