@@ -19,12 +19,12 @@ class FactContrato extends Model
 
     public function contrato(): BelongsTo
     {
-        return $this->belongsTo(DimDetalhesContrato::class, 'chave_contratos');
+        return $this->belongsTo(DimDetalhesContrato::class, 'chave_contratos','chave_contratos');
     }
 
     public function entidade(): BelongsTo
     {
-        return $this->belongsTo(DimEntidade::class, 'adjudicante');
+        return $this->belongsTo(DimEntidade::class, 'adjudicante','chave_entidade');
     }
 
     public function entidade_concorrente(): BelongsTo
@@ -40,16 +40,16 @@ class FactContrato extends Model
 
     public function tipo_contrato(): BelongsTo
     {
-        return $this->belongsTo(TipoContrato::class, 'chave_tipo_contrato');
+        return $this->belongsTo(TipoContrato::class, 'chave_tipo_contrato','id_tipo_contrato');
     }
 
     public function tipo_procedimento(): BelongsTo
     {
-        return $this->belongsTo(TipoProcedimento::class, 'chave_tipo_procedimento');
+        return $this->belongsTo(TipoProcedimento::class, 'chave_tipo_procedimento','id_tipo_procedimento');
     }
 
     public function data(): BelongsTo
     {
-        return $this->belongsTo(DimData::class, 'chave_data');
+        return $this->belongsTo(DimData::class, 'chave_data', 'chave_date');
     }
 }
