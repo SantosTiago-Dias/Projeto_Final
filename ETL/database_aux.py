@@ -13,6 +13,8 @@ load_dotenv('.env')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INIT = os.path.join(BASE_DIR, 'init.sql')
 PROCEDURES = os.path.join(BASE_DIR, 'procedures.sql')
+URL_NOMI = "https://nominatim.openstreetmap.org/search"
+URL_NASA = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
 
 #Função para obter a connecção com a base de dados
 def get_connection():
@@ -146,7 +148,8 @@ def execute_transformacao():
                     try:
                         result.fetchall()
                     except Exception:
-                        pass
+                        change_status(None,'t_logs_transformacao',proc_name,"ERRO")
+                        logger.error(f"Erro: normalização - {e}")
 
                 while cur.nextset():
                     pass
@@ -429,8 +432,7 @@ def load_eventos_naturais():
     try:
         logger.info("A obter eventos da API EONET...")
 
-        url = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
-        response = requests.get(url)
+        response = requests.get(URL_NASA)
 
         if response.status_code != 200:
             logger.error(f"Erro na API: {response.status_code}")
@@ -475,7 +477,9 @@ def load_eventos_naturais():
         logger.success(f"Eventos naturais (Portugal) carregados! Updates: {updates}")
 
     except Exception as e:
-        logger.error(f"Erro ao carregar eventos naturais: {e}")
+        logger.error(f"Erro: carregar eventos naturais - {e}")
+        change_status(None,'t_logs_carregamento',proc_name,"ERRO")
+
 
     finally:
         cursor.close()
@@ -484,7 +488,6 @@ def load_eventos_naturais():
 
 def get_distrito_from_nominatim(query: str) -> str | None:
     try:
-        url = "https://nominatim.openstreetmap.org/search"
         params = {
             "q": query,
             "format": "json",
@@ -496,7 +499,7 @@ def get_distrito_from_nominatim(query: str) -> str | None:
             "User-Agent": "etl-project/1.0"
         }
 
-        response = requests.get(url, params=params, headers=headers)
+        response = requests.get(URL_NOMI, params=params, headers=headers)
 
         if response.status_code != 200:
             return None
@@ -510,7 +513,9 @@ def get_distrito_from_nominatim(query: str) -> str | None:
         return address.get("county")
 
     except Exception as e:
-        logger.error(f"Erro no Nominatim: {e}")
+        logger.error(f"Erro: Nominatim - {e}")
+        change_status(None,'t_logs_transformacao',proc_name,"ERRO")
+
         return None
 
 
@@ -579,7 +584,8 @@ def enrich_entidades_transf():
         logger.success(f"entidades_transf atualizada! {updates} registos")
 
     except Exception as e:
-        logger.error(f"Erro no enrich entidades_transf: {e}")
+        logger.error(f"Erro: enrich entidades_transf - {e}")
+        change_status(None,'t_logs_transformacao',proc_name,"ERRO")
 
     finally:
         cursor.close()
