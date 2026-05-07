@@ -223,6 +223,5 @@ onMounted(async () => {
           {{ contract.observacoes }}
         </p>
       </footer>
-  </div>
     </div>
 </template>

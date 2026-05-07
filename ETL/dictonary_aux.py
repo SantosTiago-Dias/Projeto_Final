@@ -11,15 +11,31 @@ def verifiy_File_exists(Dictionary_file:str):
 
 def load_file(Dictionary_file: str):
     """Load the entire JSON file into memory once."""
+
     if os.path.exists(Dictionary_file):
+
+        # tenta UTF-8
         try:
             with open(Dictionary_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
+
+        # fallback latin1/cp1252
+        except UnicodeDecodeError:
+            try:
+                with open(Dictionary_file, 'r', encoding='latin-1') as f:
+                    return json.load(f)
+
+            except Exception:
+                with open(Dictionary_file, 'w', encoding='utf-8') as f:
+                    json.dump({}, f)
+                return {}
+
+        # json inválido/corrompido
         except json.JSONDecodeError:
-            # File is corrupted, start fresh
             with open(Dictionary_file, 'w', encoding='utf-8') as f:
                 json.dump({}, f)
             return {}
+
     return {}
 
 def verify_id_exists(Dictionary_file:str,id:int):
