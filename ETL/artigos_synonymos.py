@@ -11,9 +11,9 @@ CCP_FILE = "ccp_por_artigo.json"
 TABLE_NAME = "fundamentacao_contrato_dictionary"
 TABLE_LOGS= "t_logs_transformacao"
 
-
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
+#Prepare data for insertion into the database
 def prepare_data(artigo:int,explain:str):
     data={
         'fundamentacao':artigo,
@@ -21,6 +21,7 @@ def prepare_data(artigo:int,explain:str):
     }
     return data
 
+#Main function to populate the database with explanations for each article
 def main():
     dictionary.verifiy_File_exists(CCP_FILE)
     artigos_list_distinc=db.get_distinct_data('fundamentacao','contratos_transf')

@@ -15,7 +15,7 @@ import justificacaoNEscrita as justificacao
 def main():
 
     
-    #region Connecção com a BD
+    #region Connection to DB
     connection = db.get_connection()
     if not connection:
         logger.error("Não foi possivel estabelecer uma connecção com a base de dados")
