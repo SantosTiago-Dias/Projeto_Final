@@ -22,7 +22,7 @@ class ContratoFilterRequest extends FormRequest
             'valor_contratual_menor_que'          => ['nullable', 'numeric','min:0'],
             'valor_contratual_maior_que'          => ['nullable', 'numeric','min:0'],
             'prazo_execucao'            => ['nullable', 'integer','min:0'],
-            'cpvs'                      => ['nullable', 'string', 'max:100', 'regex:/^[\pL\s\-]+$/u'],
+            'cpvs'                      => ['nullable', 'string', 'max:100', 'regex:/^[\pL\d\s\-]+$/u'],
             'contrato_ecologico'        => ['nullable', 'in:0,1'],
             'procedimento_centralizado' => ['nullable', 'in:0,1'],
         ];
