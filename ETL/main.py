@@ -35,6 +35,7 @@ def main():
     try:
         logger.info("A iniciar transformação de dados")
         db.execute_transformacao()
+        db.enrich_entidades_transf()
         logger.success("Fim da transformação de dados")
     except Exception as e:
         logger.error(f"Erro: {e}")

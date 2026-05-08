@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS entidade_transf (
     total_adjudicante           DECIMAL(15,2),
     num_contratos_adjudicante   INT,
     pais                        VARCHAR(255),
+    distrito                    VARCHAR(255),
     UNIQUE (id_entidade)
 );
 
@@ -179,6 +180,7 @@ CREATE TABLE IF NOT EXISTS dim_entidade (
     total_adjudicante           DECIMAL(15,2),
     num_contratos_adjudicante   INT,
     pais                        VARCHAR(255),
+    distrito                    VARCHAR(255),
     UNIQUE (id_entidade)
 );
 
@@ -283,6 +285,24 @@ VALUES ('N/A', 'VALOR DESCONHECIDO');
 
 INSERT IGNORE INTO fundamentacao_contrato_dictionary (fundamentacao, descricao)
 VALUES ('N/A', 'VALOR DESCONHECIDO');
+
+CREATE TABLE IF NOT EXISTS lookup_abreviaturas(
+    abr VARCHAR(255),
+    abr_correta VARCHAR(255)
+);
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('L.D.A.','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('L. D. A.','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('LDA.','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('L.D.A','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('LD.ª','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('L.DA','LDA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('E.P.E.','EPE');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('E. P. E.','EPE');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('EPE.','EPE');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('E.P.E','EPE');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('S.A.','SA');
+INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('S.A','SA');
+
 
 -- ENTIDADES
 INSERT IGNORE INTO entidades_ext (id_entidade, nif, nome, pais) VALUES (246088, '600077594', 'Agrupamento de Escolas Alberto Sampaio, Braga', 'Portugal');

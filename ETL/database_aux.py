@@ -6,12 +6,15 @@ import os
 import math
 from datetime import datetime
 import requests
+import time
 
 
 load_dotenv('.env')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INIT = os.path.join(BASE_DIR, 'init.sql')
 PROCEDURES = os.path.join(BASE_DIR, 'procedures.sql')
+URL_NOMI = "https://nominatim.openstreetmap.org/search"
+URL_NASA = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
 
 #Função para obter a connecção com a base de dados
 def get_connection():
@@ -119,6 +122,45 @@ def execute_transformacao():
                 logger.error(f"Erro em {proc}: {e}")
                 change_status(log_id, 't_logs_transformacao', None, "ERRO", mensagem=str(e))
             
+
+            finally:
+                cur.close()
+
+        # BLOCO SEPARADO PARA NORMALIZAÇÃO (com parâmetros)
+        logger.info("A executar: normalizar_lookup")
+
+        normalizacoes = [
+            ('DB_CP.detalhes_contratos_transf', 'descricao'),
+            ('DB_CP.detalhes_contratos_transf', 'objeto'),
+            ('DB_CP.entidade_transf', 'nome')
+            # ('DB_CP.outra_tabela', 'outra_coluna')
+        ]
+
+        for tabela, coluna in normalizacoes:
+            proc_name = f"normalizar_lookup({tabela}.{coluna})"
+            log_id = change_status(None,'t_logs_transformacao',proc_name,"INICIO")
+
+            cur = mydb.cursor()
+            try:
+                cur.callproc('normalizar_lookup', [tabela, coluna])
+
+                for result in cur.stored_results():
+                    try:
+                        result.fetchall()
+                    except Exception:
+                        change_status(None,'t_logs_transformacao',proc_name,"ERRO")
+                        logger.error(f"Erro: normalização - {e}")
+
+                while cur.nextset():
+                    pass
+
+                mydb.commit()
+                change_status(log_id, 't_logs_transformacao', None, "SUCESSO")
+                logger.success(f"Normalizado: {tabela}.{coluna}")
+
+            except mysql.connector.Error as e:
+                logger.error(f"Erro na normalização {tabela}.{coluna}: {e}")
+                change_status(log_id, 't_logs_transformacao', None, "ERRO", mensagem=str(e))
 
             finally:
                 cur.close()
@@ -395,8 +437,7 @@ def load_eventos_naturais():
     try:
         logger.info("A obter eventos da API EONET...")
 
-        url = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
-        response = requests.get(url)
+        response = requests.get(URL_NASA)
 
         if response.status_code != 200:
             logger.error(f"Erro na API: {response.status_code}")
@@ -441,7 +482,115 @@ def load_eventos_naturais():
         logger.success(f"Eventos naturais (Portugal) carregados! Updates: {updates}")
 
     except Exception as e:
-        logger.error(f"Erro ao carregar eventos naturais: {e}")
+        logger.error(f"Erro: carregar eventos naturais - {e}")
+        change_status(None,'t_logs_carregamento',proc_name,"ERRO")
+
+
+    finally:
+        cursor.close()
+        mydb.close()
+
+
+def get_distrito_from_nominatim(query: str) -> str | None:
+    try:
+        params = {
+            "q": query,
+            "format": "json",
+            "addressdetails": 1,
+            "limit": 1
+        }
+
+        headers = {
+            "User-Agent": "etl-project/1.0"
+        }
+
+        response = requests.get(URL_NOMI, params=params, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        data = response.json()
+
+        if not data:
+            return None
+
+        address = data[0].get("address", {})
+        return address.get("county")
+
+    except Exception as e:
+        logger.error(f"Erro: Nominatim - {e}")
+        change_status(None,'t_logs_transformacao',proc_name,"ERRO")
+
+        return None
+
+
+
+def enrich_entidades_transf():
+    mydb = get_connection()
+    if not mydb:
+        return
+
+    cursor = mydb.cursor(dictionary=True)
+
+    try:
+        logger.info("A enriquecer entidades_transf com distrito...")
+
+        query = """
+        SELECT id_entidade, nome, pais, distrito
+        FROM entidade_transf
+        """
+        cursor.execute(query)
+        entidades = cursor.fetchall()
+
+        updates = 0
+
+        for ent in entidades:
+
+            # já preenchido → ignora
+            if ent["distrito"] and ent["distrito"]!='N/A':
+                continue
+
+            nome = ent["nome"]
+            morada = ent["pais"]
+
+            distrito = None
+
+            # tentar pelo nome
+            if nome:
+                distrito = get_distrito_from_nominatim(nome)
+
+
+            # fallback: segundo parâmetro da morada
+            if not distrito and morada:
+                partes = [p.strip() for p in morada.split(",")]
+
+                if len(partes) >= 2:
+                    distrito = partes[1]  # ex: Évora
+                else:
+                    distrito = "N/A"
+
+            # fallback final
+            if not distrito:
+                distrito = "N/A"
+
+            update_sql = """
+            UPDATE entidade_transf
+            SET distrito = %s
+            WHERE id_entidade = %s
+            """
+
+            cursor.execute(update_sql, (distrito, ent["id_entidade"]))
+            updates += 1
+
+            # evitar bloqueio da API
+            time.sleep(1)
+
+        mydb.commit()
+        logger.success(f"entidades_transf atualizada! {updates} registos")
+
+    except Exception as e:
+        logger.error(f"Erro: enrich entidades_transf - {e}")
+        change_status(None,'t_logs_transformacao',proc_name,"ERRO")
 
     finally:
         cursor.close()

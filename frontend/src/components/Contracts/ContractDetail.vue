@@ -50,7 +50,19 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container max-w-5xl py-10 px-4 md:px-0 mx-auto space-y-8">
+  <!-- LOADING -->
+  <div v-if="loading" class="text-center py-10 text-gray-400">
+    A carregar...
+  </div>
+
+  <!-- ERROR -->
+  <div v-else-if="error" class="text-center py-10 text-red-500">
+    {{ error }}
+  </div>
+
+  <!-- CONTENT SAFE -->
+  <div v-else-if="contract" class="container max-w-5xl py-10 px-4 md:px-0 mx-auto space-y-8">
+    
       <!-- HEADER -->
     <Button>
       <button
@@ -211,6 +223,5 @@ onMounted(async () => {
           {{ contract.observacoes }}
         </p>
       </footer>
-
     </div>
 </template>
