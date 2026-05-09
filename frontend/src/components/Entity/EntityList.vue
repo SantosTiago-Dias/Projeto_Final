@@ -126,7 +126,7 @@
             </div>
 
             <!-- Contracts Table -->
-            <h3 class="font-semibold text-gray-800 mb-3">Lista de Contratos</h3>
+            <h3 class="font-semibold text-gray-800 mb-3">Lista de Contratos Recentes</h3>
             <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
               <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-50 border-b border-gray-200">
@@ -228,8 +228,10 @@ const openModal = async (entity) => {
     ])
     entityDetails.value = resEntityDetails.data
     entityContracts.value = resEntityContracts.data.data
+        .sort((a, b) => new Date(b.data_publicacao) - new Date(a.data_publicacao))
+        .slice(0, 5)
   } catch (err) {
-    console.error("Erro ao carregar contratos:", err)
+    console.error("Erro ao carregar entidades:", err)
   } finally {
     loadingDetails.value = false
   }
