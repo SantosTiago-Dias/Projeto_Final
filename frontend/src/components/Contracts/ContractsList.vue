@@ -88,6 +88,18 @@
                  class="w-full h-9 text-sm border-gray-300 rounded-lg" />
         </div>
 
+        <div>
+          <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+            Local  de Execução
+          </label>
+
+          <input
+              type="text"
+              v-model="filters.local_execucao"
+              placeholder="Pesquisar local execução..."
+              class="w-full h-9 text-sm border-gray-300 rounded-lg"
+          />
+        </div>
 
         <div class="flex items-end gap-2">
           <button
@@ -281,6 +293,7 @@ const filters = reactive({
   valor_contratual_menor_que: null,
   valor_contratual_maior_que: null,
   prazo_execucao: null,
+  local_execucao: '',
   cpvs: '',
   contrato_ecologico: null,
   procedimento_centralizado: null

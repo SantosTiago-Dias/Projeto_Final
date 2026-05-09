@@ -24,6 +24,9 @@ class ContratoFilter
         //prazo de execucao
         $query=$query->when($filters['prazo_execucao'] ?? null , fn($q, $v) =>$q->where('prazo_execucao','<=', $v));
 
+        //local de execucao
+        $query=$query->when($filters['local_execucao'] ?? null , fn($q, $v) =>$q->where('local_execucao', 'LIKE', '%' . $v . '%'));
+
         //CPV
         if ($filters['cpvs'] ?? false)
         {
