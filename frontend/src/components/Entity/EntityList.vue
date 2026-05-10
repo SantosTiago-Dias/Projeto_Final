@@ -11,6 +11,153 @@
 
     <!-- Entity Grid -->
     <div v-else class="flex flex-col gap-3">
+
+      <!-- Filtros -->
+      <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
+
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
+
+          <!-- Nome -->
+          <div>
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+              Nome
+            </label>
+
+            <input
+                type="text"
+                v-model="filters.nome"
+                placeholder="Pesquisar nome..."
+                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+            />
+          </div>
+
+          <!-- NIF -->
+          <div>
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+              NIF
+            </label>
+
+            <input
+                type="text"
+                v-model="filters.nif"
+                placeholder="Pesquisar NIF..."
+                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+            />
+          </div>
+
+          <!-- Tipo Entidade -->
+          <div>
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+              Tipo Entidade
+            </label>
+
+            <select
+                v-model="filters.tipo_entidade"
+                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+            >
+              <option value="">Todos</option>
+              <option value="3">Não Residente</option>
+              <option value="5">Pessoa Coletiva</option>
+              <option value="6">Administração Pública</option>
+              <option value="7">Herança Indivisa</option>
+              <option value="8">Empresário Nome Individual</option>
+              <option value="9">Pessoa Coletiva Irregular</option>
+            </select>
+          </div>
+
+          <!-- País -->
+          <div>
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+              Localização
+            </label>
+
+            <input
+                type="text"
+                v-model="filters.pais"
+                placeholder="Pesquisar localização..."
+                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+            />
+          </div>
+
+
+          <!-- Nº Contratos Adjudicatário Min -->
+          <div>
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+              Contratos Adjudicatário Min
+            </label>
+
+            <input
+                type="number"
+                min="0"
+                v-model="filters.num_contratos_adjudicatario_min"
+                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+            />
+          </div>
+
+          <!-- Nº Contratos Adjudicatário Max -->
+          <div>
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+              Contratos Adjudicatário Max
+            </label>
+
+            <input
+                type="number"
+                min="0"
+                v-model="filters.num_contratos_adjudicatario_max"
+                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+            />
+          </div>
+
+          <!-- Nº Contratos Adjudicante Min -->
+          <div>
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+              Contratos Adjudicante Min
+            </label>
+
+            <input
+                type="number"
+                min="0"
+                v-model="filters.num_contratos_adjudicante_min"
+                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+            />
+          </div>
+
+          <!-- Nº Contratos Adjudicante Max -->
+          <div>
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
+              Contratos Adjudicante Max
+            </label>
+
+            <input
+                type="number"
+                min="0"
+                v-model="filters.num_contratos_adjudicante_max"
+                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+            />
+          </div>
+
+          <!-- Botões -->
+          <div class="flex items-end gap-2">
+
+            <button
+                @click="fetchEntities()"
+                class="flex-1 h-9 bg-green-700 text-white text-sm rounded-lg font-medium hover:bg-green-800 transition"
+            >
+              Filtrar
+            </button>
+
+            <button
+                @click="resetFilters"
+                class="h-9 px-3 text-sm text-gray-500 hover:text-gray-700"
+            >
+              Limpar
+            </button>
+
+          </div>
+
+        </div>
+      </div>
+
       <div
           v-for="entity in entities"
           :key="entity.id_entidade"
@@ -25,7 +172,7 @@
             </div>
             <h2 class="text-lg font-semibold text-gray-900 line-clamp-1">{{ entity.nome }}</h2>
           </div>
-          <Button variant="outline" size="sm" class="text-xs h-8 px-4">Ver Detalhes</Button>
+          <Button variant="outline" size="sm" class="text-xs h-8 px-4" @click.stop="goToDetails(entity.id_entidade)">Ver Detalhes</Button>
         </div>
       </div>
     </div>
@@ -159,7 +306,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue"
+import {ref, computed, onMounted, reactive} from "vue"
 import { useAPIStore } from "@/store/api.js"
 import { Button } from "@/components/ui/button"
 import router from "@/router/index.js";
@@ -178,16 +325,34 @@ const isModalOpen = ref(false)
 const loadingDetails = ref(false)
 const selectedEntity = ref(null)
 const entityContracts = ref([])
-const entityDetails = ref([])
+const entityDetails = ref({})
 
 const fetchEntities = async (page = 1) => {
   loading.value = true
+
   try {
-    const response = await apiStore.getListEntity({ page })
+    const queryParams = {}
+    console.log(filters)
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== '' && value !== null && value !== undefined) {
+        queryParams[key] = value
+      }
+    })
+    
+    const response = await apiStore.getListEntity({
+      page,
+      ...queryParams
+    })
+
     entities.value = response.data.data
     meta.value = response.data.meta
-  } catch (err) { console.error(err) }
-  finally { loading.value = false }
+
+  } catch (err) {
+    console.error("Falha ao carregar entidades:", err)
+  } finally {
+    loading.value = false
+  }
 }
 
 const goToPage = (page) => {
@@ -245,6 +410,34 @@ const closeModal = () => {
 
 const goToContract = (id) => {
   router.push(`/contracts/${id}`)
+}
+
+function goToDetails(id) {
+  router.push(`/entidades/${id}`)
+}
+
+const filters = reactive( {
+        nome: '',
+        nif: '',
+        tipo_entidade: '',
+        pais: '',
+        num_contratos_adjudicatario_min: null,
+        num_contratos_adjudicatario_max: null,
+        num_contratos_adjudicante_min: null,
+        num_contratos_adjudicante_max: null,
+}
+)
+
+const resetFilters = () => {
+  Object.keys(filters).forEach(key => {
+    if (typeof filters[key] === 'number') {
+      filters[key] = null
+    } else {
+      filters[key] = ''
+    }
+  })
+
+  fetchEntities(1)
 }
 
 // Helpers

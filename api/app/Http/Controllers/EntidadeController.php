@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\EntidadeFilter;
+use App\Http\Requests\EntidadeFilterRequest;
 use App\Http\Resources\EntidadeResource;
 use App\Http\Resources\ListaContratosEntidadeResource;
 use App\Http\Resources\ListContractsResource;
@@ -13,11 +15,16 @@ use Illuminate\Http\Request;
 class EntidadeController extends Controller
 {
     //
-    public function index()
+    public function index(EntidadeFilterRequest $request)
     {
         try {
 
-            $entidades = DimEntidade::where('id_entidade', '!=', -1)->paginate(25);
+            $query = DimEntidade::query()
+                ->where('id_entidade', '!=', -1);
+
+            $query = EntidadeFilter::apply($query, $request->validated());
+
+            $entidades = $query->paginate(25);
 
             return EntidadeResource::collection($entidades);
         } catch (\Throwable $e) {
