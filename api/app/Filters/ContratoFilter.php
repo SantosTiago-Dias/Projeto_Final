@@ -42,6 +42,10 @@ class ContratoFilter
         //procedimento centralizado
         $query=$query->when($filters['procedimento_centralizado'] ?? null , fn($q, $v) =>$q->where('procedimento_centralizado','=', $v));
 
+        // Objeto
+        $query = $query->when(
+            $filters['objeto'] ?? null,fn($q, $v) => $q->where('objeto', 'like', '%' . $v . '%'));
+
         return $query;
     }
 }

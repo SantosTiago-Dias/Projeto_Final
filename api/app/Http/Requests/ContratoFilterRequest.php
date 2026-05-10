@@ -26,6 +26,7 @@ class ContratoFilterRequest extends FormRequest
             'cpvs'                      => ['nullable', 'string', 'max:100', 'regex:/^[\pL\d\s\-]+$/u'],
             'contrato_ecologico'        => ['nullable', 'in:0,1'],
             'procedimento_centralizado' => ['nullable', 'in:0,1'],
+            'objeto' => ['nullable', 'string', 'max:255'],
         ];
     }
 

@@ -271,12 +271,13 @@
 
 <script setup>
 import {ref, onMounted, reactive, computed} from "vue"
-import { useRouter } from "vue-router"
+import { useRouter, useRoute } from "vue-router"
 import { useAPIStore } from "@/store/api.js"
 import { Button } from "@/components/ui/button/index.ts"
 
 const router = useRouter()
 const apiStore = useAPIStore()
+const route = useRoute()
 
 const meta = ref(null)
 const contracts = ref([])
@@ -286,6 +287,7 @@ const listTipoProcedimento = ref([])
 
 
 const filters = reactive({
+  objeto: '',
   tipo_contrato: null,
   tipo_procedimento: null,
   data_publicacao_inicio: '',
@@ -358,6 +360,10 @@ const resetFilters = () => {
 }
 
 onMounted(async () => {
+  if (route.query.objeto) {
+    filters.objeto = route.query.objeto
+  }
+
   fetchContracts()
 
   let res = await apiStore.getFilterListContracts()
