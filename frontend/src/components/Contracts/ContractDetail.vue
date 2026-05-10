@@ -32,6 +32,10 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString("pt-PT")
 }
 
+function goToEntity(id) {
+  router.push(`/entidades/${id}`)
+}
+
 
 onMounted(async () => {
 
@@ -143,13 +147,13 @@ onMounted(async () => {
                 </TableHeader>
                 <TableBody>
                   <!-- Adjudicante -->
-                  <TableRow>
+                  <TableRow @click="goToEntity(contract.adjudicante.id_entidade)">
                     <TableCell class="font-medium text-blue-700">{{ contract.adjudicante.nome }}</TableCell>
                     <TableCell>{{ contract.adjudicante.nif }}</TableCell>
                     <TableCell class="text-right"><Badge variant="outline">Adjudicante</Badge></TableCell>
                   </TableRow>
                   <!-- Concorrentes -->
-                  <TableRow v-for="c in contract.concorrentes" :key="c.id">
+                  <TableRow v-for="c in contract.concorrentes" :key="c.id" @click="goToEntity(c.entidade.id_entidade)">
                     <TableCell class="font-medium">{{ c.entidade.nome }}</TableCell>
                     <TableCell>{{ c.entidade.nif }}</TableCell>
                     <TableCell class="text-right">
