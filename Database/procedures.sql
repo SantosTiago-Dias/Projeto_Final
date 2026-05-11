@@ -290,7 +290,9 @@ FROM entidades_ext e
          LEFT JOIN entidade_transf t
                    ON e.id_entidade = t.id_entidade
 
-WHERE t.id_entidade IS NULL;
+WHERE t.id_entidade IS NULL
+    ON DUPLICATE KEY UPDATE
+        id_entidade = VALUES(id_entidade);
 
 -- Metricas para adjudicatários
 UPDATE entidade_transf t
