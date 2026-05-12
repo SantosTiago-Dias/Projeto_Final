@@ -18,77 +18,68 @@ class ContractsController extends Controller
 {
     public function index(ContratoFilterRequest $request)
     {
-        try {
-            $request->validated();
+        $request->validated();
 
-            $cacheKey = 'contracts:list';
-            $fromCache = Cache::has($cacheKey);
+        $cacheKey = 'contracts:list';
 
-            //Load all data to Cache
-            $contratos = Cache::rememberForever($cacheKey, function () {
-                return DimDetalhesContrato::where('chave_contratos', '!=', 1)
-                    ->pluck('chave_contratos')
-                    ->toArray();
-            });
+        //Load all data to Cache
+        $contratos = Cache::rememberForever($cacheKey, function () {
+            return DimDetalhesContrato::where('chave_contratos', '!=', 1)
+                ->pluck('chave_contratos')
+                ->toArray();
+        });
 
-            // Rebuild query from cached IDs so filters
-            $query = DimDetalhesContrato::with([
-                'cpvs',
+        // Rebuild query from cached IDs so filters
+        $query = DimDetalhesContrato::with([
+            'cpvs',
+            'fact_contrato.entidade',
+            'fact_contrato.tipo_contrato',
+            'fact_contrato.tipo_procedimento',
+            'fact_contrato.data',
+            'fact_contrato.concorrentes',
+        ])->whereIn('chave_contratos', $contratos);
+
+        $result = ContratoFilter::apply($query, $request->validated())->paginate(25);
+
+        return ListContractsResource::collection($result);
+    }
+
+    public function show($id)
+    {
+        if ($id == 1)
+        {
+            abort(404,'Contrato não encontrado');
+        }
+
+        $cacheKey = 'contract:show:' . $id;
+
+        if (Cache::has($cacheKey))
+        {
+            return response()->json(Cache::get($cacheKey));
+        }
+        else
+        {
+            $contrato = DimDetalhesContrato::with([
                 'fact_contrato.entidade',
                 'fact_contrato.tipo_contrato',
                 'fact_contrato.tipo_procedimento',
                 'fact_contrato.data',
                 'fact_contrato.concorrentes',
-            ])->whereIn('chave_contratos', $contratos);
+                'cpvs',
+            ])->find($id);
 
-            $result = ContratoFilter::apply($query, $request->validated())->paginate(25);
-
-            return [
-                'from_cache' => $fromCache,
-                'data'       => ListContractsResource::collection($result),
-            ];
-
-        } catch (\Throwable $e) {
-            abort(500, 'Error'. $e->getMessage());
-        }
-    }
-
-    public function show($id)
-    {
-
-        try {
-            if ($id == -1) {
-                abort(404);
+            if (is_null($contrato))
+            {
+                abort(404, 'Not Found');
             }
 
-            $cacheKey = 'contract:show:' . $id;
+            $data = new DetailsContractResource($contrato);
 
-            $contratoArray = Cache::rememberForever($cacheKey, function () use ($id) {
-                $contrato = DimDetalhesContrato::with([
-                    'fact_contrato.entidade',
-                    'fact_contrato.tipo_contrato',
-                    'fact_contrato.tipo_procedimento',
-                    'fact_contrato.data',
-                    'fact_contrato.concorrentes',
-                    'cpvs',
-                ])->where('chave_contratos', $id)->first();
 
-                return $contrato?->toArray(); // ✅ full data, fully serializable
-            });
+            Cache::put($cacheKey, json_decode($data->toJson(),true), now()->addHours(1));
 
-            if (!$contratoArray) {
-                abort(404);
-            }
-
-            return response()->json([
-                'from_cache' => Cache::has($cacheKey),
-                'data'       => $contratoArray, // ✅ return directly, no Resource needed
-            ]);
-
-        } catch (\Throwable $e) {
-            abort(500, 'Error: ' . $e->getMessage());
+            return response()->json($data);
         }
-
     }
 
     public function getFilters(): JsonResponse

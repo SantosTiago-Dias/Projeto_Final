@@ -31,48 +31,50 @@ class EntidadeController extends Controller
 
     public function show($id)
     {
-        if ($id == -1) {
+        if ($id == -1)
+        {
             abort(404, 'Not Found');
         }
 
-        try {
-            $cacheKey = 'entidade:show:' . $id;
+        #TODO:ISTO DEVE DE HAVER UMA MANEIRA MELHOR DE FAZER
+        $cacheKey = 'entidades:show:' . $id;
 
-            // ✅ Cache as plain array
-            $entidadeData = Cache::rememberForever($cacheKey, function () use ($id) {
-                return DimEntidade::where('chave_entidade', $id)
-                    ->first()
-                    ?->toArray();
-            });
+        if (Cache::has($cacheKey))
+        {
+            return response()->json(Cache::get($cacheKey));
+        }
+        else
+        {
+            $entidade =DimEntidade::find($id);
 
-            if (!$entidadeData) {
+            if (is_null($entidade))
+            {
                 abort(404, 'Not Found');
             }
-
-            return response()->json($entidadeData); // ✅ plain array, always serializable
-
-        } catch (\Throwable $e) {
-            abort(500, 'Error: ' . $e->getMessage());
         }
+
+        $data = new EntidadeResource($entidade);
+        Cache::put($cacheKey, json_decode($data->toJson(),true), now()->addDay(1));
+
+        return response()->json($data);
     }
 
     public function listaContratos($id)
     {
         if ($id == -1) {
-            abort(404, 'Entidade not found');
+            abort(404, 'Entidade não encontrada');
         }
 
-        // ✅ Cache entidade as plain array
         $entidadeCacheKey = 'entidade:show:' . $id;
 
         $entidadeData = Cache::rememberForever($entidadeCacheKey, function () use ($id) {
-            return DimEntidade::where('chave_entidade', $id)
+            return DimEntidade::where('id_entidade', $id)
                 ->first()
                 ?->toArray(); // ✅ plain array
         });
 
         if (!$entidadeData) {
-            abort(404, 'Entidade not found');
+            abort(404, 'Entidade não encontrada');
         }
 
         // ✅ Use array key instead of model property
