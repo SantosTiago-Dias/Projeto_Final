@@ -130,9 +130,9 @@ def execute_transformacao():
         logger.info("A executar: normalizar_lookup")
 
         normalizacoes = [
-            ('DB_CP.detalhes_contratos_transf', 'descricao'),
-            ('DB_CP.detalhes_contratos_transf', 'objeto'),
-            ('DB_CP.entidade_transf', 'nome')
+            ('detalhes_contratos_transf', 'descricao'),
+            ('detalhes_contratos_transf', 'objeto'),
+            ('entidade_transf', 'nome')
             # ('DB_CP.outra_tabela', 'outra_coluna')
         ]
 
@@ -180,6 +180,7 @@ def execute_load():
 
     try:
         procedures = [
+            "load_dims_dict",
             "load_dim_entidade",
             "load_dim_detalhes_contratos",
             "load_dim_cpv_contratos",

@@ -12,6 +12,6 @@ class DimCpvContrato extends Model
 
      public function cpv()
     {
-        return $this->belongsTo(Cpv::class, 'chave_cpv', 'id_cpv');
+        return $this->belongsTo(Cpv::class, 'chave_cpv', 'chave_cpv');
     }
 }
