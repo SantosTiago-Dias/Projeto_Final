@@ -170,9 +170,6 @@ CREATE TABLE IF NOT EXISTS entidade_transf (
 );
 
 CREATE TABLE IF NOT EXISTS detalhes_contratos_transf (
-    procedimento_centralizado TINYINT(1),
-    crit_materiais            TINYINT(1),
-    contrato_ecologico        TINYINT(1),
     id_contrato INT,
     objeto TEXT,
     descricao TEXT,
@@ -181,14 +178,17 @@ CREATE TABLE IF NOT EXISTS detalhes_contratos_transf (
     valor_contratual DECIMAL(15, 2),
     prazo_execucao INT,
     local_execucao TEXT,
+    procedimento_centralizado VARCHAR(5),
     num_acordos_quadro VARCHAR(20),
     desc_acordo_quadro TEXT,
     data_fecho_contrato DATE,
     valor_total_efetivo DECIMAL(15, 2),
     regime VARCHAR(255),
     tipo_fim_contrato VARCHAR(255),
+    crit_materiais VARCHAR(5),
     link_pecas VARCHAR(255),
     observacoes VARCHAR(255),
+    contrato_ecologico VARCHAR(5),
     fundamentacao_ajuste_directo VARCHAR(255),
     UNIQUE (id_contrato)
 );
@@ -227,9 +227,6 @@ CREATE TABLE IF NOT EXISTS dim_entidade (
 );
 
 CREATE TABLE IF NOT EXISTS dim_detalhes_contratos (
-    procedimento_centralizado TINYINT(1),
-    crit_materiais            TINYINT(1),
-    contrato_ecologico        TINYINT(1),
     chave_contratos INT AUTO_INCREMENT PRIMARY KEY,
     id_contrato INT,
     objeto TEXT,
@@ -239,14 +236,17 @@ CREATE TABLE IF NOT EXISTS dim_detalhes_contratos (
     valor_contratual DECIMAL(15, 2),
     prazo_execucao INT,
     local_execucao TEXT,
+    procedimento_centralizado VARCHAR(5),
     num_acordos_quadro VARCHAR(20),
     desc_acordo_quadro TEXT,
     data_fecho_contrato DATE,
     valor_total_efetivo DECIMAL(15, 2),
     regime VARCHAR(255),
     tipo_fim_contrato VARCHAR(255),
+    crit_materiais VARCHAR(5),
     link_pecas VARCHAR(255),
     observacoes VARCHAR(255),
+    contrato_ecologico VARCHAR(5),
     fundamentacao_ajuste_directo VARCHAR(255),
     UNIQUE (id_contrato)
 );

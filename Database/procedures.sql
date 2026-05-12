@@ -103,7 +103,7 @@ SELECT
     CAST(TRIM(REPLACE(prazo_execucao, ' dias', '')) AS UNSIGNED),
 
     UPPER(normalizar(local_execucao)),
-    procedimento_centralizado,
+    IF(procedimento_centralizado = 0, 'Não', 'Sim'),
     num_acordos_quadro,
     desc_acordo_quadro,
 
@@ -115,12 +115,12 @@ SELECT
 
     IFNULL(tipo_fim_contrato, 'Não aplicável.'),
 
-    crit_materiais,
+    IF(crit_materiais = 0, 'Não', 'Sim'),
 
     IFNULL(link_pecas, 'Não aplicável.'),
     IFNULL(observacoes, 'Não aplicável.'),
 
-    contrato_ecologico,
+    IF(contrato_ecologico = 0, 'Não', 'Sim'),
     fundamentacao_ajuste_directo
 
 FROM contratos_ext;
@@ -572,8 +572,8 @@ INSERT INTO dim_data (
     mes,
     ano,
     dia_semana,
-    nome_mes,
-    abr_mes,
+    mes_extenso,
+    mes_abr,
     data_extenso
 )
 VALUES (
