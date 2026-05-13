@@ -34,6 +34,10 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_BASE_URL
+        - VITE_REVERB_HOST
+        - VITE_REVERB_PORT
+        - VITE_REVERB_SCHEME
+        - VITE_REVERB_APP_KEY
     env_file: .env
     ports:
       - "80:80"
@@ -74,5 +78,31 @@ services:
       ofelia.job-exec.date-job.schedule: "0 10 0 * * *"
       ofelia.job-exec.date-job.command: "sh -c 'python main.py > /proc/1/fd/1 2>&1'"
 
+  ws:
+    container_name: ws
+    build:
+      context: websocket
+      dockerfile: Dockerfile
+
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    restart: always
+    command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
+    env_file:
+      - .env
+
+  subscribe:
+    container_name: subscribe
+    build:
+      context: api
+      dockerfile: Dockerfile
+    command: php artisan redis:subscribe
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    restart: always
 volumes:
   db_data:

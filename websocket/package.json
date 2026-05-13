@@ -1,0 +1,18 @@
+{
+  "name": "websocket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "JSON": "^1.0.0",
+    "redis": "^5.12.1",
+    "ws": "^8.20.1"
+  }
+}

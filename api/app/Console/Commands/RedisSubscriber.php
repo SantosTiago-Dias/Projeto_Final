@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Events\NewDataAvailable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -29,9 +30,13 @@ class RedisSubscriber extends Command
                 $this->line("ETL finished! Message: " . $data['message']);
 
                 Cache::flush();
+                $this->line("Send broadcast");
+
+                broadcast(new NewDataAvailable([
+                    'message' => 'New data is ready',
+                    'timestamp' => now()->toISOString(),
+                ]))->toOthers();
             }
-
-
         });
     }
 }

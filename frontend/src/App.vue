@@ -1,6 +1,19 @@
-<script setup lang="ts">
+<script setup>
 import { FileText, Building2, LayoutDashboard, Search } from "lucide-vue-next";
 import { RouterLink, RouterView } from "vue-router";
+import {onMounted, onUnmounted} from "vue";
+
+onMounted(() => {
+  try {
+    const ws = new WebSocket("ws://localhost:3000/");
+    ws.onmessage = ({data}) => {
+      this.message =  data;
+      console.log(this.message);
+    }
+  } catch(err) {
+    console.log(err);
+  }
+})
 </script>
 
 <template>
