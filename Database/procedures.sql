@@ -99,7 +99,7 @@ SELECT
     STR_TO_DATE(data_publicacao, '%d-%m-%Y'),
     STR_TO_DATE(data_celebracao, '%d-%m-%Y'),
 
-    CAST(REPLACE(REPLACE(TRIM(TRAILING '€' FROM valor_contratual),'.', ''),',', '.') AS DECIMAL(15,2)),
+    ABS(CAST(REPLACE(REPLACE(TRIM(TRAILING '€' FROM valor_contratual),'.', ''),',', '.') AS DECIMAL(15,2))),
     CAST(TRIM(REPLACE(prazo_execucao, ' dias', '')) AS UNSIGNED),
 
     UPPER(normalizar(local_execucao)),
