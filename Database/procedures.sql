@@ -99,11 +99,11 @@ SELECT
     STR_TO_DATE(data_publicacao, '%d-%m-%Y'),
     STR_TO_DATE(data_celebracao, '%d-%m-%Y'),
 
-    CAST(REPLACE(REPLACE(TRIM(TRAILING '€' FROM valor_contratual),'.', ''),',', '.') AS DECIMAL(15,2)),
+    ABS(CAST(REPLACE(REPLACE(TRIM(TRAILING '€' FROM valor_contratual),'.', ''),',', '.') AS DECIMAL(15,2))),
     CAST(TRIM(REPLACE(prazo_execucao, ' dias', '')) AS UNSIGNED),
 
     UPPER(normalizar(local_execucao)),
-    procedimento_centralizado,
+    IF(procedimento_centralizado = 0, 'Não', 'Sim'),
     num_acordos_quadro,
     desc_acordo_quadro,
 
@@ -115,12 +115,12 @@ SELECT
 
     IFNULL(tipo_fim_contrato, 'Não aplicável.'),
 
-    crit_materiais,
+    IF(crit_materiais = 0, 'Não', 'Sim'),
 
     IFNULL(link_pecas, 'Não aplicável.'),
     IFNULL(observacoes, 'Não aplicável.'),
 
-    contrato_ecologico,
+    IF(contrato_ecologico = 0, 'Não', 'Sim'),
     fundamentacao_ajuste_directo
 
 FROM contratos_ext;
@@ -290,7 +290,9 @@ FROM entidades_ext e
          LEFT JOIN entidade_transf t
                    ON e.id_entidade = t.id_entidade
 
-WHERE t.id_entidade IS NULL;
+WHERE t.id_entidade IS NULL
+    ON DUPLICATE KEY UPDATE
+        id_entidade = VALUES(id_entidade);
 
 -- Metricas para adjudicatários
 UPDATE entidade_transf t
@@ -570,8 +572,8 @@ INSERT INTO dim_data (
     mes,
     ano,
     dia_semana,
-    nome_mes,
-    abr_mes,
+    mes_extenso,
+    mes_abr,
     data_extenso
 )
 VALUES (
@@ -700,17 +702,17 @@ SELECT
 
     ct.adjudicatario,
 
-    COALESCE(tc.id_tipo_contrato,
-             (SELECT id_tipo_contrato FROM tipo_contrato_dictionary WHERE tipo = 'N/A')),
+    COALESCE(tc.chave_tipo_contrato,
+             (SELECT chave_tipo_contrato FROM tipo_contrato_dim WHERE tipo = 'N/A')),
 
-    COALESCE(tp.id_tipo_procedimento,
-             (SELECT id_tipo_procedimento FROM tipo_procedimento_dictionary WHERE tipo = 'N/A')),
+    COALESCE(tp.chave_tipo_procedimento,
+             (SELECT chave_tipo_procedimento FROM tipo_procedimento_dim WHERE tipo = 'N/A')),
 
-    COALESCE(fc.id_fundamentacao,
-             (SELECT id_fundamentacao FROM fundamentacao_contrato_dictionary WHERE fundamentacao = 'N/A')),
+    COALESCE(fc.chave_fundamentacao,
+             (SELECT chave_fundamentacao FROM fundamentacao_contrato_dim WHERE fundamentacao = 'N/A')),
 
-    COALESCE(jc.id_justificacao,
-             (SELECT id_justificacao FROM justificacao_contrato_nao_escrito_dictionary WHERE justificacao = 'N/A')),
+    COALESCE(jc.chave_justificacao,
+             (SELECT chave_justificacao FROM justificacao_contrato_nao_escrito_dim WHERE justificacao = 'N/A')),
 
     COALESCE(deadjudicante.chave_entidade,
              (SELECT chave_entidade FROM dim_entidade WHERE id_entidade = -1)),
@@ -727,13 +729,13 @@ FROM contratos_transf ct
                    ON de.id_entidade = ct.id_entidade
          LEFT JOIN dim_entidade deadjudicante
                    ON deadjudicante.id_entidade = ct.id_adjudicante
-         LEFT JOIN  tipo_contrato_dictionary tc
+         LEFT JOIN  tipo_contrato_dim tc
                     ON tc.tipo = ct.tipo_contrato
-         LEFT JOIN tipo_procedimento_dictionary tp
+         LEFT JOIN tipo_procedimento_dim tp
                    ON tp.tipo = ct.tipo_procedimento
-         LEFT JOIN fundamentacao_contrato_dictionary fc
+         LEFT JOIN fundamentacao_contrato_dim fc
                    ON fc.fundamentacao = ct.fundamentacao
-         LEFT JOIN justificacao_contrato_nao_escrito_dictionary jc
+         LEFT JOIN justificacao_contrato_nao_escrito_dim jc
                    ON jc.justificacao = ct.justificacao_nao_escrita
          LEFT JOIN dim_data dd
                    ON dd.data = dc.data_celebracao
@@ -750,3 +752,31 @@ WHERE NOT EXISTS (
 END$$
 
 
+DROP PROCEDURE IF EXISTS load_dims_dict$$
+CREATE PROCEDURE load_dims_dict()
+BEGIN
+    -- Tipo Contrato
+INSERT IGNORE INTO tipo_contrato_dim (tipo,descricao)
+SELECT DISTINCT tipo, descricao FROM tipo_contrato_dictionary
+WHERE tipo NOT IN (SELECT tipo FROM tipo_contrato_dim);
+
+    -- Tipo Procedimento
+INSERT IGNORE INTO tipo_procedimento_dim (tipo,descricao)
+SELECT DISTINCT tipo, descricao FROM tipo_procedimento_dictionary
+WHERE tipo NOT IN (SELECT tipo FROM tipo_procedimento_dim);
+
+    -- Fundamentação Contrato
+INSERT IGNORE INTO fundamentacao_contrato_dim (fundamentacao, descricao)
+SELECT DISTINCT fundamentacao, descricao FROM fundamentacao_contrato_dictionary
+WHERE fundamentacao NOT IN (SELECT fundamentacao FROM fundamentacao_contrato_dim);
+
+    -- Justificação Contrato Não Escrito
+INSERT IGNORE INTO justificacao_contrato_nao_escrito_dim (justificacao, descricao)
+SELECT DISTINCT justificacao, descricao FROM justificacao_contrato_nao_escrito_dictionary
+WHERE justificacao NOT IN (SELECT justificacao FROM justificacao_contrato_nao_escrito_dim);
+
+    -- CPV
+INSERT IGNORE INTO cpv_dictionary (codigo, descricao)
+SELECT DISTINCT codigo, descricao FROM cpv_dictionary
+WHERE codigo NOT IN (SELECT codigo FROM cpv_dictionary);
+END$$

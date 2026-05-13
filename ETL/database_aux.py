@@ -180,6 +180,7 @@ def execute_load():
 
     try:
         procedures = [
+            "load_dims_dict",
             "load_dim_entidade",
             "load_dim_detalhes_contratos",
             "load_dim_cpv_contratos",

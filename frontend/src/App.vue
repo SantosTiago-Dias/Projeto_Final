@@ -1,6 +1,22 @@
 <script setup lang="ts">
-import { FileText, Building2, LayoutDashboard, Search } from "lucide-vue-next";
-import { RouterLink, RouterView } from "vue-router";
+import {FileText, Building2, Search} from "lucide-vue-next"
+import {RouterLink, RouterView, useRouter} from "vue-router"
+import { ref } from "vue"
+
+const router = useRouter()
+const search = ref("")
+
+const searchContracts = () => {
+
+  if (!search.value.trim()) return
+
+  router.push({
+    path: "/",
+    query: {
+      objeto: search.value
+    }
+  })
+}
 </script>
 
 <template>
@@ -23,7 +39,6 @@ import { RouterLink, RouterView } from "vue-router";
           Contratos
         </router-link>
 
-
         <router-link
             to="/entidades"
             class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 group"
@@ -35,20 +50,20 @@ import { RouterLink, RouterView } from "vue-router";
       </nav>
     </aside>
 
-    <!-- Main Content Area -->
+    <!-- Main -->
     <div class="flex flex-col flex-1 md:ml-64">
       <!-- Header -->
       <header class="h-16 border-b bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8">
         <div class="flex items-center gap-2 text-sm font-medium text-slate-500">
           <span>Portal</span>
-          <span class="text-slate-300">/</span>
-          <span class="text-slate-900">Contratos</span>
         </div>
 
         <div class="flex items-center gap-4">
           <div class="relative hidden sm:block">
             <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <input
+                v-model="search"
+                @keyup.enter="searchContracts"
                 type="search"
                 placeholder="Pesquisar contratos..."
                 class="pl-9 h-9 w-64 rounded-md border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
@@ -57,7 +72,7 @@ import { RouterLink, RouterView } from "vue-router";
         </div>
       </header>
 
-      <!-- View Wrapper -->
+      <!-- View -->
       <main class="p-8 max-w-7xl">
         <RouterView :key="$route.fullPath" />
       </main>

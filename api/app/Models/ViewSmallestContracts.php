@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Cpv extends Model
+class ViewSmallestContracts extends Model
 {
-    protected $connection = 'etl';
-    protected $table = 'cpv_dim';
+    protected $table = 'view_contratos_menor_valor';
+
     public $timestamps = false;
 }
