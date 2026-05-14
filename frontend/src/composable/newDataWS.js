@@ -1,13 +1,16 @@
 import { onMounted } from "vue";
 import { toast } from "vue-sonner";
 
-let ws = null;
+
 
 export function useWebSocket(url) {
+    let ws = null;
     onMounted(() => {
+
         if (ws) return; // singleton guard
 
         try {
+
             ws = new WebSocket(url);
 
             ws.onmessage = ({ data }) => {

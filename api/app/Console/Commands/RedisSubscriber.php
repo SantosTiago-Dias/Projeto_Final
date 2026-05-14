@@ -28,7 +28,6 @@ class RedisSubscriber extends Command
             if (isset($data['status']) && $data['status'] === 'end') {
                 $this->line("ETL finished! Message: " . $data['message']);
                 Cache::flush();
-                $this->line("Send broadcast");
             }
         });
     }

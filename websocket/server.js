@@ -16,14 +16,14 @@ redisClient.connect().then(r => {
 });
 
 //When ETL is done broadcast the message to frontend
+//If connection of ws fail the sub in red
 server.on ('connection', (socket) => {
     redisClient.subscribe(channel, (message) => {
         const data = JSON.parse(message);
 
-        console.log(data);
+        console.log("Recived new data:"+data);
 
         if (data?.status === 'end') {
-            console.log('ETL finished! Message: ' + data.message);
 
             //broadcast to all users
             server.clients.forEach(client => {

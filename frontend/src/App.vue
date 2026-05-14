@@ -3,8 +3,10 @@ import { FileText, Building2, LayoutDashboard, Search } from "lucide-vue-next";
 import { RouterLink, RouterView } from "vue-router";
 import { Toaster } from "vue-sonner";
 import { useWebSocket } from "@/composable/newDataWS.js";
+import {inject} from "vue";
 
-useWebSocket("ws://localhost:3000/");
+let ws = inject('wsBaseURL');
+useWebSocket(ws);
 </script>
 
 <template>
