@@ -1,23 +1,18 @@
 <script setup>
 import { FileText, Building2, LayoutDashboard, Search } from "lucide-vue-next";
 import { RouterLink, RouterView } from "vue-router";
-import {onMounted, onUnmounted} from "vue";
+import { Toaster } from "vue-sonner";
+import { useWebSocket } from "@/composable/newDataWS.js";
 
-onMounted(() => {
-  try {
-    const ws = new WebSocket("ws://localhost:3000/");
-    ws.onmessage = ({data}) => {
-      this.message =  data;
-      console.log(this.message);
-    }
-  } catch(err) {
-    console.log(err);
-  }
-})
+useWebSocket("ws://localhost:3000/");
 </script>
 
 <template>
+
   <div class="flex min-h-screen w-full bg-[#f8fafc]">
+
+    <Toaster richColors position="bottom-right" />
+
     <!-- Sidebar -->
     <aside class="hidden w-64 border-r bg-white md:flex flex-col fixed h-full">
       <div class="p-6 border-b">
@@ -56,17 +51,6 @@ onMounted(() => {
           <span>Portal</span>
           <span class="text-slate-300">/</span>
           <span class="text-slate-900">Contratos</span>
-        </div>
-
-        <div class="flex items-center gap-4">
-          <div class="relative hidden sm:block">
-            <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-            <input
-                type="search"
-                placeholder="Pesquisar contratos..."
-                class="pl-9 h-9 w-64 rounded-md border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-            />
-          </div>
         </div>
       </header>
 

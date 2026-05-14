@@ -7,6 +7,7 @@ load_dotenv(".env")
 HOST = os.getenv('REDIS_HOST')
 PORT = os.getenv('REDIS_PORT')
 PASSWORD = os.getenv('REDIS_PASSWORD')
+CHANNEL = os.getenv('REDIS_CHANNEL')
 
 
 def main():
@@ -16,5 +17,5 @@ def main():
         "message": "Fim ETL"
     }
     # Publish a message to a channel
-    subscribers = r.publish('ETL', json.dumps(payload))
+    subscribers = r.publish(CHANNEL, json.dumps(payload))
     print(f"Message delivered to {subscribers} subscribers")

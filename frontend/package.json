@@ -25,6 +25,7 @@
     "tailwindcss": "^4.2.4",
     "vue": "^3.5.32",
     "vue-router": "^4.6.4",
+    "vue-sonner": "^1.0.4",
     "ws": "^8.20.1"
   },
   "devDependencies": {

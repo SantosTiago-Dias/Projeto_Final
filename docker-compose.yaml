@@ -43,6 +43,7 @@ services:
       - "80:80"
     depends_on:
       - api
+      - ws
   api:
     container_name: api
     build:
@@ -83,6 +84,12 @@ services:
     build:
       context: websocket
       dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
 
 
   redis:

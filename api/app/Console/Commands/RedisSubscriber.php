@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Events\NewDataAvailable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -14,28 +13,22 @@ use Illuminate\Support\Facades\Redis;
 
 class RedisSubscriber extends Command
 {
+
     /**
      * Execute the console command.
      */
     public function handle(): void
     {
-        $channel = $this->argument('channel');
+        $channel = env('REDIS_CHANNEL', 'ETL');
         $this->info("Subscribing to channel: {$channel}");
 
         Redis::subscribe([$channel], function (string $message, string $channel) {
             $data = json_decode($message, true);
-            $this->line($data);
-            if (isset($data['status']) && $data['status'] === 'end') {
-                // handle success
-                $this->line("ETL finished! Message: " . $data['message']);
 
+            if (isset($data['status']) && $data['status'] === 'end') {
+                $this->line("ETL finished! Message: " . $data['message']);
                 Cache::flush();
                 $this->line("Send broadcast");
-
-                broadcast(new NewDataAvailable([
-                    'message' => 'New data is ready',
-                    'timestamp' => now()->toISOString(),
-                ]))->toOthers();
             }
         });
     }
