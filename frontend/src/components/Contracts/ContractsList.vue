@@ -1,4 +1,5 @@
 <template>
+
   <div class="container max-w-5xl mx-auto px-4 py-8">
 
     <div class="mb-8">
@@ -108,6 +109,7 @@
 
     <!-- Lista de Contratos -->
     <div v-if="loading" class="text-center py-10 text-gray-400">A carregar...</div>
+    <div v-else-if="contracts === undefined || contracts === null">Não existem contratos ainda</div>
 
     <div v-else class="flex flex-col gap-4">
       <div
@@ -295,11 +297,10 @@ const fetchContracts = async (page = 1) => {
 
     const response = await apiStore.getListContracts({ page: page, ...queryParams })
 
-    contracts.value = response.data.data.map(item => ({
+    contracts.value = response.data.data?.map(item => ({
       ...item,
       _isOpen: false
     }))
-
     meta.value = response.data.meta
   } catch (err) {
     console.error("Falha ao carregar dados:", err)

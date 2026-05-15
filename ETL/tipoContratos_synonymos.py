@@ -13,6 +13,7 @@ TABLE_LOGS = 't_logs_transformacao'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
+#Sedders
 KNOWN_CONTRACT_TYPES = {
     'Aquisição de bens móveis': 'Compra de produtos e materiais, desde computadores e papelaria até veículos ou maquinaria.',
     'Aquisição de serviços': 'Contratação de tarefas ou especialistas, como limpeza, segurança, consultoria ou manutenção de software.',
@@ -24,14 +25,14 @@ KNOWN_CONTRACT_TYPES = {
     'Outros': 'Contratos que, pela sua natureza muito específica ou rara, não encaixam nas categorias acima.',
 }
 
-
+#Prepare data for insertion in the database
 def prepare_data(artigo: str, explain: str):
     return {
         'tipo': artigo,
         'descricao': explain,
     }
 
-
+#Function to seed known contract types into the database and dictionary file
 def seed_contract_types(log_id: int):
     try:
         for contract_type, explanation in KNOWN_CONTRACT_TYPES.items():
@@ -44,6 +45,7 @@ def seed_contract_types(log_id: int):
         db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem=str(e))
 
 
+#Function to check for new contract types in the database and generate explanations for them using the LLM
 def new_types_contracts(log_id: int):
     contract_type_list = db.get_distinct_data('tipo_contrato', 'contratos_transf')
 
@@ -95,7 +97,7 @@ def new_types_contracts(log_id: int):
                     db.change_status(log_id, TABLE_LOGS, None, "ERRO", mensagem=str(e))
                     break
 
-
+#Main function to orchestrate the seeding and checking for new contract types
 def main():
     dictionary.verifiy_File_exists(CCP_FILE)
     log_id = db.change_status(None, TABLE_LOGS, TABLE_NAME, "INICIO")

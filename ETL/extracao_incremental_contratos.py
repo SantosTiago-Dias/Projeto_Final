@@ -27,7 +27,7 @@ PAGE_SIZE = 25
 MAX_PAGES = 1
 
 
-
+#Create session
 def criar_sessao():
     
     sessao = requests.Session()
@@ -41,7 +41,7 @@ def criar_sessao():
     sessao.mount("https://", adapter)
     return sessao
 
-#Lista de contratos
+#»List of contracts with pagination and retry mechanism
 def listar_contratos(sessao: requests.Session, pagina: int, retries: int = 5):
     
     payload = {
@@ -75,7 +75,7 @@ def listar_contratos(sessao: requests.Session, pagina: int, retries: int = 5):
         else:
             return None
 
-#Vai buscar os detalhes de cada contrato
+#Get details of each contract
 def extrair_detalhes(sessao: requests.Session, contrato_id: str):
     payload = {
         "type": "detail_contratos",
@@ -93,11 +93,12 @@ def extrair_detalhes(sessao: requests.Session, contrato_id: str):
         return data
 
     except requests.exceptions.RequestException as e:
-        print(f"Erro ao extrair detalhe do contrato {contrato_id}: {e}")
+        logger.error(f"Erro ao extrair detalhe do contrato {contrato_id}: {e}")
         return {}
 
 
-#Extrair entidades
+#Extract entities with id
+#Goes to extracao_incremental_entidades to extract more data about the entities
 def flatten_entidade(lista: list, prefixo: str, contrato_data: dict):
     if isinstance(lista, list) and lista:
         for entidade in lista:
@@ -111,7 +112,7 @@ def flatten_entidade(lista: list, prefixo: str, contrato_data: dict):
         contrato_data[f"{prefixo}Description"] = None
         contrato_data[f"{prefixo}Id"] = None
 
-#Extrair os links 
+#Extract links of documents related to the contract
 def extrair_links_documentos(detalhes: dict) -> str:
 
     if detalhes is not None:
@@ -130,7 +131,7 @@ def extrair_links_documentos(detalhes: dict) -> str:
     else:
         return None
 
-#guardar os dados do contrato
+#Save data in a list of dictionaries to be inserted in the database
 def processar_contrato(sessao: requests.Session, contrato: dict):
     contrato_data = contrato.copy()
     contrato_id = contrato["id"]
@@ -139,7 +140,7 @@ def processar_contrato(sessao: requests.Session, contrato: dict):
     if isinstance(detalhes, dict):
         contrato_data.update(detalhes)
 
-    #Caso não seja possivel extrair dados
+    #If cant extract details, fill the fields with None
     if detalhes is not None:
         flatten_entidade(detalhes.get("contracting"), "contracting", contrato_data)
         flatten_entidade(detalhes.get("contracted"), "contracted", contrato_data)
@@ -149,6 +150,7 @@ def processar_contrato(sessao: requests.Session, contrato: dict):
 
     return contrato_data
 
+#Prepare data to be inserted in the database, selecting only the relevant fields and renaming them
 def prepare_data(contrato:dict):
     contrato_data = {
         'id_contrato': contrato.get('id'),
@@ -183,6 +185,7 @@ def prepare_data(contrato:dict):
     }
     return contrato_data
 
+#Main function to extract contracts
 def extracion_contracts(sessao:requests.session):
     contratos = []
     pagina = 0
@@ -238,7 +241,7 @@ def extracion_contracts(sessao:requests.session):
         logger.exception(f"Não foi possível extrair os dados: {e}")
         db.change_status(None,TABLE_LOGS, None, "ERRO", mensagem=str(e))
         
-
+#Main function to be called in main.py
 def main():
     sessao = criar_sessao()
     
@@ -246,6 +249,7 @@ def main():
     num_contratos = extracion_contracts(sessao)
     average_contratos = db.get_average_contracts_extracted()
 
+    #check if the number of contracts extracted is less than the average, if so, repeat the extraction process
     if average_contratos is not None:
         if float(num_contratos) < float(average_contratos):
             logger.info(f"Número de contratos extraídos ({num_contratos}) é inferior à média histórica ({average_contratos}). Repetindo extração.")

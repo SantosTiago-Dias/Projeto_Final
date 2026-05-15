@@ -12,64 +12,101 @@ use App\Models\DimDetalhesContrato;
 use App\Models\TipoContrato;
 use App\Models\TipoProcedimento;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class ContractsController extends Controller
 {
     public function index(ContratoFilterRequest $request)
     {
-        try {
-            $request->validated();
-            $query = DimDetalhesContrato::with(['cpvs','fact_contrato.entidade','fact_contrato.tipo_contrato','fact_contrato.tipo_procedimento','fact_contrato.data','fact_contrato.concorrentes'])->where('chave_contratos','!=',1);
+        $request->validated();
 
-            //TODO:FILTROS
-            $contratos = ContratoFilter::apply($query, $request->validated())->paginate(25);
+        $cacheKey = 'contracts:list';
 
-            return ListContractsResource::collection($contratos);
+        //Load all data to Cache
+        $contratos = Cache::rememberForever($cacheKey, function () {
+            return DimDetalhesContrato::where('chave_contratos', '!=', 1)
+                ->pluck('chave_contratos')
+                ->toArray();
+        });
 
-        } catch (\Throwable $e) {
-            abort(500, 'Error'. $e->getMessage());
-        }
+        // Rebuild query from cached IDs so filters
+        $query = DimDetalhesContrato::with([
+            'cpvs',
+            'fact_contrato.entidade',
+            'fact_contrato.tipo_contrato',
+            'fact_contrato.tipo_procedimento',
+            'fact_contrato.data',
+            'fact_contrato.concorrentes',
+        ])->whereIn('chave_contratos', $contratos);
+
+        $result = ContratoFilter::apply($query, $request->validated())->paginate(25);
+
+        return ListContractsResource::collection($result);
     }
 
     public function show($id)
     {
-
-        try
+        if ($id == 1)
         {
-            if ($id == -1)
-            {
-                abort(404);
-            }
+            abort(404,'Contrato não encontrado');
+        }
 
+        $cacheKey = 'contract:show:' . $id;
+
+        if (Cache::has($cacheKey))
+        {
+            return response()->json(Cache::get($cacheKey));
+        }
+        else
+        {
             $contrato = DimDetalhesContrato::with([
                 'fact_contrato.entidade',
                 'fact_contrato.tipo_contrato',
                 'fact_contrato.tipo_procedimento',
                 'fact_contrato.data',
                 'fact_contrato.concorrentes',
-                'cpvs'])->where('chave_contratos', $id)
-                ->first();
+                'cpvs',
+            ])->find($id);
 
-            if (!$contrato) {
-                abort(404);
+            if (is_null($contrato))
+            {
+                abort(404, 'Not Found');
             }
 
-            return new DetailsContractResource($contrato);
-        } catch (\Throwable $e) {
-            abort(500, 'Error'. $e->getMessage());
-        }
+            $data = new DetailsContractResource($contrato);
 
+
+            Cache::put($cacheKey, json_decode($data->toJson(),true), now()->addHours(1));
+
+            return response()->json($data);
+        }
     }
 
     public function getFilters(): JsonResponse
     {
+        $tipoContratoCacheKey    = 'tipo_contrato:list';
+        $tipoProcedimentoCacheKey = 'tipo_procedimento:list';
+
+        // Cache only IDs
+        $tipoContratoIds = Cache::rememberForever($tipoContratoCacheKey, function () {
+            return TipoContrato::where('id_tipo_contrato', '!=', 1)
+                ->pluck('id_tipo_contrato')
+                ->toArray();
+        });
+
+        $tipoProcedimentoIds = Cache::rememberForever($tipoProcedimentoCacheKey, function () {
+            return TipoProcedimento::where('id_tipo_procedimento', '!=', 1)
+                ->pluck('id_tipo_procedimento')
+                ->toArray();
+        });
+
+        // Rebuild collections from IDs
+        $tipoContrato     = TipoContrato::whereIn('id_tipo_contrato', $tipoContratoIds)->get();
+        $tipoProcedimento = TipoProcedimento::whereIn('id_tipo_procedimento', $tipoProcedimentoIds)->get();
+
         return response()->json([
-            'TipoContrato' => TipoContratoResource::collection(
-                TipoContrato::where('id_tipo_contrato', '!=', 1)->get()
-            ),
-            'TipoProcedimento' => TipoProcedimentoResource::collection(
-                TipoProcedimento::where('id_tipo_procedimento', '!=', 1)->get()
-            ),
+            'TipoContrato'     => TipoContratoResource::collection($tipoContrato),
+            'TipoProcedimento' => TipoProcedimentoResource::collection($tipoProcedimento),
         ]);
     }
 }

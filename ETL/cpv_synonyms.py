@@ -13,6 +13,7 @@ TABLE_LOGS = 't_logs_transformacao'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
+#Prepare data for insertion in the database
 def prepare_data(cpv:int, cpv_description: str,description:str):
     data={
         'codigo':cpv,
@@ -21,6 +22,7 @@ def prepare_data(cpv:int, cpv_description: str,description:str):
     }
     return data
  
+#Main function to extract cpv synonyms and insert in the database
 def main():
     dictionary.verifiy_File_exists(CACHE_FILE)
     cpv_list_distinc=db.get_distinct_data('cpv,cpv_descricao','cpv_contratos_transf')

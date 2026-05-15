@@ -8,7 +8,7 @@
 
     <!-- Loading State -->
     <p v-if="loading" class="text-gray-400 text-sm italic">A carregar entidades...</p>
-
+    <div v-else-if="entities === undefined || entities === null">Não existem entidades ainda</div>
     <!-- Entity Grid -->
     <div v-else class="flex flex-col gap-3">
       <div

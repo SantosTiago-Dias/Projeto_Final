@@ -231,6 +231,20 @@
       <path value="$PROJECT_DIR$/api/vendor/symfony/polyfill-php85" />
       <path value="$PROJECT_DIR$/api/vendor/symfony/routing" />
       <path value="$PROJECT_DIR$/api/vendor/symfony/process" />
+      <path value="$PROJECT_DIR$/api/vendor/pusher/pusher-php-server" />
+      <path value="$PROJECT_DIR$/api/vendor/paragonie/sodium_compat" />
+      <path value="$PROJECT_DIR$/api/vendor/laravel/reverb" />
+      <path value="$PROJECT_DIR$/api/vendor/clue/redis-protocol" />
+      <path value="$PROJECT_DIR$/api/vendor/clue/redis-react" />
+      <path value="$PROJECT_DIR$/api/vendor/evenement/evenement" />
+      <path value="$PROJECT_DIR$/api/vendor/ratchet/rfc6455" />
+      <path value="$PROJECT_DIR$/api/vendor/react/cache" />
+      <path value="$PROJECT_DIR$/api/vendor/react/dns" />
+      <path value="$PROJECT_DIR$/api/vendor/react/event-loop" />
+      <path value="$PROJECT_DIR$/api/vendor/react/promise" />
+      <path value="$PROJECT_DIR$/api/vendor/react/promise-timer" />
+      <path value="$PROJECT_DIR$/api/vendor/react/socket" />
+      <path value="$PROJECT_DIR$/api/vendor/react/stream" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.3">

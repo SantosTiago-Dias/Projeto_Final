@@ -12,6 +12,7 @@ TABLE_NAME = "tipo_procedimento_dictionary"
 TABLE_LOGS = 't_logs_transformacao'
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
+#Sedders
 KNOWN_PROCEDURE_TYPES = {
     'Consulta Prévia': 'A entidade convida pelo menos 3 empresas para apresentarem propostas e escolhe a melhor.',
     'Ajuste Direto Regime Geral': 'A entidade escolhe uma empresa específica e negoceia diretamente com ela.',
@@ -36,6 +37,8 @@ KNOWN_PROCEDURE_TYPES = {
     'Setores especiais – isenção parte II': 'Regras aplicadas a empresas de água, luz ou transportes que têm mais liberdade para contratar do que os ministérios.',
     'Contratação excluída II': 'Contratos que não precisam de seguir as regras normais do Estado (ex: segredos militares ou acordos entre câmaras municipais).'
 }
+
+#Prepare data for insertion in the database
 def prepare_data(artigo:int,explain:str):
     data={
         'tipo':artigo,
@@ -43,6 +46,7 @@ def prepare_data(artigo:int,explain:str):
     }
     return data
 
+#Seed known procedure types and their explanations into the dictionary and database
 def seed_procedures_types(log_id:int):
     try:
         for proc_type, explanation in KNOWN_PROCEDURE_TYPES.items():
@@ -54,6 +58,7 @@ def seed_procedures_types(log_id:int):
         logger.error(f"ERROR: {e}")
         db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
 
+#Function to check for new procedure types in the database and get explanations for them using the LLM
 def new_types_procedures(log_id:int):
     procedureType_list_distinc=db.get_distinct_data('tipo_procedimento','contratos_transf')
     for proceduteType in procedureType_list_distinc:
@@ -104,6 +109,7 @@ def new_types_procedures(log_id:int):
                     db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
                     break
 
+#Main function to orchestrate the seeding of known procedure types and the discovery of new ones
 def main():
     dictionary.verifiy_File_exists(CCP_FILE)
     log_id = db.change_status(None, TABLE_LOGS, TABLE_NAME, "INICIO")

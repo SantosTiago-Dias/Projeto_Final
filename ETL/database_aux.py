@@ -16,7 +16,7 @@ PROCEDURES = os.path.join(BASE_DIR, 'procedures.sql')
 URL_NOMI = "https://nominatim.openstreetmap.org/search"
 URL_NASA = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
 
-#Função para obter a connecção com a base de dados
+#Function to get a connection to the database using environment variables
 def get_connection():
     try:
         return mysql.connector.connect(
@@ -41,7 +41,7 @@ def verify_database_exists():
         mycursor.execute("SHOW TABLES")
         mycursor.fetchall()
 
-        #To generate the tables from init.sql (if they don't exist)
+        #Generate tables from init.sql (if they don't exist)
         with open(INIT, 'r', encoding='utf-8') as f:
             sql = f.read()
             for statement in sql.split(';'):
@@ -49,7 +49,7 @@ def verify_database_exists():
                 if statement:
                     mycursor.execute(statement)
         
-        #To generate the procedures from procedures.sql (if they don't exist)
+        #Generate the procedures from procedures.sql (if they don't exist)
         with open(PROCEDURES, 'r', encoding='utf-8') as f:
             sql_content = f.read()
             
@@ -80,7 +80,7 @@ def verify_database_exists():
         mycursor.close()
         mydb.close()
    
-#Função para executar as procedures de transformação
+#Function to execute the transformation procedures and lookup normalization
 def execute_transformacao():
     
     mydb = get_connection()
@@ -97,71 +97,54 @@ def execute_transformacao():
 
         for proc in procedures:
             logger.info(f"A executar: {proc}")
-
-            log_id = change_status(None,'t_logs_transformacao',proc,"INICIO")
-
+            log_id = change_status(None, 't_logs_transformacao', proc, "INICIO")
             cur = mydb.cursor()
             try:
                 cur.callproc(proc)
-
-                # Drena todos os result sets
                 for result in cur.stored_results():
                     try:
                         result.fetchall()
                     except Exception:
                         pass
-
                 while cur.nextset():
                     pass
-
                 mydb.commit()
                 change_status(log_id, 't_logs_transformacao', None, "SUCESSO")
                 logger.success(f"Concluído: {proc}")
-
             except mysql.connector.Error as e:
                 logger.error(f"Erro em {proc}: {e}")
                 change_status(log_id, 't_logs_transformacao', None, "ERRO", mensagem=str(e))
-            
-
             finally:
                 cur.close()
 
-        # BLOCO SEPARADO PARA NORMALIZAÇÃO (com parâmetros)
-        logger.info("A executar: normalizar_lookup")
-
+        # --- Normalização ---
         normalizacoes = [
             ('detalhes_contratos_transf', 'descricao'),
             ('detalhes_contratos_transf', 'objeto'),
             ('entidade_transf', 'nome')
-            # ('DB_CP.outra_tabela', 'outra_coluna')
+            # ('outra_tabela', 'outra_coluna')
         ]
 
         for tabela, coluna in normalizacoes:
-            proc_name = f"normalizar_lookup({tabela}.{coluna})"
-            log_id = change_status(None,'t_logs_transformacao',proc_name,"INICIO")
-
+            label = f"normalizar_lookup({tabela}.{coluna})"
+            logger.info(f"A executar: {label}")
+            log_id = change_status(None, 't_logs_transformacao', label, "INICIO")
             cur = mydb.cursor()
             try:
                 cur.callproc('normalizar_lookup', [tabela, coluna])
-
                 for result in cur.stored_results():
                     try:
                         result.fetchall()
                     except Exception:
-                        change_status(None,'t_logs_transformacao',proc_name,"ERRO")
-                        logger.error(f"Erro: normalização - {e}")
-
+                        pass
                 while cur.nextset():
                     pass
-
                 mydb.commit()
                 change_status(log_id, 't_logs_transformacao', None, "SUCESSO")
                 logger.success(f"Normalizado: {tabela}.{coluna}")
-
             except mysql.connector.Error as e:
                 logger.error(f"Erro na normalização {tabela}.{coluna}: {e}")
                 change_status(log_id, 't_logs_transformacao', None, "ERRO", mensagem=str(e))
-
             finally:
                 cur.close()
 
@@ -172,7 +155,7 @@ def execute_transformacao():
     finally:
         mydb.close()
 
-#Função para executar as procedures de load
+#Function to execute the load procedures
 def execute_load():
     mydb = get_connection()
     if not mydb:
@@ -189,12 +172,12 @@ def execute_load():
         for proc in procedures:
             logger.info(f"A executar: {proc}")
             log_id = change_status(None,'t_logs_carregamento',proc,"INICIO")
-            # Cursor fresco por procedure — sem estado partilhado
+            # New cursor for each procedure to avoid issues with multiple result sets
             cur = mydb.cursor()
             try:
                 cur.callproc(proc)
 
-                # Drena todos os result sets
+                # Extract and discard all result sets to ensure the connection is ready for the next procedure
                 for result in cur.stored_results():
                     try:
                         result.fetchall()
@@ -223,12 +206,12 @@ def execute_load():
     finally:
         mydb.close()
 
-#Função para obter as colunas de uma tabela
+#Function to get the columns of a table
 def get_table_columns(cursor, table_name: str) -> list:
     cursor.execute(f"SHOW COLUMNS FROM {table_name}")
     return [row[0] for row in cursor.fetchall()]
 
-#Função para inserir dados em batch
+#Function to insert data in batches
 def insert_data_table(table_name: str, values: list, batch_size: int = 2000):
     if not values:
         logger.warning(f"Nenhuns dados para inserir na tabela {table_name}")
@@ -237,13 +220,11 @@ def insert_data_table(table_name: str, values: list, batch_size: int = 2000):
     mydb = get_connection()
     mycursor = mydb.cursor()
 
-    #Vai buscar as colunas da tabela
+    #Get the columns of table
     table_columns = get_table_columns(mycursor, table_name)
     columns = [col for col in values[0].keys() if col in table_columns]
-    placeholders = ", ".join(["%s"] * len(columns))
-    cols_str = ", ".join(columns)
 
-    #HACK: Para prevenir contratos duplicados, usamos INSERT IGNORE.
+    #HACK: ON DUPLICATE KEY INGORES HIM
     sql = f"""INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))}) ON DUPLICATE KEY UPDATE {', '.join([f"{col} = VALUES({col})" for col in columns])}"""
 
     try:
@@ -259,13 +240,13 @@ def insert_data_table(table_name: str, values: list, batch_size: int = 2000):
         mycursor.close()
         mydb.close()
 
-#Para verificar se o valor é nulo ou não
+#Function to verify if value is NaN and return None if it is
 def sanitize(value):
     if isinstance(value, float) and math.isnan(value):
         return None
     return value
 
-#Media de contratos extraidos por dia
+#Function to get the average of contracts extracted per day
 def get_average_contracts_extracted()->float|None:
     mydb=get_connection()
     mycursor = mydb.cursor()
@@ -283,7 +264,7 @@ def get_average_contracts_extracted()->float|None:
         logger.error(f"Erro ao obter média de contratos extraídos: {e}")
         return None
 
-#Selecionar os novos campos na base de dados
+#Function to select distinct values from a column in the database
 def get_distinct_data(nome_campo: str, table_name: str):
     
     mydb = get_connection()
@@ -300,7 +281,7 @@ def get_distinct_data(nome_campo: str, table_name: str):
     # Multiple columns: return list of tuples
     return rows
 
-#Mudar status dos logs
+#Function responsable for status management in the logs tables (t_logs_extract,t_logs_transformacao and t_logs_carregamento)
 def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status: str, mensagem: str = None) -> int | None:
     mydb = get_connection()
     mycursor = mydb.cursor()
@@ -332,7 +313,7 @@ def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status
     mydb.close()
     return None
 
-#Função para ir buscar a media de contratos extraidos
+#Function to get the average of contracts extracted per day and insert it in the database
 def average_extrated_contracts(num_contratos: int):
     mydb = get_connection()
     mycursor = mydb.cursor()
@@ -369,7 +350,7 @@ def average_extrated_contracts(num_contratos: int):
         mycursor.close()
         mydb.close()
 
-#Função responsavel por gerar a dimensãpo data e populacionar
+#Function responsable for generating the data dimension and populating it
 def ensure_dim_data():
     mydb=get_connection()
     start_date = '2026-01-01'
@@ -426,7 +407,7 @@ def ensure_dim_data():
         if mydb:
             mydb.close()
 
-#Função responsavel por carregar os eventos naturais na dim_data
+#Function responsable for loading natural events into dim_data
 def load_eventos_naturais():
     mydb = get_connection()
     if not mydb:
@@ -483,14 +464,14 @@ def load_eventos_naturais():
 
     except Exception as e:
         logger.error(f"Erro: carregar eventos naturais - {e}")
-        change_status(None,'t_logs_carregamento',proc_name,"ERRO")
+        change_status(None,'t_logs_carregamento','eventos_naturais',"ERRO", mensagem=str(e))
 
 
     finally:
         cursor.close()
         mydb.close()
 
-
+#Get distrito from Nominatim API using the query (name of the entity or country)
 def get_distrito_from_nominatim(query: str) -> str | None:
     try:
         params = {
@@ -519,12 +500,12 @@ def get_distrito_from_nominatim(query: str) -> str | None:
 
     except Exception as e:
         logger.error(f"Erro: Nominatim - {e}")
-        change_status(None,'t_logs_transformacao',proc_name,"ERRO")
+        change_status(None,'t_logs_transformacao','get_distrito_from_nominatim',"ERRO", mensagem=str(e))
 
         return None
 
 
-
+#Function to populate the distrito column in entidade_transf using Nominatim API and fallback to parsing the country field
 def enrich_entidades_transf():
     mydb = get_connection()
     if not mydb:
@@ -546,7 +527,7 @@ def enrich_entidades_transf():
 
         for ent in entidades:
 
-            # já preenchido → ignora
+            # have data → ignores
             if ent["distrito"] and ent["distrito"]!='N/A':
                 continue
 
@@ -555,12 +536,12 @@ def enrich_entidades_transf():
 
             distrito = None
 
-            # tentar pelo nome
+            # try for name
             if nome:
                 distrito = get_distrito_from_nominatim(nome)
 
 
-            # fallback: segundo parâmetro da morada
+            # fallback: second try for country
             if not distrito and morada:
                 partes = [p.strip() for p in morada.split(",")]
 
@@ -582,7 +563,7 @@ def enrich_entidades_transf():
             cursor.execute(update_sql, (distrito, ent["id_entidade"]))
             updates += 1
 
-            # evitar bloqueio da API
+            # HACK: for nom problems with too many requests in short time
             time.sleep(1)
 
         mydb.commit()
@@ -590,7 +571,7 @@ def enrich_entidades_transf():
 
     except Exception as e:
         logger.error(f"Erro: enrich entidades_transf - {e}")
-        change_status(None,'t_logs_transformacao',proc_name,"ERRO")
+        change_status(None,'t_logs_transformacao','enrich_entidades_transf',"ERRO", mensagem=str(e))
 
     finally:
         cursor.close()

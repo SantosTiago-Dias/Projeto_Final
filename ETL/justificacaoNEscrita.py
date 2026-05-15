@@ -13,6 +13,7 @@ TABLE_LOGS = 't_logs_transformacao'
 
 client = Cerebras(api_key=os.getenv('API_KEY'))
 
+#Prepare data for insertion in the database
 def prepare_data(artigo:int,explain:str):
     data={
         'justificacao':artigo,
@@ -20,6 +21,7 @@ def prepare_data(artigo:int,explain:str):
     }
     return data
 
+#Main function to populate the justificação não escrita dictionary
 def main():
     dictionary.verifiy_File_exists(DICTIONARY_FILE)
     justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_transf')
