@@ -108,5 +108,6 @@ services:
     depends_on:
       - redis
     restart: always
+    
 volumes:
   db_data:

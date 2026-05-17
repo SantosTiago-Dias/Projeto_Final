@@ -296,11 +296,12 @@ const fetchContracts = async (page = 1) => {
     )
 
     const response = await apiStore.getListContracts({ page: page, ...queryParams })
-
+    console.log(response)
     contracts.value = response.data.data?.map(item => ({
       ...item,
       _isOpen: false
     }))
+    console.log(contracts.value)
     meta.value = response.data.meta
   } catch (err) {
     console.error("Falha ao carregar dados:", err)

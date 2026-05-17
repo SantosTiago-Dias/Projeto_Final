@@ -281,6 +281,24 @@ def get_distinct_data(nome_campo: str, table_name: str):
     # Multiple columns: return list of tuples
     return rows
 
+def getEntitynotFound():
+    mydb = get_connection()
+    mycursor = mydb.cursor()
+
+    #Returns all ids from dim_entidade where nome is 'Não disponivel'
+    query = f"SELECT id_entidade from dim_entidade where nome like 'Não disponivel';"
+    mycursor.execute(query)
+    rows = mycursor.fetchall()
+    return [row[0] for row in rows]
+
+def updateEntity(updated_data:str ,entity_id:int)->None:
+    mydb = get_connection()
+    mycursor = mydb.cursor()
+
+    query = f"UPDATE dim_entidade set "+updated_data +" where id_entidade = %s"
+    mycursor.execute(query, (entity_id,))
+    mydb.commit()
+
 #Function responsable for status management in the logs tables (t_logs_extract,t_logs_transformacao and t_logs_carregamento)
 def change_status(id: int | None,table_logs:str, nome_objeto: str | None, status: str, mensagem: str = None) -> int | None:
     mydb = get_connection()

@@ -223,9 +223,10 @@ const openModal = async (entity) => {
   loadingDetails.value = true
   try {
     const [resEntityDetails, resEntityContracts] = await Promise.all([
-      apiStore.getDetailEntity(entity.id_entidade),
-      apiStore.getListContractofEntity(entity.id_entidade)
+      apiStore.getDetailEntity(entity.chave_entidade),
+      apiStore.getListContractofEntity(entity.chave_entidade)
     ])
+
     entityDetails.value = resEntityDetails.data
     entityContracts.value = resEntityContracts.data.data
   } catch (err) {
@@ -241,8 +242,8 @@ const closeModal = () => {
   entityContracts.value = []
 }
 
-const goToContract = (id) => {
-  router.push(`/contracts/${id}`)
+const goToContract = (chave_contrato) => {
+  router.push(`/contracts/${chave_contrato}`)
 }
 
 // Helpers

@@ -3,6 +3,7 @@ import database_aux as db
 from loguru import logger
 import extracao_incremental_contratos
 import sys
+import Entity_retries
 import Notify_laravel
 
 #População de dados
@@ -71,7 +72,8 @@ def main():
     #endregion
     """
 
-    Notify_laravel.main()
+    Entity_retries.main()
+    #Notify_laravel.main()
 
 if __name__ == "__main__":
     main()

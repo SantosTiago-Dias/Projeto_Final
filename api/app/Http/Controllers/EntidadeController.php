@@ -68,22 +68,21 @@ class EntidadeController extends Controller
         $entidadeCacheKey = 'entidade:show:' . $id;
 
         $entidadeData = Cache::rememberForever($entidadeCacheKey, function () use ($id) {
-            return DimEntidade::where('id_entidade', $id)
+            return DimEntidade::where('chave_entidade', $id)
                 ->first()
-                ?->toArray(); // ✅ plain array
+                ?->toArray();
         });
 
         if (!$entidadeData) {
             abort(404, 'Entidade não encontrada');
         }
 
-        // ✅ Use array key instead of model property
         $contractIdsCacheKey = 'entidade:contratos:ids:' . $id;
 
         $cachedIds = Cache::rememberForever($contractIdsCacheKey, function () use ($entidadeData) {
             return DimDetalhesContrato::whereHas('fact_contrato', function ($query) use ($entidadeData) {
-                $query->where('adjudicante', $entidadeData['chave_entidade'])  // ✅ array access
-                ->orWhere('chave_entidade', $entidadeData['chave_entidade']); // ✅ array access
+                $query->where('adjudicante', $entidadeData['chave_entidade'])
+                ->orWhere('chave_entidade', $entidadeData['chave_entidade']);
             })
                 ->pluck('chave_contratos')
                 ->toArray();
