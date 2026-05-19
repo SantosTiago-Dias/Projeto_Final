@@ -12,6 +12,8 @@ import time
 load_dotenv('.env')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INIT = os.path.join(BASE_DIR, 'init.sql')
+VIEWS = os.path.join(BASE_DIR, 'views.sql')
+
 PROCEDURES = os.path.join(BASE_DIR, 'procedures.sql')
 URL_NOMI = "https://nominatim.openstreetmap.org/search"
 URL_NASA = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
@@ -43,6 +45,15 @@ def verify_database_exists():
 
         #To generate the tables from init.sql (if they don't exist)
         with open(INIT, 'r', encoding='utf-8') as f:
+            sql = f.read()
+            for statement in sql.split(';'):
+                statement = statement.strip()
+                if statement:
+                    mycursor.execute(statement)
+
+
+        #To generate the views from views.sql (if they don't exist)
+        with open(VIEWS, 'r', encoding='utf-8') as f:
             sql = f.read()
             for statement in sql.split(';'):
                 statement = statement.strip()

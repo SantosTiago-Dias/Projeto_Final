@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {FileText, Building2, Search} from "lucide-vue-next"
+import {FileText, Building2, Search, FolderKanban} from "lucide-vue-next"
 import {RouterLink, RouterView, useRouter} from "vue-router"
 import { ref } from "vue"
 
@@ -46,6 +46,14 @@ const searchContracts = () => {
         >
           <Building2 :size="20" class="text-slate-400 group-hover:text-slate-900" />
           Entidades
+        </router-link>
+        <router-link
+            to="/analyses"
+            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 group"
+            active-class="bg-blue-50 text-blue-700 font-semibold"
+        >
+          <FolderKanban :size="20" class="text-slate-400 group-hover:text-slate-900" />
+          Analises
         </router-link>
       </nav>
     </aside>
