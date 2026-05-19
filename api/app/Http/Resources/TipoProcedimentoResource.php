@@ -15,7 +15,7 @@ class TipoProcedimentoResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id_tipo_procedimento,
+            'id' => $this->chave_tipo_procedimento,
             'tipo' => $this->tipo,
             'descricao' => $this->descricao
         ];

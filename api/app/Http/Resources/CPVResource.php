@@ -15,11 +15,10 @@ class CPVResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id_cpv'=> $this->cpv->id_cpv,
-            'codigo' => $this->cpv->codigo,
-            'cpv_descricao' => $this->cpv->cpv_descricao,
-            'descricao' => $this->cpv->descricao,
-
+            'chave_cpv' => $this->chave_cpv,
+            'codigo' => $this->cpv?->codigo,
+            'cpv_descricao' => $this->cpv?->cpv_descricao,
+            'descricao' => $this->cpv?->descricao,
         ];
     }
 }

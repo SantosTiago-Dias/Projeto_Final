@@ -776,7 +776,7 @@ SELECT DISTINCT justificacao, descricao FROM justificacao_contrato_nao_escrito_d
 WHERE justificacao NOT IN (SELECT justificacao FROM justificacao_contrato_nao_escrito_dim);
 
     -- CPV
-INSERT IGNORE INTO cpv_dictionary (codigo, descricao)
+INSERT IGNORE INTO cpv_dim (codigo, descricao)
 SELECT DISTINCT codigo, descricao FROM cpv_dictionary
-WHERE codigo NOT IN (SELECT codigo FROM cpv_dictionary);
+WHERE codigo NOT IN (SELECT codigo FROM cpv_dim);
 END$$

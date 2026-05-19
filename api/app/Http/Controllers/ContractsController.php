@@ -65,10 +65,10 @@ class ContractsController extends Controller
     {
         return response()->json([
             'TipoContrato' => TipoContratoResource::collection(
-                TipoContrato::where('id_tipo_contrato', '!=', 1)->get()
+                TipoContrato::where('chave_tipo_contrato', '!=', 1)->get()
             ),
             'TipoProcedimento' => TipoProcedimentoResource::collection(
-                TipoProcedimento::where('id_tipo_procedimento', '!=', 1)->get()
+                TipoProcedimento::where('chave_tipo_procedimento', '!=', 1)->get()
             ),
         ]);
     }
