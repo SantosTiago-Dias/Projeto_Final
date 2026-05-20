@@ -24,8 +24,6 @@ Route::prefix('analytics')->group(function () {
     Route::get('/smallest-contracts', [AnalyticsController::class, 'smallestContracts']);
     Route::get('/entitiesCompeteMoreEarnLess', [AnalyticsController::class, 'entitiesCompeteMoreEarnLess']);
     Route::get('/entitiesMoreContractsAsContracting', [AnalyticsController::class, 'entitiesMoreContractsAsContracting']);
-
-
-
+    Route::get('/search-cpv', [AnalyticsController::class, 'searchCPV']);
 
 });

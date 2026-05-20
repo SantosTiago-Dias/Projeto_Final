@@ -30,7 +30,34 @@ const smallestContracts = ref([])
 const entitiesCompeteMoreEarnLess = ref([])
 const entitiesMoreContractsAsContracting = ref([])
 
+const cpvQuery = ref("")
+const cpvLoading = ref(false)
+
+const cpvResult = ref({
+  quantidade_contratos: 0,
+  valor_total: 0,
+})
+
 const loading = ref(true)
+
+async function searchCPV() {
+  if (!cpvQuery.value.trim()) return
+
+  try {
+    cpvLoading.value = true
+
+    const response = await apiStore.searchCPV(cpvQuery.value)
+
+    cpvResult.value = response.data ?? {
+      quantidade_contratos: 0,
+      valor_total: 0,
+    }
+  } catch (error) {
+    console.error(error)
+  } finally {
+    cpvLoading.value = false
+  }
+}
 
 function goToEntity(id) {
   router.push(`/entidades/${id}`)
@@ -89,231 +116,307 @@ onMounted(async () => {
 
     <div
         v-else
-        class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0"
+        class="space-y-6"
     >
-      <!-- Maiores Contratos -->
-      <Card class="min-w-0 overflow-hidden">
-        <CardHeader>
-          <CardTitle>Maiores Contratos</CardTitle>
 
-          <CardDescription>
-            Contratos com maior valor contratual
-          </CardDescription>
-        </CardHeader>
-
-        <Separator />
-
-        <CardContent class="pt-6 overflow-hidden">
-          <Table class="w-full table-fixed">
-            <TableHeader>
-              <TableRow>
-                <TableHead class="w-[70%]">
-                  Objeto
-                </TableHead>
-
-                <TableHead class="w-[30%] text-right">
-                  Valor
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              <TableRow
-                  v-for="c in biggestContracts"
-                  :key="c.chave_contratos"
-              >
-                <TableCell class="overflow-hidden">
-                  <button
-                      :title="c.objeto"
-                      class="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-primary hover:underline font-medium cursor-pointer"
-                      @click="goToContract(c.chave_contratos)"
-                  >
-                    {{ c.objeto }}
-                  </button>
-                </TableCell>
-
-                <TableCell
-                    class="text-right font-semibold text-green-600 whitespace-nowrap"
-                >
-                  {{ formatCurrency(c.valor_contratual) }}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <!-- Menores Contratos -->
-      <Card class="min-w-0 overflow-hidden">
-        <CardHeader>
-          <CardTitle>Menores Contratos</CardTitle>
-
-          <CardDescription>
-            Contratos com menor valor contratual
-          </CardDescription>
-        </CardHeader>
-
-        <Separator />
-
-        <CardContent class="pt-6 overflow-hidden">
-          <Table class="w-full table-fixed">
-            <TableHeader>
-              <TableRow>
-                <TableHead class="w-[70%]">
-                  Objeto
-                </TableHead>
-
-                <TableHead class="w-[30%] text-right">
-                  Valor
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              <TableRow
-                  v-for="c in smallestContracts"
-                  :key="c.chave_contratos"
-              >
-                <TableCell class="overflow-hidden">
-                  <button
-                      :title="c.objeto"
-                      class="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-primary hover:underline font-medium cursor-pointer"
-                      @click="goToContract(c.chave_contratos)"
-                  >
-                    {{ c.objeto }}
-                  </button>
-                </TableCell>
-
-                <TableCell
-                    class="text-right text-red-500 font-semibold whitespace-nowrap"
-                >
-                  {{ formatCurrency(c.valor_contratual) }}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <!-- Competem Mais e Ganham Menos -->
-      <Card class="min-w-0 overflow-hidden">
+      <!-- PESQUISA CPV -->
+      <Card>
         <CardHeader>
           <CardTitle>
-            Entidades que Competem Mais e Ganham Menos
+            Pesquisa CPV
           </CardTitle>
 
           <CardDescription>
-            Entidades com menor taxa de vitória
+            Pesquisa por código, descrição ou palavras-chave
           </CardDescription>
         </CardHeader>
 
         <Separator />
 
-        <CardContent class="pt-6 overflow-hidden">
-          <Table class="w-full table-fixed">
-            <TableHeader>
-              <TableRow>
-                <TableHead class="w-[50%]">
-                  Entidade
-                </TableHead>
+        <CardContent class="pt-6">
+          <div class="flex flex-col md:flex-row gap-4">
+            <input
+                v-model="cpvQuery"
+                type="text"
+                placeholder="Ex: projeto, carros, software..."
+                class="flex-1 border rounded-md px-4 py-2 bg-background"
+                @keyup.enter="searchCPV"
+            >
 
-                <TableHead class="w-[25%] text-right">
-                  Concursos
-                </TableHead>
+            <button
+                class="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:opacity-90 transition"
+                @click="searchCPV"
+            >
+              Procurar
+            </button>
+          </div>
 
-                <TableHead class="w-[25%] text-right">
-                  Taxa Vitória
-                </TableHead>
-              </TableRow>
-            </TableHeader>
+          <div
+              v-if="cpvLoading"
+              class="mt-6 text-muted-foreground"
+          >
+            A procurar...
+          </div>
 
-            <TableBody>
-              <TableRow
-                  v-for="c in entitiesCompeteMoreEarnLess"
-                  :key="c.chave_entidade"
-              >
-                <TableCell class="overflow-hidden">
-                  <button
-                      :title="c.entidade"
-                      class="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-primary hover:underline font-medium cursor-pointer"
-                      @click="goToEntity(c.chave_entidade)"
-                  >
-                    {{ c.nome }}
-                  </button>
-                </TableCell>
+          <div
+              v-else
+              class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6"
+          >
+            <Card>
+              <CardContent class="pt-6">
+                <div class="text-sm text-muted-foreground">
+                  Quantidade de contratos
+                </div>
 
-                <TableCell class="text-right whitespace-nowrap">
-                  {{ c.total_concursos }}
-                </TableCell>
+                <div class="text-3xl font-bold mt-2">
+                  {{ cpvResult.quantidade_contratos ?? 0 }}
+                </div>
+              </CardContent>
+            </Card>
 
-                <TableCell class="text-right font-semibold whitespace-nowrap">
-                  {{ formatPercentage(c.taxa_vitoria) }}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+            <Card>
+              <CardContent class="pt-6">
+                <div class="text-sm text-muted-foreground">
+                  Valor total
+                </div>
+
+                <div class="text-3xl font-bold mt-2 text-green-600">
+                  {{ formatCurrency(cpvResult.valor_total) }}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </CardContent>
       </Card>
 
-      <!-- Mais Contratos -->
-      <Card class="min-w-0 overflow-hidden">
-        <CardHeader>
-          <CardTitle>
-            Entidades com Mais Contratos
-          </CardTitle>
+      <!-- GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
 
-          <CardDescription>
-            Ranking de entidades adjudicantes
-          </CardDescription>
-        </CardHeader>
+        <!-- Maiores Contratos -->
+        <Card class="min-w-0 overflow-hidden">
+          <CardHeader>
+            <CardTitle>Maiores Contratos</CardTitle>
 
-        <Separator />
+            <CardDescription>
+              Contratos com maior valor contratual
+            </CardDescription>
+          </CardHeader>
 
-        <CardContent class="pt-6 overflow-hidden">
-          <Table class="w-full table-fixed">
-            <TableHeader>
-              <TableRow>
-                <TableHead class="w-[45%]">
-                  Entidade
-                </TableHead>
+          <Separator />
 
-                <TableHead class="w-[20%] text-right">
-                  Nº Contratos
-                </TableHead>
+          <CardContent class="pt-6 overflow-hidden">
+            <Table class="w-full table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead class="w-[70%]">
+                    Objeto
+                  </TableHead>
 
-                <TableHead class="w-[35%] text-right">
-                  Valor adjudicado
-                </TableHead>
-              </TableRow>
-            </TableHeader>
+                  <TableHead class="w-[30%] text-right">
+                    Valor
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
 
-            <TableBody>
-              <TableRow
-                  v-for="c in entitiesMoreContractsAsContracting"
-                  :key="c.adjudicante"
-              >
-                <TableCell class="overflow-hidden">
-                  <button
-                      :title="c.adjudicante"
-                      class="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-primary hover:underline font-medium cursor-pointer"
-                      @click="goToEntity(c.adjudicante)"
+              <TableBody>
+                <TableRow
+                    v-for="c in biggestContracts"
+                    :key="c.chave_contratos"
+                >
+                  <TableCell class="overflow-hidden">
+                    <button
+                        :title="c.objeto"
+                        class="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-primary hover:underline font-medium cursor-pointer"
+                        @click="goToContract(c.chave_contratos)"
+                    >
+                      {{ c.objeto }}
+                    </button>
+                  </TableCell>
+
+                  <TableCell
+                      class="text-right font-semibold text-green-600 whitespace-nowrap"
                   >
-                    {{ c.nome }}
-                  </button>
-                </TableCell>
+                    {{ formatCurrency(c.valor_contratual) }}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
-                <TableCell class="text-right font-semibold whitespace-nowrap">
-                  {{ c.numero_contratos }}
-                </TableCell>
+        <!-- Menores Contratos -->
+        <Card class="min-w-0 overflow-hidden">
+          <CardHeader>
+            <CardTitle>Menores Contratos</CardTitle>
 
-                <TableCell class="text-right font-semibold whitespace-nowrap">
-                  {{ formatCurrency(c.valor_adjudicado) }}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            <CardDescription>
+              Contratos com menor valor contratual
+            </CardDescription>
+          </CardHeader>
+
+          <Separator />
+
+          <CardContent class="pt-6 overflow-hidden">
+            <Table class="w-full table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead class="w-[70%]">
+                    Objeto
+                  </TableHead>
+
+                  <TableHead class="w-[30%] text-right">
+                    Valor
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                <TableRow
+                    v-for="c in smallestContracts"
+                    :key="c.chave_contratos"
+                >
+                  <TableCell class="overflow-hidden">
+                    <button
+                        :title="c.objeto"
+                        class="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-primary hover:underline font-medium cursor-pointer"
+                        @click="goToContract(c.chave_contratos)"
+                    >
+                      {{ c.objeto }}
+                    </button>
+                  </TableCell>
+
+                  <TableCell
+                      class="text-right text-red-500 font-semibold whitespace-nowrap"
+                  >
+                    {{ formatCurrency(c.valor_contratual) }}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <!-- Competem Mais e Ganham Menos -->
+        <Card class="min-w-0 overflow-hidden">
+          <CardHeader>
+            <CardTitle>
+              Entidades que Competem Mais e Ganham Menos
+            </CardTitle>
+
+            <CardDescription>
+              Entidades com menor taxa de vitória
+            </CardDescription>
+          </CardHeader>
+
+          <Separator />
+
+          <CardContent class="pt-6 overflow-hidden">
+            <Table class="w-full table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead class="w-[50%]">
+                    Entidade
+                  </TableHead>
+
+                  <TableHead class="w-[25%] text-right">
+                    Concursos
+                  </TableHead>
+
+                  <TableHead class="w-[25%] text-right">
+                    Taxa Vitória
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                <TableRow
+                    v-for="c in entitiesCompeteMoreEarnLess"
+                    :key="c.chave_entidade"
+                >
+                  <TableCell class="overflow-hidden">
+                    <button
+                        :title="c.nome"
+                        class="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-primary hover:underline font-medium cursor-pointer"
+                        @click="goToEntity(c.chave_entidade)"
+                    >
+                      {{ c.nome }}
+                    </button>
+                  </TableCell>
+
+                  <TableCell class="text-right whitespace-nowrap">
+                    {{ c.total_concursos }}
+                  </TableCell>
+
+                  <TableCell class="text-right font-semibold whitespace-nowrap">
+                    {{ formatPercentage(c.taxa_vitoria) }}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <!-- Mais Contratos -->
+        <Card class="min-w-0 overflow-hidden">
+          <CardHeader>
+            <CardTitle>
+              Entidades com Mais Contratos
+            </CardTitle>
+
+            <CardDescription>
+              Ranking de entidades adjudicantes
+            </CardDescription>
+          </CardHeader>
+
+          <Separator />
+
+          <CardContent class="pt-6 overflow-hidden">
+            <Table class="w-full table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead class="w-[45%]">
+                    Entidade
+                  </TableHead>
+
+                  <TableHead class="w-[20%] text-right">
+                    Nº Contratos
+                  </TableHead>
+
+                  <TableHead class="w-[35%] text-right">
+                    Valor adjudicado
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                <TableRow
+                    v-for="c in entitiesMoreContractsAsContracting"
+                    :key="c.adjudicante"
+                >
+                  <TableCell class="overflow-hidden">
+                    <button
+                        :title="c.nome"
+                        class="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-primary hover:underline font-medium cursor-pointer"
+                        @click="goToEntity(c.adjudicante)"
+                    >
+                      {{ c.nome }}
+                    </button>
+                  </TableCell>
+
+                  <TableCell class="text-right font-semibold whitespace-nowrap">
+                    {{ c.numero_contratos }}
+                  </TableCell>
+
+                  <TableCell class="text-right font-semibold whitespace-nowrap">
+                    {{ formatCurrency(c.valor_adjudicado) }}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+      </div>
     </div>
   </div>
 </template>

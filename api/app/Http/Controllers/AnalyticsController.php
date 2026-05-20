@@ -6,6 +6,7 @@ use App\Models\ViewEntitiesMoreContractsAsContracting;
 use App\Models\ViewSmallestContracts;
 use Illuminate\Http\Request;
 use App\Models\ViewBiggestContracts;
+use Illuminate\Support\Facades\DB;
 
 class AnalyticsController extends Controller
 {
@@ -39,5 +40,14 @@ class AnalyticsController extends Controller
             ->get()
             ->toArray();
         return response()->json($contracts);
+    }
+
+    public function searchCPV(Request $request)
+    {
+        $input = $request->input('query');
+
+        $result = DB::select('CALL search_cpv(?)', [$input]);
+
+        return response()->json($result[0] ?? null);
     }
 }

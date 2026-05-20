@@ -44,6 +44,11 @@ export const useAPIStore = defineStore('api', () => {
         return axios.get(`${API_BASE_URL}/analytics/entitiesMoreContractsAsContracting`)
     }
 
+    const searchCPV = (query) => {
+        return axios.get(`${API_BASE_URL}/analytics/search-cpv`, {
+            params: {query}})
+    }
+
 
     return {
         getListContracts,
@@ -56,5 +61,6 @@ export const useAPIStore = defineStore('api', () => {
         getSmallestContracts,
         getEntitiesCompeteMoreEarnLess,
         getEntitiesMoreContractsAsContracting,
+        searchCPV,
     }
 })
