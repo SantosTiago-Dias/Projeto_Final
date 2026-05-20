@@ -160,7 +160,7 @@
 
       <div
           v-for="entity in entities"
-          :key="entity.id_entidade"
+          :key="entity.chave_entidade"
           class="bg-white border border-gray-100 rounded-xl p-5 hover:border-blue-200 transition-colors shadow-sm cursor-pointer"
           @click="openModal(entity)"
       >
@@ -172,7 +172,7 @@
             </div>
             <h2 class="text-lg font-semibold text-gray-900 line-clamp-1">{{ entity.nome }}</h2>
           </div>
-          <Button variant="outline" size="sm" class="text-xs h-8 px-4" @click.stop="goToDetails(entity.id_entidade)">Ver Detalhes</Button>
+          <Button variant="outline" size="sm" class="text-xs h-8 px-4" @click.stop="goToDetails(entity.chave_entidade)">Ver Detalhes</Button>
         </div>
       </div>
     </div>
@@ -388,8 +388,8 @@ const openModal = async (entity) => {
   loadingDetails.value = true
   try {
     const [resEntityDetails, resEntityContracts] = await Promise.all([
-      apiStore.getDetailEntity(entity.id_entidade),
-      apiStore.getListContractofEntity(entity.id_entidade)
+      apiStore.getDetailEntity(entity.chave_entidade),
+      apiStore.getListContractofEntity(entity.chave_entidade)
     ])
     entityDetails.value = resEntityDetails.data
     entityContracts.value = resEntityContracts.data.data

@@ -15,7 +15,7 @@ class EntidadeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id_entidade' => $this->id_entidade,
+            'chave_entidade' => $this->chave_entidade,
             'nif' => $this->nif,
             'nome' => $this->nome,
             'num_contratos_adjudicatario' => $this->num_contratos_adjudicatario,

@@ -20,7 +20,7 @@ class EntidadeController extends Controller
         try {
 
             $query = DimEntidade::query()
-                ->where('id_entidade', '!=', -1);
+                ->where('chave_entidade', '!=', -1);
 
             $query = EntidadeFilter::apply($query, $request->validated());
 
@@ -40,7 +40,7 @@ class EntidadeController extends Controller
         }
 
         try {
-                return DimEntidade::all()->firstOrFail('id_entidade', $id);
+                return DimEntidade::all()->firstOrFail('chave_entidade', $id);
         } catch (\Throwable $e) {
             abort(500, 'Error'. $e->getMessage());
         }
@@ -48,7 +48,7 @@ class EntidadeController extends Controller
 
     public function listaContratos($id)
     {
-        $entidade = DimEntidade::where('id_entidade', $id)->first();
+        $entidade = DimEntidade::where('chave_entidade', $id)->first();
 
         if (!$entidade ||  $id === 1)
         {
