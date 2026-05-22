@@ -40,12 +40,12 @@ class FactContrato extends Model
 
     public function tipo_contrato(): BelongsTo
     {
-        return $this->belongsTo(TipoContrato::class, 'chave_tipo_contrato','id_tipo_contrato');
+        return $this->belongsTo(TipoContrato::class, 'chave_tipo_contrato','chave_tipo_contrato');
     }
 
     public function tipo_procedimento(): BelongsTo
     {
-        return $this->belongsTo(TipoProcedimento::class, 'chave_tipo_procedimento','id_tipo_procedimento');
+        return $this->belongsTo(TipoProcedimento::class, 'chave_tipo_procedimento','chave_tipo_procedimento');
     }
 
     public function data(): BelongsTo

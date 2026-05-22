@@ -62,6 +62,7 @@ services:
     env_file: .env
     volumes:
       - ./Database/init.sql:/app/init.sql
+      - ./Database/views.sql:/app/views.sql
       - ./Database/procedures.sql:/app/procedures.sql
     command: tail -f /dev/null
     depends_on:
