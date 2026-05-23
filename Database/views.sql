@@ -58,6 +58,8 @@ CREATE VIEW  view_entidades_mais_concorrem_menos_ganham AS
     ORDER BY taxa_vitoria ASC, total_concursos DESC
     LIMIT 5;
 
+ALTER TABLE cpv_dim
+    ADD FULLTEXT ft_cpv_search (codigo, cpv_descricao, descricao);
 DELIMITER $$
 CREATE PROCEDURE search_cpv(IN input TEXT)
 BEGIN
