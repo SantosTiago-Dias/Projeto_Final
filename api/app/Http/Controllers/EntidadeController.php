@@ -20,7 +20,7 @@ class EntidadeController extends Controller
         try {
 
             $query = DimEntidade::query()
-                ->where('chave_entidade', '!=', -1);
+                ->where('chave_entidade', '!=', 1);
 
             $query = EntidadeFilter::apply($query, $request->validated());
 
