@@ -859,9 +859,10 @@ FROM
 
 -- CPV
 INSERT IGNORE INTO
-    cpv_dim (codigo, descricao)
+    cpv_dim (codigo,cpv_descricao, descricao)
 SELECT DISTINCT
     codigo,
+    cpv_descricao,
     descricao
 FROM cpv_dictionary;
 
