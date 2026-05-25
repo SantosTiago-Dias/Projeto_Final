@@ -82,6 +82,15 @@ const formatPercentage = (value) => {
   return `${Number(value).toFixed(2)}%`
 }
 
+function goToContractsByCPV() {
+  router.push({
+    path: "/",
+    query: {
+      cpvs: cpvQuery.value
+    }
+  })
+}
+
 onMounted(async () => {
   try {
     const [
@@ -151,7 +160,9 @@ onMounted(async () => {
             A procurar...
           </div>
 
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div v-else class="space-y-4 mt-6">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardContent class="pt-6">
                 <div class="text-sm text-muted-foreground">
@@ -173,6 +184,18 @@ onMounted(async () => {
                 </div>
               </CardContent>
             </Card>
+            </div>
+            <div
+                v-if="cpvResult.quantidade_contratos > 0"
+                class="flex justify-end"
+            >
+              <button
+                  class="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:opacity-90 transition"
+                  @click="goToContractsByCPV"
+              >
+                Ver contratos encontrados
+              </button>
+            </div>
           </div>
         </CardContent>
       </Card>
