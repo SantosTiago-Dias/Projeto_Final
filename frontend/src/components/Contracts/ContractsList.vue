@@ -363,6 +363,9 @@ onMounted(async () => {
   if (route.query.objeto) {
     filters.objeto = route.query.objeto
   }
+  if (route.query.cpvs) {
+    filters.cpvs = route.query.cpvs
+  }
 
   fetchContracts()
 

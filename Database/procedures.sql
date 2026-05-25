@@ -1,5 +1,3 @@
-
-
 DROP FUNCTION IF EXISTS normalizar;
 
 DELIMITER $$
@@ -14,7 +12,14 @@ BEGIN
         RETURN NULL;
     END IF;
 
+    -- normalizar br
     SET result = REGEXP_REPLACE(input, '(?i)<br\\s*/?>', '; ');
+
+    -- normalizar espaços múltiplos
+    SET result = REGEXP_REPLACE(result, '\\s+', ' ');
+
+    -- normalizar separadores duplicados
+    SET result = REGEXP_REPLACE(result, '\\s*;\\s*', '; ');
     SET result = TRIM(result);
 
     RETURN result;
@@ -66,6 +71,7 @@ DELIMITER $$
 -- =============================================
 
 DROP PROCEDURE IF EXISTS transform_detalhes_contratos$$
+
 CREATE PROCEDURE transform_detalhes_contratos()
 BEGIN
 
@@ -123,12 +129,33 @@ SELECT
     IF(contrato_ecologico = 0, 'Não', 'Sim'),
     fundamentacao_ajuste_directo
 
-FROM contratos_ext;
+FROM contratos_ext
+
+    ON DUPLICATE KEY UPDATE
+                         objeto = VALUES(objeto),
+                         descricao = VALUES(descricao),
+                         data_publicacao = VALUES(data_publicacao),
+                         data_celebracao = VALUES(data_celebracao),
+                         valor_contratual = VALUES(valor_contratual),
+                         prazo_execucao = VALUES(prazo_execucao),
+                         local_execucao = VALUES(local_execucao),
+                         procedimento_centralizado = VALUES(procedimento_centralizado),
+                         num_acordos_quadro = VALUES(num_acordos_quadro),
+                         desc_acordo_quadro = VALUES(desc_acordo_quadro),
+                         data_fecho_contrato = VALUES(data_fecho_contrato),
+                         valor_total_efetivo = VALUES(valor_total_efetivo),
+                         regime = VALUES(regime),
+                         tipo_fim_contrato = VALUES(tipo_fim_contrato),
+                         crit_materiais = VALUES(crit_materiais),
+                         link_pecas = VALUES(link_pecas),
+                         observacoes = VALUES(observacoes),
+                         contrato_ecologico = VALUES(contrato_ecologico),
+                         fundamentacao_ajuste_directo = VALUES(fundamentacao_ajuste_directo);
 
 END$$
 
-
 DROP PROCEDURE IF EXISTS transform_contratos$$
+
 CREATE PROCEDURE transform_contratos()
 BEGIN
 
@@ -190,7 +217,11 @@ FROM contratos_ext c
                    ON j.justificacao = c.justificacao_nao_escrita
 
     ON DUPLICATE KEY UPDATE
-                         id_adjudicante = VALUES(id_adjudicante);
+                         id_adjudicante = VALUES(id_adjudicante),
+                         tipo_contrato = VALUES(tipo_contrato),
+                         tipo_procedimento = VALUES(tipo_procedimento),
+                         fundamentacao = VALUES(fundamentacao),
+                         justificacao_nao_escrita = VALUES(justificacao_nao_escrita);
 
 
 -- =========================
@@ -250,20 +281,25 @@ FROM contratos_ext c
          LEFT JOIN justificacao_contrato_nao_escrito_dictionary j
                    ON j.justificacao = c.justificacao_nao_escrita
 
-WHERE JSON_UNQUOTE(JSON_EXTRACT(co.value, '$.id')) NOT IN (
-    SELECT id_entidade
-    FROM contratos_transf
-    WHERE id_contrato = c.id_contrato
-      AND adjudicatario = 1
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM contratos_transf ct2
+    WHERE ct2.id_contrato = c.id_contrato
+      AND ct2.adjudicatario = 1
+      AND ct2.id_entidade = JSON_UNQUOTE(JSON_EXTRACT(co.value, '$.id'))
 )
 
     ON DUPLICATE KEY UPDATE
-                         id_adjudicante = VALUES(id_adjudicante);
+                         id_adjudicante = VALUES(id_adjudicante),
+                         tipo_contrato = VALUES(tipo_contrato),
+                         tipo_procedimento = VALUES(tipo_procedimento),
+                         fundamentacao = VALUES(fundamentacao),
+                         justificacao_nao_escrita = VALUES(justificacao_nao_escrita);
 
 END$$
 
-
 DROP PROCEDURE IF EXISTS transform_entidades$$
+
 CREATE PROCEDURE transform_entidades()
 BEGIN
 
@@ -292,7 +328,9 @@ FROM entidades_ext e
 
 WHERE t.id_entidade IS NULL
     ON DUPLICATE KEY UPDATE
-        id_entidade = VALUES(id_entidade);
+                         nif = VALUES(nif),
+                         nome = VALUES(nome),
+                         pais = VALUES(pais);
 
 -- Metricas para adjudicatários
 UPDATE entidade_transf t
@@ -337,9 +375,8 @@ ON t.id_entidade = agg.id_entidade
 
 END$$
 
-
-
 DROP PROCEDURE IF EXISTS transform_cpv_contratos$$
+
 CREATE PROCEDURE transform_cpv_contratos()
 BEGIN
 
@@ -358,7 +395,7 @@ FROM contratos_ext c
                          "$[*]" COLUMNS (value VARCHAR(255) PATH "$",ord FOR ORDINALITY)) descp
               ON cpv.ord = descp.ord
 
-WHERE TRIM(cpv.value) <> '';
+    WHERE NULLIF(TRIM(cpv.value), '') IS NOT NULL;
 
 END$$
 
@@ -406,73 +443,66 @@ BEGIN
     CLOSE cur;
 END$$
 
-DELIMITER ;
 
 -- =============================================
 -- LOAD PROCEDURES
 -- =============================================
 
 DROP PROCEDURE IF EXISTS load_dim_entidade$$
-CREATE PROCEDURE load_dim_entidade()
-BEGIN
 
-INSERT INTO dim_entidade (
-    id_entidade,
-    nif,
-    nome,
-    total_adjudicatario,
-    num_contratos_adjudicatario,
-    total_adjudicante,
-    num_contratos_adjudicante,
-    pais,
-    distrito
-)
-SELECT
-    e.id_entidade,
-    e.nif,
-    e.nome,
-    e.total_adjudicatario,
-    e.num_contratos_adjudicatario,
-    e.total_adjudicante,
-    e.num_contratos_adjudicante,
-    e.pais,
-    e.distrito
+CREATE PROCEDURE load_dim_entidade () BEGIN
+
+INSERT INTO
+    dim_entidade (
+        id_entidade,
+        nif,
+        nome,
+        total_adjudicatario,
+        num_contratos_adjudicatario,
+        total_adjudicante,
+        num_contratos_adjudicante,
+        pais,
+        distrito
+    )
+SELECT e.id_entidade, e.nif, e.nome, e.total_adjudicatario, e.num_contratos_adjudicatario, e.total_adjudicante, e.num_contratos_adjudicante, e.pais, e.distrito
 FROM entidade_transf e
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM dim_entidade d
-    WHERE d.id_entidade = e.id_entidade
-);
+WHERE
+    NOT EXISTS (
+        SELECT 1
+        FROM dim_entidade d
+        WHERE
+            d.id_entidade = e.id_entidade
+    );
 
-END$$
-
+END $$
 
 DROP PROCEDURE IF EXISTS load_dim_detalhes_contratos$$
-CREATE PROCEDURE load_dim_detalhes_contratos()
-BEGIN
 
-INSERT INTO dim_detalhes_contratos (
-    id_contrato,
-    objeto,
-    descricao,
-    data_publicacao,
-    data_celebracao,
-    valor_contratual,
-    prazo_execucao,
-    local_execucao,
-    procedimento_centralizado,
-    num_acordos_quadro,
-    desc_acordo_quadro,
-    data_fecho_contrato,
-    valor_total_efetivo,
-    regime,
-    tipo_fim_contrato,
-    crit_materiais,
-    link_pecas,
-    observacoes,
-    contrato_ecologico,
-    fundamentacao_ajuste_directo
-)
+CREATE PROCEDURE load_dim_detalhes_contratos () BEGIN
+
+INSERT INTO
+    dim_detalhes_contratos (
+        id_contrato,
+        objeto,
+        descricao,
+        data_publicacao,
+        data_celebracao,
+        valor_contratual,
+        prazo_execucao,
+        local_execucao,
+        procedimento_centralizado,
+        num_acordos_quadro,
+        desc_acordo_quadro,
+        data_fecho_contrato,
+        valor_total_efetivo,
+        regime,
+        tipo_fim_contrato,
+        crit_materiais,
+        link_pecas,
+        observacoes,
+        contrato_ecologico,
+        fundamentacao_ajuste_directo
+    )
 SELECT
     d.id_contrato,
     d.objeto,
@@ -495,41 +525,51 @@ SELECT
     d.contrato_ecologico,
     d.fundamentacao_ajuste_directo
 FROM detalhes_contratos_transf d
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM dim_detalhes_contratos dc
-    WHERE dc.id_contrato = d.id_contrato
-);
+ON DUPLICATE KEY UPDATE
+    objeto = VALUES(objeto),
+    descricao = VALUES(descricao),
+    data_publicacao = VALUES(data_publicacao),
+    data_celebracao = VALUES(data_celebracao),
+    valor_contratual = VALUES(valor_contratual),
+    prazo_execucao = VALUES(prazo_execucao),
+    local_execucao = VALUES(local_execucao),
+    procedimento_centralizado = VALUES(procedimento_centralizado),
+    num_acordos_quadro = VALUES(num_acordos_quadro),
+    desc_acordo_quadro = VALUES(desc_acordo_quadro),
+    data_fecho_contrato = VALUES(data_fecho_contrato),
+    valor_total_efetivo = VALUES(valor_total_efetivo),
+    regime = VALUES(regime),
+    tipo_fim_contrato = VALUES(tipo_fim_contrato),
+    crit_materiais = VALUES(crit_materiais),
+    link_pecas = VALUES(link_pecas),
+    observacoes = VALUES(observacoes),
+    contrato_ecologico = VALUES(contrato_ecologico),
+    fundamentacao_ajuste_directo = VALUES(fundamentacao_ajuste_directo);
 
-END$$
-
+END $$
 
 DROP PROCEDURE IF EXISTS load_dim_cpv_contratos$$
-CREATE PROCEDURE load_dim_cpv_contratos()
-BEGIN
 
-INSERT INTO dim_cpv_contratos (chave_contrato, chave_cpv)
+CREATE PROCEDURE load_dim_cpv_contratos () BEGIN
+
+INSERT IGNORE INTO
+    dim_cpv_contratos (chave_contrato, chave_cpv)
 SELECT dc.chave_contratos, cp.id_cpv AS chave_cpv
-FROM cpv_contratos_transf c
-         INNER JOIN dim_detalhes_contratos dc
-                    ON dc.id_contrato = c.id_contrato
-         INNER JOIN cpv_dictionary cp
-                    ON cp.codigo = c.cpv
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM dim_cpv_contratos d
-    WHERE d.chave_contrato = dc.chave_contratos
-      AND d.chave_cpv = cp.id_cpv
-);
+FROM
+    cpv_contratos_transf c
+    INNER JOIN dim_detalhes_contratos dc ON dc.id_contrato = c.id_contrato
+    INNER JOIN cpv_dictionary cp ON cp.codigo = c.cpv;
 
-END$$
+END $$
 
 DROP PROCEDURE IF EXISTS load_dim_data$$
-CREATE PROCEDURE load_dim_data(IN data_inicio DATE, IN data_fim DATE)
-BEGIN
-    DECLARE d DATE;
 
-    DECLARE Ano INT;
+CREATE PROCEDURE load_dim_data (
+    IN data_inicio DATE,
+    IN data_fim DATE
+) BEGIN DECLARE d DATE;
+
+DECLARE Ano INT;
     DECLARE a INT; DECLARE b INT; DECLARE c INT;
     DECLARE d1 INT; DECLARE e INT; DECLARE f INT;
     DECLARE g INT; DECLARE h INT; DECLARE i INT;
@@ -599,60 +639,64 @@ VALUES (
                WHEN d = DATE_ADD(Pascoa, INTERVAL 60 DAY) THEN 'Corpo de Deus'
 
                ELSE 'Não aplicável.'
-               END,
+               END
 
-           -- fim de semana
-           CASE WHEN DAYOFWEEK(d) IN (1,7) THEN 1 ELSE 0 END,
+,
 
-           DAY(d),
-           MONTH(d),
-           YEAR(d),
+-- fim de semana
+CASE
+    WHEN DAYOFWEEK(d) IN (1, 7) THEN 1
+    ELSE 0
+END,
+DAY(d),
+MONTH(d),
+YEAR(d),
 
-           -- dia semana
-           CASE DAYOFWEEK(d)
-               WHEN 1 THEN 'domingo'
-               WHEN 2 THEN 'segunda-feira'
-               WHEN 3 THEN 'terça-feira'
-               WHEN 4 THEN 'quarta-feira'
-               WHEN 5 THEN 'quinta-feira'
-               WHEN 6 THEN 'sexta-feira'
-               WHEN 7 THEN 'sábado'
-               END,
+-- dia semana
+CASE DAYOFWEEK(d)
+    WHEN 1 THEN 'domingo'
+    WHEN 2 THEN 'segunda-feira'
+    WHEN 3 THEN 'terça-feira'
+    WHEN 4 THEN 'quarta-feira'
+    WHEN 5 THEN 'quinta-feira'
+    WHEN 6 THEN 'sexta-feira'
+    WHEN 7 THEN 'sábado'
+END,
 
-           -- mês nome
-           CASE MONTH(d)
+-- mês nome
+CASE MONTH(d)
     WHEN 1 THEN 'janeiro'
-                WHEN 2 THEN 'fevereiro'
-                WHEN 3 THEN 'março'
-                WHEN 4 THEN 'abril'
-                WHEN 5 THEN 'maio'
-                WHEN 6 THEN 'junho'
-                WHEN 7 THEN 'julho'
-                WHEN 8 THEN 'agosto'
-                WHEN 9 THEN 'setembro'
-                WHEN 10 THEN 'outubro'
-                WHEN 11 THEN 'novembro'
-                WHEN 12 THEN 'dezembro'
+    WHEN 2 THEN 'fevereiro'
+    WHEN 3 THEN 'março'
+    WHEN 4 THEN 'abril'
+    WHEN 5 THEN 'maio'
+    WHEN 6 THEN 'junho'
+    WHEN 7 THEN 'julho'
+    WHEN 8 THEN 'agosto'
+    WHEN 9 THEN 'setembro'
+    WHEN 10 THEN 'outubro'
+    WHEN 11 THEN 'novembro'
+    WHEN 12 THEN 'dezembro'
 END,
 
-            -- abreviação
-            CASE MONTH(d)
-                WHEN 1 THEN 'jan'
-                WHEN 2 THEN 'fev'
-                WHEN 3 THEN 'mar'
-                WHEN 4 THEN 'abr'
-                WHEN 5 THEN 'mai'
-                WHEN 6 THEN 'jun'
-                WHEN 7 THEN 'jul'
-                WHEN 8 THEN 'ago'
-                WHEN 9 THEN 'set'
-                WHEN 10 THEN 'out'
-                WHEN 11 THEN 'nov'
-                WHEN 12 THEN 'dez'
+-- abreviação
+CASE MONTH(d)
+    WHEN 1 THEN 'jan'
+    WHEN 2 THEN 'fev'
+    WHEN 3 THEN 'mar'
+    WHEN 4 THEN 'abr'
+    WHEN 5 THEN 'mai'
+    WHEN 6 THEN 'jun'
+    WHEN 7 THEN 'jul'
+    WHEN 8 THEN 'ago'
+    WHEN 9 THEN 'set'
+    WHEN 10 THEN 'out'
+    WHEN 11 THEN 'nov'
+    WHEN 12 THEN 'dez'
 END,
 
-            -- data extenso
-            CONCAT(
+-- data extenso
+CONCAT(
                 DAY(d), ' de ',
                 CASE MONTH(d)
                     WHEN 1 THEN 'janeiro'
@@ -672,111 +716,154 @@ END,
             )
         );
 
-        SET d = DATE_ADD(d, INTERVAL 1 DAY);
+SET d = DATE_ADD(d, INTERVAL 1 DAY);
 
 END WHILE;
 
-END$$
+END $$
+
 DROP PROCEDURE IF EXISTS load_fact$$
-CREATE PROCEDURE load_fact()
-BEGIN
 
-INSERT INTO fact_contratos (
-    chave_contratos,
-    chave_entidade,
-    adjudicatario,
-    chave_tipo_contrato,
-    chave_tipo_procedimento,
-    chave_fundamentacao,
-    chave_justificacao_nao_escrita,
-    adjudicante,
-    valor_contratual,
-    chave_data
-)
-SELECT
-    COALESCE(dc.chave_contratos,
-             (SELECT chave_contratos FROM dim_detalhes_contratos WHERE id_contrato = -1)),
+CREATE PROCEDURE load_fact () BEGIN
 
-    COALESCE(de.chave_entidade,
-             (SELECT chave_entidade FROM dim_entidade WHERE id_entidade = -1)),
+INSERT INTO
+    fact_contratos (
+        chave_contratos,
+        chave_entidade,
+        adjudicatario,
+        chave_tipo_contrato,
+        chave_tipo_procedimento,
+        chave_fundamentacao,
+        chave_justificacao_nao_escrita,
+        adjudicante,
+        valor_contratual,
+        chave_data
+    )
+SELECT COALESCE(
+        dc.chave_contratos, (
+            SELECT chave_contratos
+            FROM dim_detalhes_contratos
+            WHERE
+                id_contrato = -1
+        )
+    ), COALESCE(
+        de.chave_entidade, (
+            SELECT chave_entidade
+            FROM dim_entidade
+            WHERE
+                id_entidade = -1
+        )
+    ), ct.adjudicatario, COALESCE(
+        tc.chave_tipo_contrato, (
+            SELECT chave_tipo_contrato
+            FROM tipo_contrato_dim
+            WHERE
+                tipo = 'N/A'
+        )
+    ), COALESCE(
+        tp.chave_tipo_procedimento, (
+            SELECT chave_tipo_procedimento
+            FROM tipo_procedimento_dim
+            WHERE
+                tipo = 'N/A'
+        )
+    ), COALESCE(
+        fc.chave_fundamentacao, (
+            SELECT chave_fundamentacao
+            FROM fundamentacao_contrato_dim
+            WHERE
+                fundamentacao = 'N/A'
+        )
+    ), COALESCE(
+        jc.chave_justificacao, (
+            SELECT chave_justificacao
+            FROM
+                justificacao_contrato_nao_escrito_dim
+            WHERE
+                justificacao = 'N/A'
+        )
+    ), COALESCE(
+        deadjudicante.chave_entidade, (
+            SELECT chave_entidade
+            FROM dim_entidade
+            WHERE
+                id_entidade = -1
+        )
+    ), dc.valor_contratual, COALESCE(
+        dd.chave_date, (
+            SELECT chave_date
+            FROM dim_data
+            WHERE
+                data IS NULL
+        )
+    )
+FROM
+    contratos_transf ct
+    LEFT JOIN dim_detalhes_contratos dc ON dc.id_contrato = ct.id_contrato
+    LEFT JOIN dim_entidade de ON de.id_entidade = ct.id_entidade
+    LEFT JOIN dim_entidade deadjudicante ON deadjudicante.id_entidade = ct.id_adjudicante
+    LEFT JOIN tipo_contrato_dim tc ON tc.tipo = ct.tipo_contrato
+    LEFT JOIN tipo_procedimento_dim tp ON tp.tipo = ct.tipo_procedimento
+    LEFT JOIN fundamentacao_contrato_dim fc ON fc.fundamentacao = ct.fundamentacao
+    LEFT JOIN justificacao_contrato_nao_escrito_dim jc ON jc.justificacao = ct.justificacao_nao_escrita
+    LEFT JOIN dim_data dd ON dd.data = dc.data_celebracao
+ON DUPLICATE KEY UPDATE
+    adjudicatario = VALUES(adjudicatario),
+    chave_tipo_contrato = VALUES(chave_tipo_contrato),
+    chave_tipo_procedimento = VALUES(chave_tipo_procedimento),
+    chave_fundamentacao = VALUES(chave_fundamentacao),
+    chave_justificacao_nao_escrita = VALUES(
+        chave_justificacao_nao_escrita
+    ),
+    valor_contratual = VALUES(valor_contratual),
+    chave_data = VALUES(chave_data);
 
-    ct.adjudicatario,
-
-    COALESCE(tc.chave_tipo_contrato,
-             (SELECT chave_tipo_contrato FROM tipo_contrato_dim WHERE tipo = 'N/A')),
-
-    COALESCE(tp.chave_tipo_procedimento,
-             (SELECT chave_tipo_procedimento FROM tipo_procedimento_dim WHERE tipo = 'N/A')),
-
-    COALESCE(fc.chave_fundamentacao,
-             (SELECT chave_fundamentacao FROM fundamentacao_contrato_dim WHERE fundamentacao = 'N/A')),
-
-    COALESCE(jc.chave_justificacao,
-             (SELECT chave_justificacao FROM justificacao_contrato_nao_escrito_dim WHERE justificacao = 'N/A')),
-
-    COALESCE(deadjudicante.chave_entidade,
-             (SELECT chave_entidade FROM dim_entidade WHERE id_entidade = -1)),
-
-    dc.valor_contratual,
-
-    COALESCE(dd.chave_date,
-             (SELECT chave_date FROM dim_data WHERE data IS NULL))
-
-FROM contratos_transf ct
-         LEFT JOIN dim_detalhes_contratos dc
-                   ON dc.id_contrato = ct.id_contrato
-         LEFT JOIN dim_entidade de
-                   ON de.id_entidade = ct.id_entidade
-         LEFT JOIN dim_entidade deadjudicante
-                   ON deadjudicante.id_entidade = ct.id_adjudicante
-         LEFT JOIN  tipo_contrato_dim tc
-                    ON tc.tipo = ct.tipo_contrato
-         LEFT JOIN tipo_procedimento_dim tp
-                   ON tp.tipo = ct.tipo_procedimento
-         LEFT JOIN fundamentacao_contrato_dim fc
-                   ON fc.fundamentacao = ct.fundamentacao
-         LEFT JOIN justificacao_contrato_nao_escrito_dim jc
-                   ON jc.justificacao = ct.justificacao_nao_escrita
-         LEFT JOIN dim_data dd
-                   ON dd.data = dc.data_celebracao
-
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM fact_contratos f
-    WHERE f.chave_contratos = dc.chave_contratos
-      AND f.chave_entidade = de.chave_entidade
-      AND f.adjudicante = deadjudicante.chave_entidade
-);
-
-
-END$$
-
+END $$
 
 DROP PROCEDURE IF EXISTS load_dims_dict$$
-CREATE PROCEDURE load_dims_dict()
-BEGIN
-    -- Tipo Contrato
-INSERT IGNORE INTO tipo_contrato_dim (tipo,descricao)
-SELECT DISTINCT tipo, descricao FROM tipo_contrato_dictionary
-WHERE tipo NOT IN (SELECT tipo FROM tipo_contrato_dim);
 
-    -- Tipo Procedimento
-INSERT IGNORE INTO tipo_procedimento_dim (tipo,descricao)
-SELECT DISTINCT tipo, descricao FROM tipo_procedimento_dictionary
-WHERE tipo NOT IN (SELECT tipo FROM tipo_procedimento_dim);
+CREATE PROCEDURE load_dims_dict () BEGIN
+-- Tipo Contrato
+INSERT IGNORE INTO
+    tipo_contrato_dim (tipo, descricao)
+SELECT DISTINCT
+    tipo,
+    descricao
+FROM tipo_contrato_dictionary;
 
-    -- Fundamentação Contrato
-INSERT IGNORE INTO fundamentacao_contrato_dim (fundamentacao, descricao)
-SELECT DISTINCT fundamentacao, descricao FROM fundamentacao_contrato_dictionary
-WHERE fundamentacao NOT IN (SELECT fundamentacao FROM fundamentacao_contrato_dim);
+-- Tipo Procedimento
+INSERT IGNORE INTO
+    tipo_procedimento_dim (tipo, descricao)
+SELECT DISTINCT
+    tipo,
+    descricao
+FROM tipo_procedimento_dictionary;
 
-    -- Justificação Contrato Não Escrito
-INSERT IGNORE INTO justificacao_contrato_nao_escrito_dim (justificacao, descricao)
-SELECT DISTINCT justificacao, descricao FROM justificacao_contrato_nao_escrito_dictionary
-WHERE justificacao NOT IN (SELECT justificacao FROM justificacao_contrato_nao_escrito_dim);
+-- Fundamentação Contrato
+INSERT IGNORE INTO
+    fundamentacao_contrato_dim (fundamentacao, descricao)
+SELECT DISTINCT
+    fundamentacao,
+    descricao
+FROM
+    fundamentacao_contrato_dictionary;
 
-    -- CPV
-INSERT IGNORE INTO cpv_dim (codigo, descricao)
-SELECT DISTINCT codigo, descricao FROM cpv_dictionary
-WHERE codigo NOT IN (SELECT codigo FROM cpv_dim);
-END$$
+-- Justificação Contrato Não Escrito
+INSERT IGNORE INTO
+    justificacao_contrato_nao_escrito_dim (justificacao, descricao)
+SELECT DISTINCT
+    justificacao,
+    descricao
+FROM
+    justificacao_contrato_nao_escrito_dictionary;
+
+-- CPV
+INSERT IGNORE INTO
+    cpv_dim (codigo,cpv_descricao, descricao)
+SELECT DISTINCT
+    codigo,
+    cpv_descricao,
+    descricao
+FROM cpv_dictionary;
+
+END $$

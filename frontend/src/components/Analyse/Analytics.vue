@@ -82,6 +82,15 @@ const formatPercentage = (value) => {
   return `${Number(value).toFixed(2)}%`
 }
 
+function goToContractsByCPV() {
+  router.push({
+    path: "/",
+    query: {
+      cpvs: cpvQuery.value
+    }
+  })
+}
+
 onMounted(async () => {
   try {
     const [
@@ -114,20 +123,16 @@ onMounted(async () => {
       A carregar dados...
     </div>
 
-    <div
-        v-else
-        class="space-y-6"
-    >
+    <div v-else class="space-y-6">
 
       <!-- PESQUISA CPV -->
       <Card>
         <CardHeader>
-          <CardTitle>
-            Pesquisa CPV
-          </CardTitle>
+          <CardTitle>Pesquisa CPV</CardTitle>
 
           <CardDescription>
-            Pesquisa por código, descrição ou palavras-chave
+            Aqui podes procurar contratos usando palavras simples como “carros”, “software” ou “obras”.
+            O sistema encontra automaticamente contratos parecidos com o que escreveste.
           </CardDescription>
         </CardHeader>
 
@@ -151,23 +156,18 @@ onMounted(async () => {
             </button>
           </div>
 
-          <div
-              v-if="cpvLoading"
-              class="mt-6 text-muted-foreground"
-          >
+          <div v-if="cpvLoading" class="mt-6 text-muted-foreground">
             A procurar...
           </div>
 
-          <div
-              v-else
-              class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6"
-          >
+          <div v-else class="space-y-4 mt-6">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardContent class="pt-6">
                 <div class="text-sm text-muted-foreground">
-                  Quantidade de contratos
+                  Total de contratos encontrados
                 </div>
-
                 <div class="text-3xl font-bold mt-2">
                   {{ cpvResult.quantidade_contratos ?? 0 }}
                 </div>
@@ -177,14 +177,25 @@ onMounted(async () => {
             <Card>
               <CardContent class="pt-6">
                 <div class="text-sm text-muted-foreground">
-                  Valor total
+                  Dinheiro total envolvido
                 </div>
-
                 <div class="text-3xl font-bold mt-2 text-green-600">
                   {{ formatCurrency(cpvResult.valor_total) }}
                 </div>
               </CardContent>
             </Card>
+            </div>
+            <div
+                v-if="cpvResult.quantidade_contratos > 0"
+                class="flex justify-end"
+            >
+              <button
+                  class="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:opacity-90 transition"
+                  @click="goToContractsByCPV"
+              >
+                Ver contratos encontrados
+              </button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -198,7 +209,8 @@ onMounted(async () => {
             <CardTitle>Maiores Contratos</CardTitle>
 
             <CardDescription>
-              Contratos com maior valor contratual
+              Contratos onde foi gasto mais dinheiro.
+              Mostra os maiores investimentos feitos em compras e serviços.
             </CardDescription>
           </CardHeader>
 
@@ -208,21 +220,13 @@ onMounted(async () => {
             <Table class="w-full table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead class="w-[70%]">
-                    Objeto
-                  </TableHead>
-
-                  <TableHead class="w-[30%] text-right">
-                    Valor
-                  </TableHead>
+                  <TableHead class="w-[70%]">O que foi comprado</TableHead>
+                  <TableHead class="w-[30%] text-right">Valor</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                <TableRow
-                    v-for="c in biggestContracts"
-                    :key="c.chave_contratos"
-                >
+                <TableRow v-for="c in biggestContracts" :key="c.chave_contratos">
                   <TableCell class="overflow-hidden">
                     <button
                         :title="c.objeto"
@@ -233,9 +237,7 @@ onMounted(async () => {
                     </button>
                   </TableCell>
 
-                  <TableCell
-                      class="text-right font-semibold text-green-600 whitespace-nowrap"
-                  >
+                  <TableCell class="text-right font-semibold text-green-600 whitespace-nowrap">
                     {{ formatCurrency(c.valor_contratual) }}
                   </TableCell>
                 </TableRow>
@@ -250,7 +252,8 @@ onMounted(async () => {
             <CardTitle>Menores Contratos</CardTitle>
 
             <CardDescription>
-              Contratos com menor valor contratual
+              Contratos onde foi gasto menos dinheiro.
+              Normalmente são pequenas compras ou serviços simples.
             </CardDescription>
           </CardHeader>
 
@@ -260,21 +263,13 @@ onMounted(async () => {
             <Table class="w-full table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead class="w-[70%]">
-                    Objeto
-                  </TableHead>
-
-                  <TableHead class="w-[30%] text-right">
-                    Valor
-                  </TableHead>
+                  <TableHead class="w-[70%]">O que foi comprado</TableHead>
+                  <TableHead class="w-[30%] text-right">Valor</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                <TableRow
-                    v-for="c in smallestContracts"
-                    :key="c.chave_contratos"
-                >
+                <TableRow v-for="c in smallestContracts" :key="c.chave_contratos">
                   <TableCell class="overflow-hidden">
                     <button
                         :title="c.objeto"
@@ -285,9 +280,7 @@ onMounted(async () => {
                     </button>
                   </TableCell>
 
-                  <TableCell
-                      class="text-right text-red-500 font-semibold whitespace-nowrap"
-                  >
+                  <TableCell class="text-right text-red-500 font-semibold whitespace-nowrap">
                     {{ formatCurrency(c.valor_contratual) }}
                   </TableCell>
                 </TableRow>
@@ -299,12 +292,11 @@ onMounted(async () => {
         <!-- Competem Mais e Ganham Menos -->
         <Card class="min-w-0 overflow-hidden">
           <CardHeader>
-            <CardTitle>
-              Entidades que Competem Mais e Ganham Menos
-            </CardTitle>
+            <CardTitle>Empresas que tentam mais e ganham menos</CardTitle>
 
             <CardDescription>
-              Entidades com menor taxa de vitória
+              Empresas que participam em muitos concursos, mas ganham poucos.
+              Ou seja, tentam muitas vezes, mas têm pouco sucesso.
             </CardDescription>
           </CardHeader>
 
@@ -314,25 +306,14 @@ onMounted(async () => {
             <Table class="w-full table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead class="w-[50%]">
-                    Entidade
-                  </TableHead>
-
-                  <TableHead class="w-[25%] text-right">
-                    Concursos
-                  </TableHead>
-
-                  <TableHead class="w-[25%] text-right">
-                    Taxa Vitória
-                  </TableHead>
+                  <TableHead class="w-[50%]">Empresa</TableHead>
+                  <TableHead class="w-[25%] text-right">Concursos</TableHead>
+                  <TableHead class="w-[25%] text-right">Taxa de sucesso</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                <TableRow
-                    v-for="c in entitiesCompeteMoreEarnLess"
-                    :key="c.chave_entidade"
-                >
+                <TableRow v-for="c in entitiesCompeteMoreEarnLess" :key="c.chave_entidade">
                   <TableCell class="overflow-hidden">
                     <button
                         :title="c.nome"
@@ -359,12 +340,11 @@ onMounted(async () => {
         <!-- Mais Contratos -->
         <Card class="min-w-0 overflow-hidden">
           <CardHeader>
-            <CardTitle>
-              Entidades com Mais Contratos
-            </CardTitle>
+            <CardTitle>Quem mais faz contratos</CardTitle>
 
             <CardDescription>
-              Ranking de entidades adjudicantes
+              Entidades que fazem mais contratos e gastam mais dinheiro no total.
+              Mostra quem mais compra serviços ou produtos.
             </CardDescription>
           </CardHeader>
 
@@ -374,25 +354,14 @@ onMounted(async () => {
             <Table class="w-full table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead class="w-[45%]">
-                    Entidade
-                  </TableHead>
-
-                  <TableHead class="w-[20%] text-right">
-                    Nº Contratos
-                  </TableHead>
-
-                  <TableHead class="w-[35%] text-right">
-                    Valor adjudicado
-                  </TableHead>
+                  <TableHead class="w-[45%]">Empresa</TableHead>
+                  <TableHead class="w-[20%] text-right">Nº contratos</TableHead>
+                  <TableHead class="w-[35%] text-right">Dinheiro gasto</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                <TableRow
-                    v-for="c in entitiesMoreContractsAsContracting"
-                    :key="c.adjudicante"
-                >
+                <TableRow v-for="c in entitiesMoreContractsAsContracting" :key="c.adjudicante">
                   <TableCell class="overflow-hidden">
                     <button
                         :title="c.nome"
