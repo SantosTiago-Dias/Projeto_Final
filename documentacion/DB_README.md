@@ -6,6 +6,7 @@ This README explains the database structure used by the project, based on `init.
 
 The database is designed to support an ETL pipeline for public contract data. It includes:
 
+- logs tables (`*_logs`)
 - raw extraction tables (`*_ext`)
 - transformation staging tables (`*_transf`)
 - populated data tables (`*_dictonary`)

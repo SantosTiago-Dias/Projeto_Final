@@ -17,7 +17,6 @@ import justificacaoNEscrita as justificacao
 
 def main():
 
-    """
     #region Connection to DB
     connection = db.get_connection()
     if not connection:
@@ -25,9 +24,12 @@ def main():
         sys.exit(1)
     #endregion    
 
+    
     #region Extração
     try:
         db.verify_database_exists()
+        logger.info("A iniciar extração de dados")
+        Entity_retries.main()
         extracao_incremental_contratos.main()
     except Exception as e:
         logger.error(f"Erro: {e}")
@@ -70,10 +72,9 @@ def main():
         logger.error(f"Erro: {e}")
         sys.exit(1)
     #endregion
-    """
 
-    Entity_retries.main()
-    #Notify_laravel.main()
+    
+    Notify_laravel.main()
 
 if __name__ == "__main__":
     main()

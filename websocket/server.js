@@ -4,33 +4,37 @@ const ws = require('ws');
 const SOCKET_PORT = process.env.SOCKET_PORT || 3000;
 const REDIS_SERVER = `redis://:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
 const channel = process.env.REDIS_CHANNEL;
+
 const redisClient = redis.createClient({ url: REDIS_SERVER });
-const server = new ws.Server({ port : SOCKET_PORT });
+const server = new ws.Server({ port: SOCKET_PORT });
 
-//try to listen server
-redisClient.on('error', (err) => console.error('Redis error:', err));
-
-//try to connect server
-redisClient.connect().then(r => {
-    console.log(`Connected to ${REDIS_SERVER}:${channel}`);
-});
-
-//When ETL is done broadcast the message to frontend
-//If connection of ws fail the sub in red
-server.on ('connection', (socket) => {
-    redisClient.subscribe(channel, (message) => {
-        const data = JSON.parse(message);
-
-        console.log("Recived new data:"+data);
-
-        if (data?.status === 'end') {
-
-            //broadcast to all users
-            server.clients.forEach(client => {
-                if (client.readyState === ws.OPEN) {
-                    client.send("Novos dados Disponiveis");
-                }
-            });
+//Broadcast message to all users connected
+function broadcast(message) {
+    server.clients.forEach(client => {
+        if (client.readyState === ws.OPEN) {
+            client.send(message);
         }
     });
-})
+}
+
+//On error
+redisClient.on('error', (err) => console.error('Redis error:', err));
+
+//Redis connect to channel
+redisClient.connect().then(() => {
+    console.log(`Connected to Redis, listening on channel: ${channel}`);
+
+    redisClient.subscribe(channel, (message) => {
+        const data = JSON.parse(message);
+        console.log('Received:', data);
+
+        if (data?.status === 'end') {
+            broadcast('Novos dados Disponíveis');
+        }
+    });
+});
+
+server.on('connection', (socket) => {
+    console.log('WS client connected');
+    socket.on('close', () => console.log('WS client disconnected'));
+});
