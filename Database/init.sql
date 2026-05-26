@@ -86,7 +86,8 @@ CREATE TABLE IF NOT EXISTS cpv_dim (
     codigo VARCHAR(10),
     cpv_descricao VARCHAR(255),
     descricao TEXT,
-    UNIQUE (codigo)
+    UNIQUE (codigo),
+    FULLTEXT (codigo, cpv_descricao, descricao)
 );
 
 CREATE TABLE IF NOT EXISTS tipo_procedimento_dim (

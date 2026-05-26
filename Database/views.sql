@@ -17,8 +17,6 @@ CREATE VIEW  view_contratos_menor_valor AS
     ORDER BY valor_contratual 
     LIMIT 5;
 
-
-
 CREATE VIEW  view_entidades_mais_contratos_adjudicados AS
     SELECT nome, count(*) AS numero_contratos, adjudicante, sum(valor_contratual) AS valor_adjudicado
     FROM fact_contratos ct
@@ -27,8 +25,6 @@ CREATE VIEW  view_entidades_mais_contratos_adjudicados AS
     GROUP BY adjudicante
     ORDER BY count(*) desc
     LIMIT 5; 
-
-
 
 CREATE VIEW  view_entidades_mais_concorrem_menos_ganham AS
     SELECT de.nome,de.chave_entidade,
@@ -58,22 +54,15 @@ CREATE VIEW  view_entidades_mais_concorrem_menos_ganham AS
     ORDER BY taxa_vitoria ASC, total_concursos DESC
     LIMIT 5;
 
-ALTER TABLE cpv_dim
-    ADD FULLTEXT ft_cpv_search (codigo, cpv_descricao, descricao);
-DELIMITER $$
-CREATE PROCEDURE search_cpv(IN input TEXT)
-BEGIN
-    SELECT
-        COUNT(cp.chave_contrato) AS quantidade_contratos,
-        SUM(dc.valor_contratual) AS valor_total
-    FROM dim_cpv_contratos cp
-         LEFT JOIN dim_detalhes_contratos dc
-               ON cp.chave_contrato = dc.chave_contratos
-         LEFT JOIN cpv_dim c
-               ON cp.chave_cpv = c.chave_cpv
-    WHERE
-        MATCH(c.codigo, c.cpv_descricao, c.descricao)
-        AGAINST (CONCAT(input, '*') IN BOOLEAN MODE);
-    -- AGAINST (input IN NATURAL LANGUAGE MODE);
-END$$
-DELIMITER ;
+CREATE PROCEDURE IF NOT EXISTS search_cpv(IN input TEXT)
+SELECT
+    COUNT(cp.chave_contrato) AS quantidade_contratos,
+    SUM(dc.valor_contratual) AS valor_total
+FROM dim_cpv_contratos cp
+     LEFT JOIN dim_detalhes_contratos dc
+           ON cp.chave_contrato = dc.chave_contratos
+     LEFT JOIN cpv_dim c
+           ON cp.chave_cpv = c.chave_cpv
+WHERE
+    MATCH(c.codigo, c.cpv_descricao, c.descricao)
+    AGAINST (CONCAT(input, '*') IN BOOLEAN MODE);
