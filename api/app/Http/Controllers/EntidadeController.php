@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\EntidadeFilter;
+use App\Http\Requests\EntidadeFilterRequest;
 use App\Http\Resources\EntidadeResource;
 use App\Http\Resources\ListContractsResource;
 use App\Models\DimDetalhesContrato;
@@ -11,7 +13,7 @@ use Illuminate\Support\Facades\Cache;
 
 class EntidadeController extends Controller
 {
-    public function index()
+    public function index(EntidadeFilterRequest $request)
     {
         try {
             $cachedIds = Cache::rememberForever('entidades:list', function () {

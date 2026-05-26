@@ -12,6 +12,8 @@ import time
 load_dotenv('.env')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INIT = os.path.join(BASE_DIR, 'init.sql')
+VIEWS = os.path.join(BASE_DIR, 'views.sql')
+
 PROCEDURES = os.path.join(BASE_DIR, 'procedures.sql')
 URL_NOMI = "https://nominatim.openstreetmap.org/search"
 URL_NASA = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
@@ -41,15 +43,24 @@ def verify_database_exists():
         mycursor.execute("SHOW TABLES")
         mycursor.fetchall()
 
-        #Generate tables from init.sql (if they don't exist)
+        #To generate the tables from init.sql (if they don't exist)
         with open(INIT, 'r', encoding='utf-8') as f:
             sql = f.read()
             for statement in sql.split(';'):
                 statement = statement.strip()
                 if statement:
                     mycursor.execute(statement)
-        
-        #Generate the procedures from procedures.sql (if they don't exist)
+        logger.info("Tabelas verificadas/criadas com sucesso.")
+
+        #To generate the views from views.sql (if they don't exist)
+        with open(VIEWS, 'r', encoding='utf-8') as f:
+            sql = f.read()
+            for statement in sql.split(';'):
+                statement = statement.strip()
+                if statement:
+                    mycursor.execute(statement)
+        logger.info("views verificadas/criadas com sucesso.")
+        #To generate the procedures from procedures.sql (if they don't exist)
         with open(PROCEDURES, 'r', encoding='utf-8') as f:
             sql_content = f.read()
             
@@ -67,14 +78,14 @@ def verify_database_exists():
                         logger.warning(f"Error executing statement: {e}")
                         mydb.rollback()
                         return False
-
+        logger.info("Procedures verificadas/criadas com sucesso.")
         mydb.commit()
 
     except FileNotFoundError:
         logger.error("Ficheiro init.sql não encontrado")
         return False
     except mysql.connector.Error as e:
-        logger.error(f"Erro ao criar tabelas: {e}")
+        logger.error(f"Erro: {e}")
         return False
     finally:
         mycursor.close()
@@ -163,6 +174,7 @@ def execute_load():
 
     try:
         procedures = [
+            "load_dims_dict",
             "load_dim_entidade",
             "load_dim_detalhes_contratos",
             "load_dim_cpv_contratos",

@@ -28,6 +28,27 @@ export const useAPIStore = defineStore('api', () => {
         return axios.get(`${API_BASE_URL}/entidades/${id}/listContratcs`)
     }
 
+    const getBiggestContracts = () => {
+        return axios.get(`${API_BASE_URL}/analytics/biggest-contracts`)
+    }
+
+    const getSmallestContracts = () => {
+        return axios.get(`${API_BASE_URL}/analytics/smallest-contracts`)
+    }
+
+    const getEntitiesCompeteMoreEarnLess = () => {
+        return axios.get(`${API_BASE_URL}/analytics/entitiesCompeteMoreEarnLess`)
+    }
+
+    const getEntitiesMoreContractsAsContracting = () => {
+        return axios.get(`${API_BASE_URL}/analytics/entitiesMoreContractsAsContracting`)
+    }
+
+    const searchCPV = (query) => {
+        return axios.get(`${API_BASE_URL}/analytics/search-cpv`, {
+            params: {query}})
+    }
+
 
     return {
         getListContracts,
@@ -35,6 +56,11 @@ export const useAPIStore = defineStore('api', () => {
         getDetailContracts,
         getListEntity,
         getDetailEntity,
-        getListContractofEntity
+        getListContractofEntity,
+        getBiggestContracts,
+        getSmallestContracts,
+        getEntitiesCompeteMoreEarnLess,
+        getEntitiesMoreContractsAsContracting,
+        searchCPV,
     }
 })

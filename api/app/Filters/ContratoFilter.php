@@ -24,6 +24,9 @@ class ContratoFilter
         //prazo de execucao
         $query=$query->when($filters['prazo_execucao'] ?? null , fn($q, $v) =>$q->where('prazo_execucao','<=', $v));
 
+        //local de execucao
+        $query=$query->when($filters['local_execucao'] ?? null , fn($q, $v) =>$q->where('local_execucao', 'LIKE', '%' . $v . '%'));
+
         //CPV
         if ($filters['cpvs'] ?? false)
         {
@@ -38,6 +41,10 @@ class ContratoFilter
 
         //procedimento centralizado
         $query=$query->when($filters['procedimento_centralizado'] ?? null , fn($q, $v) =>$q->where('procedimento_centralizado','=', $v));
+
+        // Objeto
+        $query = $query->when(
+            $filters['objeto'] ?? null,fn($q, $v) => $q->where('objeto', 'like', '%' . $v . '%'));
 
         return $query;
     }
