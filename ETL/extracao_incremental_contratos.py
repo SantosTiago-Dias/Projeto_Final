@@ -235,7 +235,7 @@ def extracion_contracts(sessao:requests.session):
                 except Exception as e:
                     logger.error("ocorreu um erro a extrair os dados")
                     db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
-
+                parar = True
         return num_contratos
     except Exception as e:
         logger.exception(f"Não foi possível extrair os dados: {e}")
@@ -253,6 +253,7 @@ def main():
     if average_contratos is not None:
         if float(num_contratos) < float(average_contratos):
             logger.info(f"Número de contratos extraídos ({num_contratos}) é inferior à média histórica ({average_contratos}). Repetindo extração.")
+            db.drop_staging_tables()
             num_contratos = extracion_contracts(sessao)
             
     logger.success("Extração finalizada com sucesso")

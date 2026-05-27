@@ -89,20 +89,20 @@ class ContractsController extends Controller
 
         // Cache only IDs
         $tipoContratoIds = Cache::rememberForever($tipoContratoCacheKey, function () {
-            return TipoContrato::where('id_tipo_contrato', '!=', 1)
-                ->pluck('id_tipo_contrato')
+            return TipoContrato::where('chave_tipo_contrato', '!=', 1)
+                ->pluck('chave_tipo_contrato')
                 ->toArray();
         });
 
         $tipoProcedimentoIds = Cache::rememberForever($tipoProcedimentoCacheKey, function () {
-            return TipoProcedimento::where('id_tipo_procedimento', '!=', 1)
-                ->pluck('id_tipo_procedimento')
+            return TipoProcedimento::where('chave_tipo_procedimento', '!=', 1)
+                ->pluck('chave_tipo_procedimento')
                 ->toArray();
         });
 
         // Rebuild collections from IDs
-        $tipoContrato     = TipoContrato::whereIn('id_tipo_contrato', $tipoContratoIds)->get();
-        $tipoProcedimento = TipoProcedimento::whereIn('id_tipo_procedimento', $tipoProcedimentoIds)->get();
+        $tipoContrato     = TipoContrato::whereIn('chave_tipo_contrato', $tipoContratoIds)->get();
+        $tipoProcedimento = TipoProcedimento::whereIn('chave_tipo_procedimento', $tipoProcedimentoIds)->get();
 
         return response()->json([
             'TipoContrato'     => TipoContratoResource::collection($tipoContrato),

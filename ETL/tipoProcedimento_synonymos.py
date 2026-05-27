@@ -85,9 +85,9 @@ def new_types_procedures(log_id:int):
                     """
 
                     response = client.chat.completions.create(
-                        model="llama3.1-8b",
+                        model="llama-3.1-8b-instant",
                         messages=[{"role": "user", "content": prompt}],
-                        max_completion_tokens=100,
+                        temperature=0.2,
                     )
                     
                     explain = response.choices[0].message.content.strip()

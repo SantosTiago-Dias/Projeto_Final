@@ -7,11 +7,14 @@ import Entity_retries
 import Notify_laravel
 
 #População de dados
+
 import cpv_synonyms
+"""
 import artigos_synonymos
 import tipoContratos_synonymos as contrato_synonymos
 import tipoProcedimento_synonymos as procedimento_Synonymos
 import justificacaoNEscrita as justificacao
+"""
 #Fim de população de dados
 
 
@@ -24,13 +27,12 @@ def main():
         sys.exit(1)
     #endregion    
 
-    
     #region Extração
     try:
-        db.verify_database_exists()
         logger.info("A iniciar extração de dados")
-        Entity_retries.main()
-        extracao_incremental_contratos.main()
+        #db.drop_staging_tables()
+        #Entity_retries.main()
+        #extracao_incremental_contratos.main()
     except Exception as e:
         logger.error(f"Erro: {e}")
         sys.exit(1)
@@ -51,10 +53,10 @@ def main():
     try:
         logger.info("A iniciar população de dados")
         cpv_synonyms.main()
-        contrato_synonymos.main()
-        procedimento_Synonymos.main()
-        justificacao.main()
-        artigos_synonymos.main()
+        #contrato_synonymos.main()
+        #procedimento_Synonymos.main()
+        #justificacao.main()
+        #artigos_synonymos.main()
         logger.info("Fim da população dados")
     except Exception as e:
         logger.error(f"Erro init_dims antes do load: {e}")
@@ -75,6 +77,6 @@ def main():
 
     
     Notify_laravel.main()
-
+    
 if __name__ == "__main__":
     main()

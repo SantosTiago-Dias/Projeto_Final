@@ -11,7 +11,7 @@ TABLE_NAME = "tipo_contrato_dictionary"
 CCP_FILE = "Tipo_Contrato.json"
 TABLE_LOGS = 't_logs_transformacao'
 
-client = Cerebras(api_key=os.getenv('API_KEY'))
+client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
 #Sedders
 KNOWN_CONTRACT_TYPES = {
@@ -73,9 +73,9 @@ def new_types_contracts(log_id: int):
                     """
 
                     response = client.chat.completions.create(
-                        model="llama3.1-8b",
+                        model="llama-3.1-8b-instant",
                         messages=[{"role": "user", "content": prompt}],
-                        max_completion_tokens=100,
+                        temperature=0.2,
                     )
 
                     explain = response.choices[0].message.content.strip()

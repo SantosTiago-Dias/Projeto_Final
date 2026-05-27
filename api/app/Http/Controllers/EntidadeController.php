@@ -47,18 +47,16 @@ class EntidadeController extends Controller
         }
         else
         {
-            $entidade =DimEntidade::find($id);
+            $entidade =DimEntidade::findOrFail($id);
 
             if (is_null($entidade))
             {
                 abort(404, 'Not Found');
             }
         }
+        Cache::put($cacheKey, json_decode($entidade->toJson(),true), now()->addDay(1));
 
-        $data = new EntidadeResource($entidade);
-        Cache::put($cacheKey, json_decode($data->toJson(),true), now()->addDay(1));
-
-        return response()->json($data);
+        return response()->json($entidade);
     }
 
     public function listaContratos($id)

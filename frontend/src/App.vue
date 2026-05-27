@@ -1,11 +1,9 @@
 <script setup>
-import { FileText, Building2, LayoutDashboard, Search } from "lucide-vue-next";
-import { RouterLink, RouterView } from "vue-router";
+import { FileText, Building2, FolderKanban, Search } from "lucide-vue-next";
+import { RouterLink, RouterView, useRouter } from "vue-router";
 import { Toaster } from "vue-sonner";
 import { useWebSocket } from "@/composable/newDataWS.js";
 import {inject} from "vue";
-import {FileText, Building2, Search, FolderKanban} from "lucide-vue-next"
-import {RouterLink, RouterView, useRouter} from "vue-router"
 import { ref } from "vue"
 let ws = inject('wsBaseURL');
 useWebSocket(ws);

@@ -11,7 +11,7 @@ CCP_FILE = "ccp_por_artigo.json"
 TABLE_NAME = "fundamentacao_contrato_dictionary"
 TABLE_LOGS= "t_logs_transformacao"
 
-client = Cerebras(api_key=os.getenv('API_KEY'))
+client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
 #Prepare data for insertion into the database
 def prepare_data(artigo:int,explain:str):
@@ -52,9 +52,9 @@ def main():
                     """
 
                     response = client.chat.completions.create(
-                        model="llama3.1-8b",
+                        model="llama-3.1-8b-instant",
                         messages=[{"role": "user", "content": prompt}],
-                        max_completion_tokens=100,
+                        temperature=0.2,
                     )
                     
                     explain = response.choices[0].message.content.strip()

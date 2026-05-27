@@ -8,13 +8,9 @@ from datetime import datetime
 import requests
 import time
 
-
 load_dotenv('.env')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-INIT = os.path.join(BASE_DIR, 'init.sql')
-VIEWS = os.path.join(BASE_DIR, 'views.sql')
 
-PROCEDURES = os.path.join(BASE_DIR, 'procedures.sql')
 URL_NOMI = "https://nominatim.openstreetmap.org/search"
 URL_NASA = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
 
@@ -25,72 +21,33 @@ def get_connection():
             host=os.getenv("MYSQL_HOST", "database"),
             user=os.getenv("MYSQL_DB_USER", "root"),
             port=int(os.getenv("MYSQL_PORT", 3306)),
-            password=os.getenv("MYSQL_ROOT_PASSWORD", ""),
+            password=os.getenv("MYSQL_ROOT_PASSWORD", "root"),
             database=os.getenv("MYSQL_DATABASE", "ETL")
         )
     except Error as e:
         logger.error(f"Erro ao conectar à BD: {e}")
         raise SystemExit("Não foi possível conectar à base de dados. A encerrar...") from None
-        
-#Função para verificar se a base de dados existe e criar as tabelas e procedures necessárias
-def verify_database_exists():
+
+def drop_staging_tables():
     mydb = get_connection()
-
-    mycursor = mydb.cursor()
+    if not mydb:
+        return
+    
     try:
-
-        mycursor.execute(f"USE {os.getenv('MYSQL_DATABASE')}")
-        mycursor.execute("SHOW TABLES")
-        mycursor.fetchall()
-
-        #To generate the tables from init.sql (if they don't exist)
-        with open(INIT, 'r', encoding='utf-8') as f:
-            sql = f.read()
-            for statement in sql.split(';'):
-                statement = statement.strip()
-                if statement:
-                    mycursor.execute(statement)
-        logger.info("Tabelas verificadas/criadas com sucesso.")
-
-        #To generate the views from views.sql (if they don't exist)
-        with open(VIEWS, 'r', encoding='utf-8') as f:
-            sql = f.read()
-            for statement in sql.split(';'):
-                statement = statement.strip()
-                if statement:
-                    mycursor.execute(statement)
-        logger.info("views verificadas/criadas com sucesso.")
-        #To generate the procedures from procedures.sql (if they don't exist)
-        with open(PROCEDURES, 'r', encoding='utf-8') as f:
-            sql_content = f.read()
-            
-            statements = sql_content.split('$$')
-            for statement in statements:
-                clean_stmt = statement.replace('DELIMITER', '').strip()
-                if clean_stmt and clean_stmt != ';':
-                    try:
-                        # Ensure we handle the semicolon at the end if it was 'DELIMITER ;'
-                        if clean_stmt.startswith(';'):
-                            clean_stmt = clean_stmt[1:].strip()
-                        
-                        mycursor.execute(clean_stmt)
-                    except Exception as e:
-                        logger.warning(f"Error executing statement: {e}")
-                        mydb.rollback()
-                        return False
-        logger.info("Procedures verificadas/criadas com sucesso.")
+        cursor = mydb.cursor()
+        with open(os.path.join(BASE_DIR, 'staging_tables.sql'), 'r') as f:
+            sql_script = f.read()
+            for statement in sql_script.split(';'):
+                if statement.strip():
+                    cursor.execute(statement)
         mydb.commit()
-
-    except FileNotFoundError:
-        logger.error("Ficheiro init.sql não encontrado")
-        return False
+        logger.success("Tabelas de staging criadas com sucesso!")
     except mysql.connector.Error as e:
-        logger.error(f"Erro: {e}")
-        return False
+        logger.error(f"Erro ao criar tabelas de staging: {e}")
     finally:
-        mycursor.close()
+        cursor.close()
         mydb.close()
-   
+
 #Function to execute the transformation procedures and lookup normalization
 def execute_transformacao():
     
@@ -99,6 +56,7 @@ def execute_transformacao():
         return
 
     try:
+        #list of procedures to execute in order
         procedures = [
             "transform_detalhes_contratos",
             "transform_contratos",
@@ -173,6 +131,7 @@ def execute_load():
         return
 
     try:
+        #List of procedures to execute in order
         procedures = [
             "load_dims_dict",
             "load_dim_entidade",
