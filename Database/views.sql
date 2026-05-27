@@ -3,7 +3,7 @@ DROP VIEW IF EXISTS view_contratos_menor_valor;
 DROP VIEW IF EXISTS view_entidades_mais_contratos_adjudicados;
 DROP VIEW IF EXISTS view_entidades_mais_concorrem_menos_ganham;
 
-CREATE VIEW  view_contratos_maior_valor AS
+CREATE VIEW view_contratos_maior_valor AS
     SELECT chave_contratos,objeto,valor_contratual
     FROM dim_detalhes_contratos
     WHERE chave_contratos != 1

@@ -27,7 +27,7 @@ def main():
     
     #region Extração
     try:
-        db.verify_database_exists()
+        #db.verify_database_exists()
         logger.info("A iniciar extração de dados")
         Entity_retries.main()
         extracao_incremental_contratos.main()
