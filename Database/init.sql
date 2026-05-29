@@ -14,6 +14,24 @@ DROP Table If EXISTS entidade_transf;
 
 DROP TABLE IF EXISTS detalhes_contratos_transf;
 
+-- Cache Table
+CREATE TABLE `cache` (
+    `key`        VARCHAR(255)  NOT NULL,
+    `value`      MEDIUMTEXT    NOT NULL,
+    `expiration` BIGINT        NOT NULL,
+    PRIMARY KEY (`key`),
+    INDEX `cache_expiration_index` (`expiration`)
+);
+ 
+-- Cache Locks Table
+CREATE TABLE `cache_locks` (
+    `key`        VARCHAR(255)  NOT NULL,
+    `owner`      VARCHAR(255)  NOT NULL,
+    `expiration` BIGINT        NOT NULL,
+    PRIMARY KEY (`key`),
+    INDEX `cache_locks_expiration_index` (`expiration`)
+);
+
 CREATE TABLE IF NOT EXISTS data_extracted (
     id INT PRIMARY KEY AUTO_INCREMENT,
     num_contratos INT,
