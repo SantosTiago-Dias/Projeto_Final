@@ -8,10 +8,11 @@ RUN npm install vue-sonner
 
 # Declare each ARG so Vite can see them
 ARG VITE_BASE_URL
-
+ARG VITE_WS_URL
 
 # Make them available as env vars during build
 ENV VITE_BASE_URL=$VITE_BASE_URL
+ENV VITE_WS_URL=$VITE_WS_URL
 
 COPY . .
 RUN npm run build

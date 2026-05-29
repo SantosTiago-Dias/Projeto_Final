@@ -25,11 +25,7 @@ BEGIN
     RETURN result;
 END$$
 
-DELIMITER ;
-
-DROP FUNCTION IF EXISTS normalizar_sc;
-
-DELIMITER $$
+DROP FUNCTION IF EXISTS normalizar_sc$$
 
 CREATE FUNCTION normalizar_sc(input TEXT)
     RETURNS TEXT
@@ -61,14 +57,6 @@ BEGIN
 
     RETURN result;
 END$$
-
-DELIMITER ;
-
-DELIMITER $$
-
--- =============================================
--- TRANSFORM PROCEDURES
--- =============================================
 
 DROP PROCEDURE IF EXISTS transform_detalhes_contratos$$
 
@@ -159,9 +147,6 @@ DROP PROCEDURE IF EXISTS transform_contratos$$
 CREATE PROCEDURE transform_contratos()
 BEGIN
 
-    -- =========================
-    -- ADJUDICATÁRIOS
-    -- =========================
 INSERT INTO contratos_transf (
     id_contrato,
     id_entidade,
@@ -223,10 +208,6 @@ FROM contratos_ext c
                          fundamentacao = VALUES(fundamentacao),
                          justificacao_nao_escrita = VALUES(justificacao_nao_escrita);
 
-
--- =========================
--- CONCORRENTES
--- =========================
 INSERT INTO contratos_transf (
     id_contrato,
     id_entidade,
@@ -349,8 +330,8 @@ UPDATE entidade_transf t
     ) agg
 ON t.id_entidade = agg.id_entidade
     SET
-        t.num_contratos_adjudicatario =IFNULL(agg.num_contratos,0),
-        t.total_adjudicatario =IFNULL(agg.total_valor,0);
+        t.num_contratos_adjudicatario = IFNULL(agg.num_contratos,0),
+        t.total_adjudicatario = IFNULL(agg.total_valor,0);
 
 -- Metricas para adjudicantes
 UPDATE entidade_transf t
@@ -371,7 +352,6 @@ ON t.id_entidade = agg.id_entidade
     SET
         t.num_contratos_adjudicante = IFNULL(t.num_contratos_adjudicante,0) + IFNULL(agg.num_contratos,0),
         t.total_adjudicante = IFNULL(t.total_adjudicante,0) + IFNULL(agg.total_valor,0);
-
 
 END$$
 
@@ -399,9 +379,7 @@ FROM contratos_ext c
 
 END$$
 
-DROP PROCEDURE IF EXISTS normalizar_lookup;
-
-DELIMITER $$
+DROP PROCEDURE IF EXISTS normalizar_lookup$$
 
 CREATE PROCEDURE normalizar_lookup(
     IN p_table VARCHAR(100),
@@ -443,14 +421,13 @@ BEGIN
     CLOSE cur;
 END$$
 
-
 -- =============================================
 -- LOAD PROCEDURES
 -- =============================================
 
 DROP PROCEDURE IF EXISTS load_dim_entidade$$
 
-CREATE PROCEDURE load_dim_entidade () BEGIN
+CREATE PROCEDURE load_dim_entidade() BEGIN
 
 INSERT INTO
     dim_entidade (
@@ -474,11 +451,11 @@ WHERE
             d.id_entidade = e.id_entidade
     );
 
-END $$
+END$$
 
 DROP PROCEDURE IF EXISTS load_dim_detalhes_contratos$$
 
-CREATE PROCEDURE load_dim_detalhes_contratos () BEGIN
+CREATE PROCEDURE load_dim_detalhes_contratos() BEGIN
 
 INSERT INTO
     dim_detalhes_contratos (
@@ -546,11 +523,11 @@ ON DUPLICATE KEY UPDATE
     contrato_ecologico = VALUES(contrato_ecologico),
     fundamentacao_ajuste_directo = VALUES(fundamentacao_ajuste_directo);
 
-END $$
+END$$
 
 DROP PROCEDURE IF EXISTS load_dim_cpv_contratos$$
 
-CREATE PROCEDURE load_dim_cpv_contratos () BEGIN
+CREATE PROCEDURE load_dim_cpv_contratos() BEGIN
 
 INSERT IGNORE INTO
     dim_cpv_contratos (chave_contrato, chave_cpv)
@@ -560,11 +537,11 @@ FROM
     INNER JOIN dim_detalhes_contratos dc ON dc.id_contrato = c.id_contrato
     INNER JOIN cpv_dictionary cp ON cp.codigo = c.cpv;
 
-END $$
+END$$
 
 DROP PROCEDURE IF EXISTS load_dim_data$$
 
-CREATE PROCEDURE load_dim_data (
+CREATE PROCEDURE load_dim_data(
     IN data_inicio DATE,
     IN data_fim DATE
 ) BEGIN DECLARE d DATE;
@@ -639,9 +616,7 @@ VALUES (
                WHEN d = DATE_ADD(Pascoa, INTERVAL 60 DAY) THEN 'Corpo de Deus'
 
                ELSE 'Não aplicável.'
-               END
-
-,
+               END,
 
 -- fim de semana
 CASE
@@ -720,11 +695,11 @@ SET d = DATE_ADD(d, INTERVAL 1 DAY);
 
 END WHILE;
 
-END $$
+END$$
 
 DROP PROCEDURE IF EXISTS load_fact$$
 
-CREATE PROCEDURE load_fact () BEGIN
+CREATE PROCEDURE load_fact() BEGIN
 
 INSERT INTO
     fact_contratos (
@@ -818,11 +793,11 @@ ON DUPLICATE KEY UPDATE
     valor_contratual = VALUES(valor_contratual),
     chave_data = VALUES(chave_data);
 
-END $$
+END$$
 
 DROP PROCEDURE IF EXISTS load_dims_dict$$
 
-CREATE PROCEDURE load_dims_dict () BEGIN
+CREATE PROCEDURE load_dims_dict() BEGIN
 -- Tipo Contrato
 INSERT IGNORE INTO
     tipo_contrato_dim (tipo, descricao)
@@ -859,11 +834,13 @@ FROM
 
 -- CPV
 INSERT IGNORE INTO
-    cpv_dim (codigo,cpv_descricao, descricao)
+    cpv_dim (codigo, cpv_descricao, descricao)
 SELECT DISTINCT
     codigo,
     cpv_descricao,
     descricao
 FROM cpv_dictionary;
 
-END $$
+END$$
+
+DELIMITER ;

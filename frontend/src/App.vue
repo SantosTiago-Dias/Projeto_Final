@@ -1,7 +1,13 @@
-<script setup lang="ts">
-import {FileText, Building2, Search, FolderKanban} from "lucide-vue-next"
-import {RouterLink, RouterView, useRouter} from "vue-router"
+<script setup>
+import { FileText, Building2, FolderKanban, Search } from "lucide-vue-next";
+import { RouterLink, RouterView, useRouter } from "vue-router";
+import { Toaster } from "vue-sonner";
+import { useWebSocket } from "@/composable/newDataWS.js";
+import {inject} from "vue";
 import { ref } from "vue"
+let ws = inject('wsBaseURL');
+useWebSocket(ws);
+
 
 const router = useRouter()
 const search = ref("")
@@ -20,7 +26,11 @@ const searchContracts = () => {
 </script>
 
 <template>
+
   <div class="flex min-h-screen w-full bg-[#f8fafc]">
+
+    <Toaster richColors position="bottom-right" />
+
     <!-- Sidebar -->
     <aside class="hidden w-64 border-r bg-white md:flex flex-col fixed h-full">
       <div class="p-6 border-b">
@@ -38,6 +48,7 @@ const searchContracts = () => {
           <FileText :size="20" class="text-blue-600" />
           Contratos
         </router-link>
+
 
         <router-link
             to="/entidades"

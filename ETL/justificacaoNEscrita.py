@@ -11,8 +11,9 @@ DICTIONARY_FILE = "Justificacao_Nao_Escrita.json"
 TABLE_NAME = "justificacao_contrato_nao_escrito_dictionary"
 TABLE_LOGS = 't_logs_transformacao'
 
-client = Cerebras(api_key=os.getenv('API_KEY'))
+client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
+#Prepare data for insertion in the database
 def prepare_data(artigo:int,explain:str):
     data={
         'justificacao':artigo,
@@ -20,6 +21,7 @@ def prepare_data(artigo:int,explain:str):
     }
     return data
 
+#Main function to populate the justificação não escrita dictionary
 def main():
     dictionary.verifiy_File_exists(DICTIONARY_FILE)
     justis_list_distinc=db.get_distinct_data('justificacao_nao_escrita','contratos_transf')
@@ -57,9 +59,9 @@ def main():
                     """
 
                     response = client.chat.completions.create(
-                        model="llama3.1-8b",
+                        model="llama-3.1-8b-instant",
                         messages=[{"role": "user", "content": prompt}],
-                        max_completion_tokens=100,
+                        temperature=0.2,
                     )
                     
                     explain = response.choices[0].message.content.strip()

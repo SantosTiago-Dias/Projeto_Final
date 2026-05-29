@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import {inject} from "vue";
 export const useAPIStore = defineStore('api', () => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+    const API_BASE_URL = inject('apiBaseURL');
 
     const getListContracts = (params = {}) =>{
         return axios.get(`${API_BASE_URL}/contracts`,{params})

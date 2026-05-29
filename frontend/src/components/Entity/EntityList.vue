@@ -8,7 +8,7 @@
 
     <!-- Loading State -->
     <p v-if="loading" class="text-gray-400 text-sm italic">A carregar entidades...</p>
-
+    <div v-else-if="entities === undefined || entities === null">Não existem entidades ainda</div>
     <!-- Entity Grid -->
     <div v-else class="flex flex-col gap-3">
 
@@ -391,6 +391,7 @@ const openModal = async (entity) => {
       apiStore.getDetailEntity(entity.chave_entidade),
       apiStore.getListContractofEntity(entity.chave_entidade)
     ])
+
     entityDetails.value = resEntityDetails.data
     entityContracts.value = resEntityContracts.data.data
         .sort((a, b) => new Date(b.data_publicacao) - new Date(a.data_publicacao))
@@ -408,8 +409,8 @@ const closeModal = () => {
   entityContracts.value = []
 }
 
-const goToContract = (id) => {
-  router.push(`/contracts/${id}`)
+const goToContract = (chave_contrato) => {
+  router.push(`/contracts/${chave_contrato}`)
 }
 
 function goToDetails(id) {

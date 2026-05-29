@@ -15,7 +15,7 @@ class DetailsContractResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'chave_contratos'                => $this->chave_contratos,
+            'id_contrato'                => $this->id_contrato,
             'objeto'                         => $this->objeto,
             'descricao'                      => $this->descricao,
             'data_publicacao'                => $this->data_publicacao,

@@ -3,6 +3,8 @@ import database_aux as db
 from loguru import logger
 import extracao_incremental_contratos
 import sys
+import Entity_retries
+import Notify_laravel
 
 #População de dados
 import cpv_synonyms
@@ -12,19 +14,22 @@ import tipoProcedimento_synonymos as procedimento_Synonymos
 import justificacaoNEscrita as justificacao
 #Fim de população de dados
 
+
 def main():
 
-    
-    #region Connecção com a BD
+    #region Connection to DB
     connection = db.get_connection()
     if not connection:
         logger.error("Não foi possivel estabelecer uma connecção com a base de dados")
         sys.exit(1)
     #endregion    
 
+    
     #region Extração
     try:
-        db.verify_database_exists()
+        logger.info("A iniciar extração de dados")
+        db.drop_staging_tables()
+        Entity_retries.main()
         extracao_incremental_contratos.main()
     except Exception as e:
         logger.error(f"Erro: {e}")
@@ -68,6 +73,8 @@ def main():
         sys.exit(1)
     #endregion
 
+    
+    Notify_laravel.main()
 
 if __name__ == "__main__":
     main()
