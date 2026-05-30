@@ -1,5 +1,5 @@
 import os
-from cerebras.cloud.sdk import Cerebras, RateLimitError
+from groq import Groq, RateLimitError
 from dotenv import load_dotenv
 import dictonary_aux as dictionary
 from loguru import logger

@@ -1,5 +1,5 @@
 import os
-from cerebras.cloud.sdk import Cerebras, RateLimitError
+from groq import Groq, RateLimitError
 from dotenv import load_dotenv
 import dictonary_aux as dictionary
 from loguru import logger
@@ -10,7 +10,7 @@ load_dotenv(".env")
 CCP_FILE = "Tipo_Procedimento.json"
 TABLE_NAME = "tipo_procedimento_dictionary"
 TABLE_LOGS = 't_logs_transformacao'
-client = Cerebras(api_key=os.getenv('API_KEY'))
+client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
 #Sedders
 KNOWN_PROCEDURE_TYPES = {
