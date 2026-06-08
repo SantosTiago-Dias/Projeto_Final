@@ -140,8 +140,9 @@
               {{ contract.objeto }}
             </h2>
             <div class="flex gap-2 mt-2">
-              <span class="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 uppercase font-bold">
-                {{ contract.tipo_procedimento.tipo }}
+              <span class="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 uppercase font-bold"
+                    :title="contract.tipo_procedimento?.descricao ?? 'Sem descrição'">
+                {{ contract.tipo_procedimento?.tipo ?? 'Não disponível'}}
               </span>
             </div>
           </div>
@@ -175,7 +176,7 @@
                 <p class="text-[11px] uppercase tracking-wide text-gray-400">Detalhes Adicionais</p>
                 <ul class="text-xs space-y-1 text-gray-600 mt-1">
                   <li><strong>Prazo de Execução:</strong> {{ contract.prazo_execucao }} dias</li>
-                  <li><strong>Data Publicação:</strong> {{ contract.data_publicacao }}</li>
+                  <li><strong>Data Celebração:</strong> {{ formatDate(contract.data?.date) }}</li>
                 </ul>
               </div>
               <div>
@@ -382,5 +383,10 @@ function formatCurrency(v) {
 
 function goToDetails(id) {
   router.push(`/contracts/${id}`)
+}
+
+const formatDate = (date) => {
+  if (!date) return "---"
+  return new Date(date).toLocaleDateString("pt-PT")
 }
 </script>
