@@ -1,6 +1,6 @@
 <script setup>
-import { FileText, Building2, FolderKanban, Search } from "lucide-vue-next";
-import { RouterLink, RouterView, useRouter } from "vue-router";
+import { FileText, Building2, FolderKanban, Search, ChevronDown  } from "lucide-vue-next";
+import { RouterLink, RouterView, useRouter,useRoute } from "vue-router";
 import { Toaster } from "vue-sonner";
 import { useWebSocket } from "@/composable/newDataWS.js";
 import {inject} from "vue";
@@ -10,6 +10,7 @@ useWebSocket(ws);
 
 
 const router = useRouter()
+const route = useRoute()
 const search = ref("")
 
 const searchContracts = () => {
@@ -23,6 +24,19 @@ const searchContracts = () => {
     }
   })
 }
+
+const open = ref(false)
+
+function toggleDropdown() {
+  open.value = !open.value
+}
+
+function goTo(path) {
+  router.push(path)
+  open.value = false
+}
+
+const isActive = (path) => route.path.startsWith(path)
 </script>
 
 <template>
@@ -58,14 +72,68 @@ const searchContracts = () => {
           <Building2 :size="20" class="text-slate-400 group-hover:text-slate-900" />
           Entidades
         </router-link>
-        <router-link
-            to="/analyses"
-            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 group"
-            active-class="bg-blue-50 text-blue-700 font-semibold"
-        >
-          <FolderKanban :size="20" class="text-slate-400 group-hover:text-slate-900" />
-          Analises
-        </router-link>
+        <div class="relative">
+
+          <!-- BOTÃO PRINCIPAL -->
+          <button
+              @click="toggleDropdown"
+              class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900"
+              :class="{ 'bg-blue-50 text-blue-700 font-semibold': isActive('/analyses') }"
+          >
+            <div class="flex items-center gap-3">
+              <FolderKanban :size="20" />
+              Análises
+            </div>
+
+            <ChevronDown
+                :size="16"
+                class="transition-transform"
+                :class="{ 'rotate-180': open }"
+            />
+          </button>
+
+          <!-- DROPDOWN -->
+          <div
+              v-if="open"
+              class="ml-8 mt-2 space-y-1"
+          >
+            <button
+                @click="goTo('/analyses/cpv')"
+                class="block w-full text-left rounded-md px-3 py-2 text-sm hover:bg-slate-100"
+            >
+              Pesquisa CPV
+            </button>
+
+            <button
+                @click="goTo('/analyses/biggest-contracts')"
+                class="block w-full text-left rounded-md px-3 py-2 text-sm hover:bg-slate-100"
+            >
+              Maiores Contratos
+            </button>
+
+            <button
+                @click="goTo('/analyses/smallest-contracts')"
+                class="block w-full text-left rounded-md px-3 py-2 text-sm hover:bg-slate-100"
+            >
+              Menores Contratos
+            </button>
+
+            <button
+                @click="goTo('/analyses/compete-more-earn-less')"
+                class="block w-full text-left rounded-md px-3 py-2 text-sm hover:bg-slate-100"
+            >
+              Tentam mais e ganham menos
+            </button>
+
+            <button
+                @click="goTo('/analyses/more-contracts')"
+                class="block w-full text-left rounded-md px-3 py-2 text-sm hover:bg-slate-100"
+            >
+              Quem mais faz contratos
+            </button>
+          </div>
+
+        </div>
       </nav>
     </aside>
 

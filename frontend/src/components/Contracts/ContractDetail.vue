@@ -78,7 +78,9 @@ onMounted(async () => {
     </Button>
       <header class="space-y-4">
         <div class="flex items-center gap-2">
-          <Badge variant="outline" class="uppercase tracking-wider">Contrato Público</Badge>
+          <Badge variant="outline" class="uppercase tracking-wider"
+                 :title="contract.tipo_contrato?.descricao ?? 'Sem descrição'">
+            {{ contract.tipo_contrato?.tipo ?? 'Não disponível'}}</Badge>
           <Badge v-if="contract?.procedimento_centralizado === 1" variant="secondary">Procedimento Centralizado</Badge>
         </div>
         <h1 class="text-3xl font-extrabold tracking-tight lg:text-4xl text-slate-900 leading-tight">
