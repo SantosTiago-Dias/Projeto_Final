@@ -4,10 +4,13 @@
 - Base API paths:
   - `/contracts`
   - `/contracts/{chave_contrato}`
+  - `/contracts/numberContracts`
   - `/entidades`
   - `/entidades/{chave_entidade}`
   - `/entidades/{chave_entidade}/listContracts`
+  - - `/entidades/numberEntities`
   - `/filters`
+  
 
 - Response formats are JSON.
 - Pagination is used for list endpoints with 25 items per page.
@@ -21,7 +24,7 @@
 
 ## Endpoints
 
-### 1. GET `/contracts`
+### GET `/contracts`
 
 Returns a paginated list of contracts.
 
@@ -46,7 +49,7 @@ Returns a paginated list of contracts.
   - `links`: pagination links.
   - `meta`: pagination metadata.
 
-### 2. GET `/contracts/{chave_contrato}`
+### GET `/contracts/{chave_contrato}`
 
 Returns details for a single contract by its unique key.
 
@@ -64,7 +67,21 @@ Returns details for a single contract by its unique key.
 - `404`: contract not found.
 - `500`: server error.
 
-### 3. GET `/entidades`
+### GET `/contracts/numberContracts`
+
+Returns number of contracts in database.
+
+#### Success response
+
+- `200`: number of contracts.
+- Response body is a `numberContracts` object.
+
+#### Error responses
+
+- `404`: contract not found.
+- `500`: server error.
+
+### GET `/entidades`
 
 Returns a paginated list of entities.
 
@@ -83,7 +100,7 @@ Returns a paginated list of entities.
   - `links`: pagination links.
   - `meta`: pagination metadata.
 
-### 4. GET `/entidades/{chave_entidade}`
+### GET `/entidades/{chave_entidade}`
 
 Returns details for a single entity by its unique key.
 
@@ -117,6 +134,20 @@ Returns a paginated list of contracts associated with a specific entity, either 
 #### Error responses
 
 - `404`: entity not found.
+- `500`: server error.
+
+### GET `/entidades/numberEntities`
+
+Returns number of entities in database.
+
+#### Success response
+
+- `200`: number of Entities.
+- Response body is a `numberEntities` object.
+
+#### Error responses
+
+- `404`: contract not found.
 - `500`: server error.
 
 ### 6. GET `/filters`

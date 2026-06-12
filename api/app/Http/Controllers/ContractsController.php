@@ -109,4 +109,19 @@ class ContractsController extends Controller
             'TipoProcedimento' => TipoProcedimentoResource::collection($tipoProcedimento),
         ]);
     }
+
+    public function numberContracts(): JsonResponse
+    {
+        $cacheKey = 'contracts:numberOfCountracs';
+
+        $numberContracts = Cache::rememberForever($cacheKey, function () {
+            return DimDetalhesContrato::all()->count();
+        });
+
+        return response()->json([
+            'numberContracts' => $numberContracts
+        ]);
+
+
+    }
 }

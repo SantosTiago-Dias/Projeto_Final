@@ -8,6 +8,7 @@ use App\Http\Resources\EntidadeResource;
 use App\Http\Resources\ListContractsResource;
 use App\Models\DimDetalhesContrato;
 use App\Models\DimEntidade;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -102,4 +103,20 @@ class EntidadeController extends Controller
 
         return ListContractsResource::collection($contratos);
     }
+
+    public function numberEntities(): JsonResponse
+    {
+        $cacheKey = 'entities:numberOfEntities';
+
+        $numberEntities = Cache::rememberForever($cacheKey, function () {
+            return DimDetalhesContrato::all()->count();
+        });
+
+        return response()->json([
+            'numberEntities' => $numberEntities
+        ]);
+
+
+    }
+
 }
