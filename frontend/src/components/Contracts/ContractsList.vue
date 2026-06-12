@@ -4,7 +4,7 @@
 
     <div class="mb-8">
       <h1 class="text-2xl font-medium text-gray-900">Contratos</h1>
-    
+
     </div>
 
     <!-- Filtros -->
@@ -124,6 +124,9 @@
     <div v-else-if="contracts === undefined || contracts === null">Não existem contratos ainda</div>
 
     <div v-else class="flex flex-col gap-4">
+      <div class="contratos-summary" style="margin: 20px 0; font-family: sans-serif; color: #333;">
+        <span>A mostrar <strong>{{contracts.length}}</strong> de {{meta.total}} contratos encontrados</span>
+      </div>
       <div
           v-for="contract in contracts"
           :key="contract.chave_contratos"
@@ -312,12 +315,10 @@ const fetchContracts = async (page = 1) => {
     )
 
     const response = await apiStore.getListContracts({ page: page, ...queryParams })
-    console.log(response)
     contracts.value = response.data.data?.map(item => ({
       ...item,
       _isOpen: false
     }))
-    console.log(contracts.value)
     meta.value = response.data.meta
   } catch (err) {
     console.error("Falha ao carregar dados:", err)

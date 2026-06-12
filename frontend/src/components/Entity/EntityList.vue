@@ -3,7 +3,6 @@
     <!-- Header stays the same -->
     <div class="mb-6">
       <h1 class="text-2xl font-medium text-gray-900">Entidades</h1>
-      <p v-if="meta" class="text-sm text-gray-400 mt-1">{{ meta.total }} resultados</p>
     </div>
 
     <!-- Loading State -->
@@ -157,7 +156,9 @@
 
         </div>
       </div>
-
+      <div class="contratos-summary" style="margin: 20px 0; font-family: sans-serif; color: #333;">
+        <span>A mostrar <strong>{{entities.length}}</strong> de <strong>{{meta.total}}</strong> entiadades encontradas</span>
+      </div>
       <div
           v-for="entity in entities"
           :key="entity.chave_entidade"
@@ -332,7 +333,6 @@ const fetchEntities = async (page = 1) => {
 
   try {
     const queryParams = {}
-    console.log(filters)
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== '' && value !== null && value !== undefined) {

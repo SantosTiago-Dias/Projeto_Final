@@ -33,7 +33,7 @@ function toggleDropdown() {
 
 function goTo(path) {
   router.push(path)
-  open.value = false
+  open.value = true
 }
 
 const isActive = (path) => route.path.startsWith(path)
@@ -59,7 +59,7 @@ const isActive = (path) => route.path.startsWith(path)
             class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 group"
             active-class="bg-blue-50 text-blue-700 font-semibold shadow-sm"
         >
-          <FileText :size="20" class="text-blue-600" />
+          <FileText :size="20" class="text-slate-400 group-hover:text-slate-900" />
           Contratos
         </router-link>
 
