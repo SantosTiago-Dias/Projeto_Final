@@ -62,8 +62,6 @@ services:
       context: ./ETL
       dockerfile: Dockerfile
     env_file: .env
-    volumes:
-      - ./Database/staging_tables.sql:/app/staging_tables.sql
     command: tail -f /dev/null
     depends_on:
       database:

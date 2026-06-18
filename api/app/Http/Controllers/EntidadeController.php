@@ -103,20 +103,4 @@ class EntidadeController extends Controller
 
         return ListContractsResource::collection($contratos);
     }
-
-    public function numberEntities(): JsonResponse
-    {
-        $cacheKey = 'entities:numberOfEntities';
-
-        $numberEntities = Cache::rememberForever($cacheKey, function () {
-            return DimDetalhesContrato::all()->count();
-        });
-
-        return response()->json([
-            'numberEntities' => $numberEntities
-        ]);
-
-
-    }
-
 }

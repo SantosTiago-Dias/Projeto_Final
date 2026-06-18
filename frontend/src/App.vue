@@ -131,6 +131,12 @@ const isActive = (path) => route.path.startsWith(path)
             >
               Quem mais faz contratos
             </button>
+            <button
+                @click="goTo('/analyses/contracts-graphs')"
+                class="block w-full text-left rounded-md px-3 py-2 text-sm hover:bg-slate-100"
+            >
+              Detalhes sobre contratos
+            </button>
           </div>
 
         </div>

@@ -38,7 +38,7 @@ const formatCurrency = (v) =>
     }).format(v)
 
 onMounted(async () => {
-  const res = await apiStore.getEntitiesMoreContractsAsContracting()
+  const res = await apiStore.getAnalyticsEntitiesMoreContractsAsContracting()
   entities.value = res.data
   loading.value = false
 })
