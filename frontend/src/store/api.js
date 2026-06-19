@@ -57,6 +57,10 @@ export const useAPIStore = defineStore('api', () => {
         return axios.get(`${API_BASE_URL}/analytics/tipoProcedimento`)
     }
 
+    const getTerms = () =>{
+        return axios.get(`${API_BASE_URL}/terms`)
+    }
+
 
     return {
         getListContracts,
@@ -72,5 +76,6 @@ export const useAPIStore = defineStore('api', () => {
         searchCPV,
         getAnalyticsTipoContrato,
         getAnalyticsTipoProcedimento,
+        getTerms
     }
 })

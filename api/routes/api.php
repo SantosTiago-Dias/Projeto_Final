@@ -3,6 +3,7 @@
 use App\Http\Controllers\ContractsController;
 use App\Http\Controllers\EntidadeController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\TermsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('contracts')->group(function () {
@@ -28,3 +29,5 @@ Route::prefix('analytics')->group(function () {
     Route::get('/tipoContrato', [AnalyticsController::class, 'tipoContrato']);
     Route::get('/tipoProcedimento', [AnalyticsController::class, 'tipoProcedimento']);
 });
+
+Route::get('/terms', [TermsController::class, 'index']);

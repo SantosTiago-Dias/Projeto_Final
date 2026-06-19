@@ -1,5 +1,5 @@
 <script setup>
-import { FileText, Building2, FolderKanban, Search, ChevronDown  } from "lucide-vue-next";
+import { FileText, Building2, FolderKanban, Search, ChevronDown,CircleHelp  } from "lucide-vue-next";
 import { RouterLink, RouterView, useRouter,useRoute } from "vue-router";
 import { Toaster } from "vue-sonner";
 import { useWebSocket } from "@/composable/newDataWS.js";
@@ -138,6 +138,14 @@ const isActive = (path) => route.path.startsWith(path)
               Detalhes sobre contratos
             </button>
           </div>
+          <router-link
+              to="/terms"
+              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 group"
+              active-class="bg-blue-50 text-blue-700 font-semibold"
+          >
+            <CircleHelp :size="20" class="text-slate-400 group-hover:text-slate-900" />
+            Termos explicados
+          </router-link>
 
         </div>
       </nav>

@@ -10,7 +10,7 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition duration-300">
           <div class="mb-4">
             <h3 class="text-lg font-semibold text-slate-800">Tipo de Contratos</h3>
-            <p class="text-xs text-slate-400">Distribuição da quantidade pelos os varios tipos de contrato</p>
+            <p class="text-xs text-slate-400" >Distribuição da quantidade pelos os varios tipos de contrato</p>
           </div>
           <div class="chart-container">
             <Doughnut v-if="chartData1" :data="chartData1" :options="chartOptions" />
@@ -20,7 +20,8 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition duration-300">
           <div class="mb-4">
             <h3 class="text-lg font-semibold text-slate-800">Tipo de Procedimento</h3>
-            <p class="text-xs text-slate-400">Distribuição da quantidade pelos os varios tipos de procedimento</p>
+            <p class="text-xs text-slate-400" title="Os procedimentos de contratação pública em Portugal são definidos pelo Código dos Contratos Públicos (CCP), que rege a escolha de fornecedores de forma transparente e concorrencial. Os tipos de procedimentos variam essencialmente em função do valor estimado do contrato e da natureza da aquisição.">
+              Distribuição da quantidade pelos os varios tipos de procedimento</p>
           </div>
           <div class="chart-container">
             <Doughnut v-if="chartData2" :data="chartData2" :options="chartOptions" />
@@ -59,7 +60,7 @@ const generateColors = (count) => {
 
 onMounted(async () => {
   const res1 = await apiStore.getAnalyticsTipoContrato()
-  let labels = res1.data.map(item => item.tipo_contrato.descricao)
+  let labels = res1.data.map(item => item.tipo_contrato.tipo)
   chartData1.value = {
     labels: labels,
     datasets: [
@@ -73,7 +74,7 @@ onMounted(async () => {
   }
 
   const res2 = await apiStore.getAnalyticsTipoProcedimento()
-  let labels2 = res2.data.map(item => item.tipo_procedimento.descricao)
+  let labels2 = res2.data.map(item => item.tipo_procedimento.tipo)
   chartData2.value = {
     labels: labels2,
     datasets: [

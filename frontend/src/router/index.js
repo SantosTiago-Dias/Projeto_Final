@@ -9,6 +9,7 @@ import SmallestContracts from "@/components/Analyse/SmallestContracts.vue"
 import EntitiesCompeteMoreEarnLess from "@/components/Analyse/EntitiesCompeteMoreEarnLess.vue"
 import EntitiesMoreContracts from "@/components/Analyse/EntitiesMoreContracts.vue"
 import GraphsContractType from "@/components/Analyse/GraphsContractType.vue";
+import Terms from "@/components/Terms/Terms.vue";
 
 const routes = [
   {
@@ -66,6 +67,11 @@ const routes = [
         path: '/analyses/contracts-graphs',
         name: 'contracts-graphs',
         component: GraphsContractType
+    },
+    {
+        path: '/terms',
+        name: 'termos',
+        component: Terms
     }
 ]
 

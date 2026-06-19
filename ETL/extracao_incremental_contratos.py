@@ -222,6 +222,7 @@ def extracion_contracts(sessao:requests.session):
                         logger.success("Dados extraidos com sucesso")
                         parar = True
                         break
+
             pagina += 1
 
             #insert data

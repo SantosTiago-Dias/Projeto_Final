@@ -65,11 +65,10 @@ function goToContractsByCPV() {
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Pesquisa CPV</CardTitle>
+      <CardTitle>Pesquisa por objeto contrato</CardTitle>
 
       <CardDescription>
-        Aqui podes procurar contratos usando palavras simples como
-        “carros”, “software” ou “obras”.
+        Aqui é possível pesquisar contratos utilizando palavras simples como 'carros', 'software' ou 'obras'.
       </CardDescription>
     </CardHeader>
 
