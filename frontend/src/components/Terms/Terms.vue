@@ -1,7 +1,6 @@
 <template>
   <div class="page-wrapper">
     <div class="table-container">
-      <!-- Título da Página adicionado aqui -->
       <div class="table-header">
         <h1>Glossário de Termos</h1>
         <p>Consulte os principais conceitos e os seus significados.</p>
@@ -16,8 +15,8 @@
         </thead>
         <tbody>
         <tr v-for="term in terms" :key="term.id">
-          <td class="term-cell">{{ decodeText(term.term) }}</td>
-          <td class="meaning-cell">{{ decodeText(term.meaning) }}</td>
+          <td class="term-cell">{{ term.term }}</td>
+          <td class="meaning-cell">{{ term.meaning }}</td>
         </tr>
         </tbody>
       </table>
@@ -25,23 +24,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { useAPIStore } from "@/store/api";
+<script setup>
+import { useAPIStore } from "@/store/api.js"
 import { onMounted, ref } from "vue";
 
 const apiStore = useAPIStore();
-const terms = ref([]);
-
-// Função auxiliar para corrigir caracteres estragados caso a API venha com encoding errado
-const decodeText = (str: string) => {
-  if (!str) return '';
-  try {
-    // Tenta decodificar a string se ela estiver em formato "mojibake" (UTF-8 lido como ISO-8859-1)
-    return decodeURIComponent(escape(str));
-  } catch (e) {
-    return str; // Se falhar, devolve o texto original
-  }
-};
+const terms = ref([])
 
 onMounted(async () => {
   let res = await apiStore.getTerms();

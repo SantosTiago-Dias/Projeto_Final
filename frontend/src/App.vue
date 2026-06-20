@@ -49,7 +49,7 @@ const isActive = (path) => route.path.startsWith(path)
     <aside class="hidden w-64 border-r bg-white md:flex flex-col fixed h-full">
       <div class="p-6 border-b">
         <router-link to="/" class="text-xl font-bold tracking-tight text-slate-900">
-          DB_FAIR
+          Open Fair State
         </router-link>
       </div>
 

@@ -1,4 +1,19 @@
 services:
+  proxy-manager:
+    container_name: proxy-manager
+    image: 'jc21/nginx-proxy-manager:latest'
+    ports:
+      - '80:80'
+      - '443:443'
+      - '81:81'
+    volumes:
+      - ./data/npm:/data
+      - ./data/letsencrypt:/etc/letsencrypt
+
+  adminer:
+    container_name: adminer
+    image: adminer
+
   ofelia:
     container_name: ofelia
     image: mcuadros/ofelia:latest
@@ -16,8 +31,6 @@ services:
     build:
       context: ./Database
     env_file: .env
-    ports:
-      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -36,8 +49,6 @@ services:
         - VITE_BASE_URL
         - VITE_WS_URL
     env_file: .env
-    ports:
-      - "80:80"
     depends_on:
       - api
       - ws
@@ -49,8 +60,6 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    ports:
-      - "8000:80"
     environment:
       - SERVER_NAME=:80
     env_file:
@@ -78,13 +87,10 @@ services:
     build:
       context: websocket
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     env_file:
       - .env
     depends_on:
       - redis
-
 
   redis:
     container_name: redis

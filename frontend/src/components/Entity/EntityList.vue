@@ -81,57 +81,57 @@
 
           <!-- Nº Contratos Adjudicatário Min -->
           <div>
-            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-              Contratos Adjudicatário Min
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase" title="Número mínimo de contratos ganhos por entidade">
+              Nº mín. contratos (adjudicatário)
             </label>
 
             <input
                 type="number"
                 min="0"
                 v-model="filters.num_contratos_adjudicatario_min"
-                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+                class="w-full h-9 text-sm border-black-300 rounded-lg"
             />
           </div>
 
           <!-- Nº Contratos Adjudicatário Max -->
           <div>
-            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-              Contratos Adjudicatário Max
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase" title="Número máximo de contratos ganhos por entidade">
+              Nº máx. contratos (adjudicatário)
             </label>
 
             <input
                 type="number"
                 min="0"
                 v-model="filters.num_contratos_adjudicatario_max"
-                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+                class="w-full h-9 text-sm border-black-300 rounded-lg"
             />
           </div>
 
           <!-- Nº Contratos Adjudicante Min -->
           <div>
-            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-              Contratos Adjudicante Min
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase" title="Número mínimo de contratos lançados por entidade">
+              Nº mín. contratos (adjudicatário)
             </label>
 
             <input
                 type="number"
                 min="0"
                 v-model="filters.num_contratos_adjudicante_min"
-                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+                class="w-full h-9 text-sm border-black-300 rounded-lg"
             />
           </div>
 
           <!-- Nº Contratos Adjudicante Max -->
           <div>
-            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-              Contratos Adjudicante Max
+            <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase" title="Número máximo de contratos lançados por entidade">
+              Nº máx. contratos (adjudicatário)
             </label>
 
             <input
                 type="number"
                 min="0"
                 v-model="filters.num_contratos_adjudicante_max"
-                class="w-full h-9 text-sm border-gray-300 rounded-lg"
+                class="w-full h-9 text-sm border-black-300 rounded-lg"
             />
           </div>
 

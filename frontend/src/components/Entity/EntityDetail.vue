@@ -1,78 +1,3 @@
-<script setup>
-import { onMounted, ref } from "vue"
-import { useAPIStore } from "@/store/api.js"
-import { useRoute } from "vue-router"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card/index.ts"
-
-import { Badge } from "@/components/ui/badge/index.ts"
-import { Separator } from "@/components/ui/separator/index.ts"
-import { Button } from "@/components/ui/button/index.ts"
-
-import {
-  MapPinned,
-  FileText,
-  Euro,
-  Hash,
-  Landmark
-} from "lucide-vue-next"
-
-const apiStore = useAPIStore()
-const route = useRoute()
-
-const entidade = ref(null)
-const entityContracts = ref([])
-
-const loading = ref(true)
-const error = ref(null)
-
-const formatCurrency = (value) => {
-  if (!value) return "---"
-
-  return new Intl.NumberFormat("pt-PT", {
-    style: "currency",
-    currency: "EUR",
-  }).format(Number(value))
-}
-
-const formatDate = (date) => {
-  if (!date) return "---"
-
-  return new Date(date).toLocaleDateString("pt-PT")
-}
-
-const goToContract = (id) => {
-  window.location.href = `/contracts/${id}`
-}
-
-onMounted(async () => {
-  try {
-    const id = route.params.id
-
-    const [entityRes, contractsRes] = await Promise.all([
-      apiStore.getDetailEntity(id),
-      apiStore.getListContractofEntity(id)
-    ])
-
-    entidade.value = entityRes.data
-    entityContracts.value = contractsRes.data.data
-  }
-  catch (err) {
-    console.error(err)
-    error.value = "Não foi possível carregar os detalhes da entidade."
-  }
-  finally {
-    loading.value = false
-  }
-})
-</script>
-
 <template>
 
   <!-- LOADING -->
@@ -334,3 +259,78 @@ onMounted(async () => {
 
   </div>
 </template>
+
+<script setup>
+import { onMounted, ref } from "vue"
+import { useAPIStore } from "@/store/api.js"
+import { useRoute } from "vue-router"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card/index.ts"
+
+import { Badge } from "@/components/ui/badge/index.ts"
+import { Separator } from "@/components/ui/separator/index.ts"
+import { Button } from "@/components/ui/button/index.ts"
+
+import {
+  MapPinned,
+  FileText,
+  Euro,
+  Hash,
+  Landmark
+} from "lucide-vue-next"
+
+const apiStore = useAPIStore()
+const route = useRoute()
+
+const entidade = ref(null)
+const entityContracts = ref([])
+
+const loading = ref(true)
+const error = ref(null)
+
+const formatCurrency = (value) => {
+  if (!value) return "---"
+
+  return new Intl.NumberFormat("pt-PT", {
+    style: "currency",
+    currency: "EUR",
+  }).format(Number(value))
+}
+
+const formatDate = (date) => {
+  if (!date) return "---"
+
+  return new Date(date).toLocaleDateString("pt-PT")
+}
+
+const goToContract = (id) => {
+  window.location.href = `/contracts/${id}`
+}
+
+onMounted(async () => {
+  try {
+    const id = route.params.id
+
+    const [entityRes, contractsRes] = await Promise.all([
+      apiStore.getDetailEntity(id),
+      apiStore.getListContractofEntity(id)
+    ])
+
+    entidade.value = entityRes.data
+    entityContracts.value = contractsRes.data.data
+  }
+  catch (err) {
+    console.error(err)
+    error.value = "Não foi possível carregar os detalhes da entidade."
+  }
+  finally {
+    loading.value = false
+  }
+})
+</script>

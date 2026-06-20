@@ -19,3 +19,6 @@ def main():
     # Publish a message to a channel
     subscribers = r.publish(CHANNEL, json.dumps(payload))
     print(f"Message delivered to {subscribers} subscribers")
+
+if __name__ == "__main__":
+    main()
