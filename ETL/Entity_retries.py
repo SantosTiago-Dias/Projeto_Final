@@ -2,7 +2,6 @@ from loguru import logger
 import database_aux as db
 import extracao_incremental_entidades as extracao_entidades
 
-#TODO: Adicionar loggers
 TABLE_NAME = "entidades_ext"
 TABLE_LOGS= "t_logs_extract"
 

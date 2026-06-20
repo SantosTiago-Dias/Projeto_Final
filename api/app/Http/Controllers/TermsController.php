@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Terms;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class TermsController extends Controller
 {
@@ -12,7 +13,8 @@ class TermsController extends Controller
      */
     public function index()
     {
-        //
-        return Terms::all();
+        return Cache::rememberForever('terms', function () {
+            return Terms::all();
+        });
     }
 }
