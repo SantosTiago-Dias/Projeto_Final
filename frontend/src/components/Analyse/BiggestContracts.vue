@@ -37,7 +37,7 @@ function goToContract(item) {
 }
 
 onMounted(async () => {
-  const res = await apiStore.getBiggestContracts()
+  const res = await apiStore.getAnalyticsBiggestContracts()
   contracts.value = res.data
   loading.value = false
 })
@@ -62,7 +62,7 @@ onMounted(async () => {
             :onRowClick="goToContract"
         >
           <template #objeto="{ item }">
-            <span class="block truncate max-w-[500px]">
+            <span class="block truncate max-w-125">
               {{ item.objeto }}
             </span>
           </template>

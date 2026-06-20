@@ -1,5 +1,5 @@
 <script setup>
-import { FileText, Building2, FolderKanban, Search, ChevronDown  } from "lucide-vue-next";
+import { FileText, Building2, FolderKanban, Search, ChevronDown,CircleHelp  } from "lucide-vue-next";
 import { RouterLink, RouterView, useRouter,useRoute } from "vue-router";
 import { Toaster } from "vue-sonner";
 import { useWebSocket } from "@/composable/newDataWS.js";
@@ -33,7 +33,7 @@ function toggleDropdown() {
 
 function goTo(path) {
   router.push(path)
-  open.value = false
+  open.value = true
 }
 
 const isActive = (path) => route.path.startsWith(path)
@@ -49,7 +49,7 @@ const isActive = (path) => route.path.startsWith(path)
     <aside class="hidden w-64 border-r bg-white md:flex flex-col fixed h-full">
       <div class="p-6 border-b">
         <router-link to="/" class="text-xl font-bold tracking-tight text-slate-900">
-          DB_FAIR
+          Open Fair State
         </router-link>
       </div>
 
@@ -59,7 +59,7 @@ const isActive = (path) => route.path.startsWith(path)
             class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 group"
             active-class="bg-blue-50 text-blue-700 font-semibold shadow-sm"
         >
-          <FileText :size="20" class="text-blue-600" />
+          <FileText :size="20" class="text-slate-400 group-hover:text-slate-900" />
           Contratos
         </router-link>
 
@@ -131,7 +131,21 @@ const isActive = (path) => route.path.startsWith(path)
             >
               Quem mais faz contratos
             </button>
+            <button
+                @click="goTo('/analyses/contracts-graphs')"
+                class="block w-full text-left rounded-md px-3 py-2 text-sm hover:bg-slate-100"
+            >
+              Detalhes sobre contratos
+            </button>
           </div>
+          <router-link
+              to="/terms"
+              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 group"
+              active-class="bg-blue-50 text-blue-700 font-semibold"
+          >
+            <CircleHelp :size="20" class="text-slate-400 group-hover:text-slate-900" />
+            Termos explicados
+          </router-link>
 
         </div>
       </nav>

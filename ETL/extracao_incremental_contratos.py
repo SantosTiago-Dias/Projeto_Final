@@ -222,6 +222,7 @@ def extracion_contracts(sessao:requests.session):
                         logger.success("Dados extraidos com sucesso")
                         parar = True
                         break
+
             pagina += 1
 
             #insert data
@@ -235,7 +236,6 @@ def extracion_contracts(sessao:requests.session):
                 except Exception as e:
                     logger.error("ocorreu um erro a extrair os dados")
                     db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
-                parar = True
         return num_contratos
     except Exception as e:
         logger.exception(f"Não foi possível extrair os dados: {e}")

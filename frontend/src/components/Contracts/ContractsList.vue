@@ -4,7 +4,7 @@
 
     <div class="mb-8">
       <h1 class="text-2xl font-medium text-gray-900">Contratos</h1>
-    
+
     </div>
 
     <!-- Filtros -->
@@ -33,7 +33,7 @@
 
         <div>
           <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-            Data Início
+            Data de Início
           </label>
           <input type="date"
                  v-model="filters.data_publicacao_inicio"
@@ -42,7 +42,7 @@
 
         <div>
           <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-            Data Fim
+            Data de Fim
           </label>
           <input type="date"
                  v-model="filters.data_publicacao_fim"
@@ -124,6 +124,9 @@
     <div v-else-if="contracts === undefined || contracts === null">Não existem contratos ainda</div>
 
     <div v-else class="flex flex-col gap-4">
+      <div class="contratos-summary" style="margin: 20px 0; font-family: sans-serif; color: #333;">
+        <span>A mostrar <strong>{{contracts.length}}</strong> de {{meta.total}} contratos encontrados</span>
+      </div>
       <div
           v-for="contract in contracts"
           :key="contract.chave_contratos"
@@ -158,11 +161,11 @@
 
             <div class="space-y-3">
               <div>
-                <p class="text-[11px] uppercase tracking-wide text-gray-400">Adjudicante</p>
+                <p class="text-[11px] uppercase tracking-wide text-gray-400" title="Entidade que contrata os serviços">Adjudicante</p>
                 <p class="text-sm font-medium text-gray-800">{{ contract.adjudicante.nome }}</p>
               </div>
               <div>
-                <p class="text-[11px] uppercase tracking-wide text-gray-400">Adjudicatário</p>
+                <p class="text-[11px] uppercase tracking-wide text-gray-400"title="Entidade(s) que presta os serviços">Adjudicatário</p>
                 <div class="text-sm font-medium text-green-700">
                   <span v-for="c in contract.concorrentes.filter(x => x.adjudicatario === 1)" :key="c.id">
                     {{ c.entidade.nome }}
@@ -176,7 +179,7 @@
                 <p class="text-[11px] uppercase tracking-wide text-gray-400">Detalhes Adicionais</p>
                 <ul class="text-xs space-y-1 text-gray-600 mt-1">
                   <li><strong>Prazo de Execução:</strong> {{ contract.prazo_execucao }} dias</li>
-                  <li><strong>Data Celebração:</strong> {{ formatDate(contract.data?.date) }}</li>
+                  <li><strong>Data de Celebração:</strong> {{ formatDate(contract.data?.date) }}</li>
                 </ul>
               </div>
               <div>
@@ -312,12 +315,10 @@ const fetchContracts = async (page = 1) => {
     )
 
     const response = await apiStore.getListContracts({ page: page, ...queryParams })
-    console.log(response)
     contracts.value = response.data.data?.map(item => ({
       ...item,
       _isOpen: false
     }))
-    console.log(contracts.value)
     meta.value = response.data.meta
   } catch (err) {
     console.error("Falha ao carregar dados:", err)

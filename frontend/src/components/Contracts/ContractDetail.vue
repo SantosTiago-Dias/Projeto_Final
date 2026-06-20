@@ -1,87 +1,37 @@
-<script setup>
-import { onMounted, ref, computed } from "vue"
-import { useAPIStore } from "@/store/api.js"
-import { useRoute } from "vue-router"
-
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card/index.ts"
-import { Badge } from "@/components/ui/badge/index.ts"
-import { Separator } from "@/components/ui/separator/index.ts"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table/index.ts"
-import { Pin,  Calendar, Euro, FileText, Users } from "lucide-vue-next"
-import CPVList from "@/components/ui/CPV/CPV.vue";
-import {Button} from "@/components/ui/button/index.ts";
-import router from "@/router/index.js";
-
-const apiStore = useAPIStore()
-const route = useRoute()
-
-const contract = ref(null)
-const loading = ref(true)
-const error = ref(null)
-
-const formatCurrency = (value) => {
-  if (!value) return "---"
-  return new Intl.NumberFormat("pt-PT", {
-    style: "currency",
-    currency: "EUR",
-  }).format(Number(value))
-}
-
-const formatDate = (date) => {
-  if (!date) return "---"
-  return new Date(date).toLocaleDateString("pt-PT")
-}
-
-function goToEntity(id) {
-  router.push(`/entidades/${id}`)
-}
-
-
-onMounted(async () => {
-
-  const id = route.params.id
-
-  try {
-    const res = await apiStore.getDetailContracts(id)
-    contract.value = res.data
-  } catch (err) {
-    error.value = "Não foi possível carregar os detalhes do contrato."
-    console.error(err)
-  } finally {
-    loading.value = false
-  }
-})
-</script>
-
 <template>
-  <!-- LOADING -->
-  <div v-if="loading" class="text-center py-10 text-gray-400">
-    A carregar...
-  </div>
-
-  <!-- ERROR -->
-  <div v-else-if="error" class="text-center py-10 text-red-500">
-    {{ error }}
-  </div>
-
-  <!-- CONTENT SAFE -->
-  <div v-else-if="contract" class="container max-w-5xl py-10 px-4 md:px-0 mx-auto space-y-8">
-    
-      <!-- HEADER -->
-    <Button>
-      <button
-          @click="$router.back()"
-          class="flex items-center gap-1"
-      >
-        ← Voltar atrás
-      </button>
+  <div class="container max-w-5xl py-10 px-4 md:px-0 mx-auto space-y-8">
+    <!-- BACK BUTTON -->
+    <Button @click="$router.back()" class="flex items-center gap-1">
+      ← Voltar atrás
     </Button>
+
+    <!-- LOADING -->
+    <div v-if="loading" class="text-center py-10 text-gray-400">
+      A carregar...
+    </div>
+
+    <!-- ERROR -->
+    <div v-else-if="error" class="text-center py-10 text-red-500">
+      Ainda não existem dados
+    </div>
+
+    <!-- NO DATA -->
+    <div v-else-if="!contract" class="text-center py-10 text-gray-400">
+      Contrato não encontrado.
+    </div>
+
+    <!-- CONTRACT DETAIL -->
+    <template v-else>
+      <!-- HEADER -->
       <header class="space-y-4">
         <div class="flex items-center gap-2">
           <Badge variant="outline" class="uppercase tracking-wider"
                  :title="contract.tipo_contrato?.descricao ?? 'Sem descrição'">
-            {{ contract.tipo_contrato?.tipo ?? 'Não disponível'}}</Badge>
-          <Badge v-if="contract?.procedimento_centralizado === 1" variant="secondary">Procedimento Centralizado</Badge>
+            {{ contract.tipo_contrato?.tipo ?? 'Não disponível' }}
+          </Badge>
+          <Badge v-if="contract?.procedimento_centralizado === 1" variant="secondary">
+            Procedimento Centralizado
+          </Badge>
         </div>
         <h1 class="text-3xl font-extrabold tracking-tight lg:text-4xl text-slate-900 leading-tight">
           {{ contract.objeto }}
@@ -104,7 +54,7 @@ onMounted(async () => {
             <CardDescription class="flex items-center gap-2">
               <Calendar class="h-4 w-4" /> Publicação
             </CardDescription>
-            <CardTitle class="text-xl">{{ formatDate(contract.data_publicacao) }}</CardTitle>
+            <CardTitle class="text-xl">{{ formatDate(contract?.data_publicacao) }}</CardTitle>
           </CardHeader>
         </Card>
 
@@ -113,7 +63,7 @@ onMounted(async () => {
             <CardDescription class="flex items-center gap-2">
               <Calendar class="h-4 w-4" /> Celebração
             </CardDescription>
-            <CardTitle class="text-xl">{{ formatDate(contract.data_celebracao) }}</CardTitle>
+            <CardTitle class="text-xl">{{ formatDate(contract?.data_celebracao) }}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -131,7 +81,7 @@ onMounted(async () => {
             </p>
           </section>
 
-          <!-- CONCORRENTES TABLE -->
+          <!-- ENTITIES TABLE -->
           <Card>
             <CardHeader>
               <CardTitle class="text-lg flex items-center gap-2">
@@ -148,14 +98,21 @@ onMounted(async () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <!-- Adjudicante -->
-                  <TableRow @click="goToEntity(contract.adjudicante.chave_entidade)">
+                  <TableRow
+                      v-if="contract.adjudicante"
+                      class="cursor-pointer hover:bg-muted/50"
+                      @click="goToEntity(contract.adjudicante.chave_entidade)"
+                  >
                     <TableCell class="font-medium text-blue-700">{{ contract.adjudicante.nome }}</TableCell>
                     <TableCell>{{ contract.adjudicante.nif }}</TableCell>
                     <TableCell class="text-right"><Badge variant="outline">Adjudicante</Badge></TableCell>
                   </TableRow>
-                  <!-- Concorrentes -->
-                  <TableRow v-for="c in contract.concorrentes" :key="c.id" @click="goToEntity(c.entidade.chave_entidade)">
+                  <TableRow
+                      v-for="c in contract.concorrentes"
+                      :key="c.id"
+                      class="cursor-pointer hover:bg-muted/50"
+                      @click="goToEntity(c.entidade.chave_entidade)"
+                  >
                     <TableCell class="font-medium">{{ c.entidade.nome }}</TableCell>
                     <TableCell>{{ c.entidade.nif }}</TableCell>
                     <TableCell class="text-right">
@@ -180,21 +137,17 @@ onMounted(async () => {
           </section>
         </div>
 
-        <!-- SIDEBAR INFO -->
+        <!-- SIDEBAR -->
         <div class="space-y-6">
-          <!-- CPVs -->
           <Card>
             <CardHeader class="pb-3">
               <CardTitle class="text-sm font-bold uppercase text-muted-foreground tracking-wider">CPV Códigos</CardTitle>
             </CardHeader>
-            <CardContent class="flex flex-wrap gap-2">
-              <div class="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
-                <CPVList :cpvs="contract.cpvs" />
-              </div>
+            <CardContent>
+              <CPVList :cpvs="contract.cpvs" />
             </CardContent>
           </Card>
 
-          <!-- DETAILS LIST -->
           <Card>
             <CardHeader class="pb-3">
               <CardTitle class="text-sm font-bold uppercase text-muted-foreground tracking-wider">Detalhes Adicionais</CardTitle>
@@ -222,12 +175,69 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- FOOTER INFO -->
+      <!-- FOOTER -->
       <footer v-if="contract.observacoes" class="pt-6 border-t">
         <h4 class="text-sm font-semibold mb-2 italic text-muted-foreground text-center">Observações</h4>
         <p class="text-sm text-muted-foreground text-center max-w-2xl mx-auto">
           {{ contract.observacoes }}
         </p>
       </footer>
-    </div>
+    </template>
+  </div>
 </template>
+
+<script setup>
+import { onMounted, ref } from "vue"
+import { useAPIStore } from "@/store/api.js"
+import { useRoute, useRouter } from "vue-router"
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card/index.ts"
+import { Badge } from "@/components/ui/badge/index.ts"
+import { Button } from "@/components/ui/button/index.ts"
+import { Separator } from "@/components/ui/separator/index.ts"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table/index.ts"
+import { Pin, Calendar, Euro, FileText, Users } from "lucide-vue-next"
+import CPVList from "@/components/ui/CPV/CPV.vue"
+
+const apiStore = useAPIStore()
+const route = useRoute()
+const router = useRouter()
+
+const contract = ref(null)
+const loading = ref(true)
+const error = ref(null)
+
+const formatCurrency = (value) => {
+  if (!value) return "---"
+  return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(Number(value))
+}
+
+const formatDate = (date) => {
+  if (!date) return "---"
+  return new Date(date).toLocaleDateString("pt-PT")
+}
+
+function goToEntity(id) {
+  router.push(`/entidades/${id}`)
+}
+
+onMounted(async () => {
+  const id = route.params.id
+
+  if (!id) {
+    error.value = "ID do contrato não encontrado na rota."
+    loading.value = false
+    return
+  }
+
+  try {
+    const res = await apiStore.getDetailContracts(id)
+    contract.value = res.data ?? res  // handle both { data: ... } and direct object
+  } catch (err) {
+    error.value = "Não foi possível carregar os detalhes do contrato."
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
+})
+</script>

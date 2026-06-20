@@ -7,3 +7,5 @@ __pycache__/
 .vscode/settings.json
 .idea
 /websocket/node_modules
+/data/letsencrypt
+/data/npm/logs

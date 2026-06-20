@@ -1,18 +1,15 @@
 /* DEFINIR BUFFERS */
 SET GLOBAL net_buffer_length = 1000000;
-
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 SET GLOBAL max_allowed_packet = 1000000000;
 
-/*Limpeza de tabelas*/
-DROP Table If EXISTS contratos_ext;
-
-DROP Table If EXISTS entidades_ext;
-
-DROP Table If EXISTS contratos_transf;
-
-DROP Table If EXISTS entidade_transf;
-
-DROP TABLE IF EXISTS detalhes_contratos_transf;
+-- Terms Table
+CREATE TABLE IF NOT EXISTS terms (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    term VARCHAR(255) NOT NULL,
+    meaning VARCHAR(255) NOT NULL
+    );
 
 -- Cache Table
 CREATE TABLE `cache` (
@@ -466,3 +463,9 @@ INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('EPE.','EPE');
 INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('E.P.E','EPE');
 INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('S.A.','SA');
 INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('S.A','SA');
+
+INSERT INTO terms (term, meaning) VALUES ('CPV', 'Vocabulário Comum para os Contratos Públicos - Sistema de classificação padronizado da União Europeia para identificar o objeto dos contratos públicos através de códigos.');
+INSERT INTO terms (term, meaning) VALUES ('Entidade Adjudicante', 'A entidade pública ou organismo responsável por lançar o procedimento de contratação, definir as regras do concurso e adjudicar o contrato.');
+INSERT INTO terms (term, meaning) VALUES ('Entidade Adjudicatária', 'O operador económico (empresa ou indivíduo) que venceu o concurso e a quem o contrato público foi formalmente atribuído.');
+INSERT INTO terms (term, meaning) VALUES ('Procedimento', 'O conjunto de etapas formais e o enquadramento legal seguido para escolher um fornecedor (ex: Ajuste Direto, Concurso Público, Consulta Prévia).');
+INSERT INTO terms (term, meaning) VALUES ('Tipo de Contrato', 'A classificação jurídica do contrato com base no seu objeto principal, como por exemplo: Empreitada de Obras Públicas, Aquisição de Bens ou Aquisição de Serviços.');

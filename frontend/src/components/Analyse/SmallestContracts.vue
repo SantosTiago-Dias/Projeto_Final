@@ -37,7 +37,7 @@ const formatCurrency = (v) =>
     }).format(v)
 
 onMounted(async () => {
-  const res = await apiStore.getSmallestContracts()
+  let res = await apiStore.getAnalyticsSmallestContracts()
   contracts.value = res.data
   loading.value = false
 })

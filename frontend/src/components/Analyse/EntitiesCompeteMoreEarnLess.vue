@@ -32,7 +32,7 @@ const formatPercent = (v) => {
 
 onMounted(async () => {
   try {
-    const response = await apiStore.getEntitiesCompeteMoreEarnLess()
+    const response = await apiStore.getAnalyticsEntitiesCompeteMoreEarnLess()
     entities.value = response.data
   } catch (error) {
     console.error(error)
