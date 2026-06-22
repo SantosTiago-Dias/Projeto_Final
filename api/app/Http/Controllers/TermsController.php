@@ -13,8 +13,8 @@ class TermsController extends Controller
      */
     public function index()
     {
-        return Cache::rememberForever('terms', function () {
-            return Terms::all();
-        });
+        $terms = Cache::rememberForever('terms', fn() => Terms::all()->toArray());
+
+        return response()->json($terms);
     }
 }

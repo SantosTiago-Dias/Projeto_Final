@@ -83,7 +83,8 @@ class AnalyticsController extends Controller
                 ->whereNot('chave_contratos', 1)
                 ->select('chave_tipo_contrato', DB::raw('count(DISTINCT chave_contratos) as contratos'))
                 ->groupBy('chave_tipo_contrato')
-                ->get();
+                ->get()
+                ->toArray();
         });
 
 
@@ -94,16 +95,17 @@ class AnalyticsController extends Controller
     public function tipoProcedimento()
     {
         $cacheKey = 'tipoProcedimento:graphdata';
-        $tipo_contratos = Cache::rememberForever($cacheKey,function () {
+        $tipo_procedimento = Cache::rememberForever($cacheKey,function () {
             return FactContrato::with(['tipo_procedimento'])
                 ->whereNot('chave_tipo_procedimento', 1)
                 ->whereNot('chave_contratos', 1)
                 ->select('chave_tipo_procedimento', DB::raw('count(DISTINCT chave_contratos) as contratos'))
                 ->groupBy('chave_tipo_procedimento')
-                ->get();
+                ->get()
+                ->toArray();
         });
 
-        return response()->json($tipo_contratos);
+        return response()->json($tipo_procedimento);
 
     }
 }
