@@ -1,47 +1,3 @@
-<script setup>
-import { ref, onMounted } from "vue"
-import { useRouter } from "vue-router"
-import { useAPIStore } from "@/store/api"
-
-import AnalyticsTable from "@/components/Analyse/AnalyticsTable.vue"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-
-import { Separator } from "@/components/ui/separator"
-
-const router = useRouter()
-const apiStore = useAPIStore()
-
-const entities = ref([])
-const loading = ref(true)
-
-function goToEntity(item) {
-  router.push(`/entidades/${item.chave_entidade}`)
-}
-
-const formatPercent = (v) => {
-  if (v === null || v === undefined) return "0%"
-  return `${Number(v).toFixed(2)}%`
-}
-
-onMounted(async () => {
-  try {
-    const response = await apiStore.getAnalyticsEntitiesCompeteMoreEarnLess()
-    entities.value = response.data
-  } catch (error) {
-    console.error(error)
-  } finally {
-    loading.value = false
-  }
-})
-</script>
-
 <template>
   <div class="p-6">
     <Card>
@@ -81,3 +37,48 @@ onMounted(async () => {
     </Card>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from "vue"
+import { useRouter } from "vue-router"
+import { useAPIStore } from "@/store/api"
+
+import AnalyticsTable from "@/components/Analyse/AnalyticsTable.vue"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+
+import { Separator } from "@/components/ui/separator"
+import {toast} from "vue-sonner";
+
+const router = useRouter()
+const apiStore = useAPIStore()
+
+const entities = ref([])
+const loading = ref(true)
+
+function goToEntity(item) {
+  router.push(`/entidades/${item.chave_entidade}`)
+}
+
+const formatPercent = (v) => {
+  if (v === null || v === undefined) return "0%"
+  return `${Number(v).toFixed(2)}%`
+}
+
+onMounted(async () => {
+  try {
+    const response = await apiStore.getAnalyticsEntitiesCompeteMoreEarnLess()
+    entities.value = response.data
+  } catch (error) {
+    toast.error("Ocorreu um erro, não foi possivel carregar os dados")
+  } finally {
+    loading.value = false
+  }
+})
+</script>

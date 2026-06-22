@@ -1,67 +1,3 @@
-<script setup lang="ts">
-import { ref } from "vue"
-import { useRouter } from "vue-router"
-import { useAPIStore } from "@/store/api"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-
-import { Separator } from "@/components/ui/separator"
-
-const router = useRouter()
-const apiStore = useAPIStore()
-
-const cpvQuery = ref("")
-const cpvLoading = ref(false)
-
-const cpvResult = ref({
-  quantidade_contratos: 0,
-  valor_total: 0,
-})
-
-async function searchCPV() {
-  if (!cpvQuery.value.trim()) return
-
-  try {
-    cpvLoading.value = true
-
-    const response = await apiStore.searchCPV(cpvQuery.value)
-
-    cpvResult.value = response.data ?? {
-      quantidade_contratos: 0,
-      valor_total: 0,
-    }
-  } catch (error) {
-    console.error(error)
-  } finally {
-    cpvLoading.value = false
-  }
-}
-
-function formatCurrency(value: number) {
-  if (!value) return "0 €"
-
-  return new Intl.NumberFormat("pt-PT", {
-    style: "currency",
-    currency: "EUR",
-  }).format(value)
-}
-
-function goToContractsByCPV() {
-  router.push({
-    path: "/",
-    query: {
-      cpvs: cpvQuery.value,
-    },
-  })
-}
-</script>
-
 <template>
   <Card>
     <CardHeader>
@@ -136,3 +72,69 @@ function goToContractsByCPV() {
     </CardContent>
   </Card>
 </template>
+
+<script setup >
+import { ref } from "vue"
+import { useRouter } from "vue-router"
+import { useAPIStore } from "@/store/api"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+
+import { Separator } from "@/components/ui/separator"
+import { toast } from "vue-sonner";
+
+
+const router = useRouter()
+const apiStore = useAPIStore()
+
+const cpvQuery = ref("")
+const cpvLoading = ref(false)
+
+const cpvResult = ref({
+  quantidade_contratos: 0,
+  valor_total: 0,
+})
+
+async function searchCPV() {
+  if (!cpvQuery.value.trim()) return
+
+  try {
+    cpvLoading.value = true
+
+    const response = await apiStore.searchCPV(cpvQuery.value)
+
+    cpvResult.value = response.data ?? {
+      quantidade_contratos: 0,
+      valor_total: 0,
+    }
+  } catch (error) {
+    toast.error("Ocorreu um erro, não foi possivel carregar os dados")
+  } finally {
+    cpvLoading.value = false
+  }
+}
+
+function formatCurrency(value) {
+  if (!value) return "0 €"
+
+  return new Intl.NumberFormat("pt-PT", {
+    style: "currency",
+    currency: "EUR",
+  }).format(value)
+}
+
+function goToContractsByCPV() {
+  router.push({
+    path: "/",
+    query: {
+      cpvs: cpvQuery.value,
+    },
+  })
+}
+</script>

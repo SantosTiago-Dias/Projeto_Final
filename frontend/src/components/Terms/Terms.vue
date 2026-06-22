@@ -1,25 +1,30 @@
 <template>
+
   <div class="page-wrapper">
     <div class="table-container">
-      <div class="table-header">
-        <h1>Glossário de Termos</h1>
-        <p>Consulte os principais conceitos e os seus significados.</p>
-      </div>
+      <!-- Lista de Contratos -->
+      <div v-if="loading" class="text-center py-10 text-gray-400">A carregar...</div>
+      <div v-else>
+        <div class="table-header">
+          <h1>Glossário de Termos</h1>
+          <p>Consulte os principais conceitos e os seus significados.</p>
+        </div>
 
-      <table class="clean-table">
-        <thead>
-        <tr>
-          <th class="term-th">Termo</th>
-          <th class="meaning-th">Significado</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="term in terms" :key="term.id">
-          <td class="term-cell">{{ term.term }}</td>
-          <td class="meaning-cell">{{ term.meaning }}</td>
-        </tr>
-        </tbody>
-      </table>
+        <table class="clean-table">
+          <thead>
+          <tr>
+            <th class="term-th">Termo</th>
+            <th class="meaning-th">Significado</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="term in terms" :key="term.id">
+            <td class="term-cell">{{ term.term }}</td>
+            <td class="meaning-cell">{{ term.meaning }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -27,13 +32,25 @@
 <script setup>
 import { useAPIStore } from "@/store/api.js"
 import { onMounted, ref } from "vue";
+import {toast} from "vue-sonner";
 
 const apiStore = useAPIStore();
 const terms = ref([])
+const loading = ref(true);
 
 onMounted(async () => {
-  let res = await apiStore.getTerms();
-  terms.value = res.data;
+
+  try
+  {
+    let res = await apiStore.getTerms();
+    terms.value = res.data;
+  }
+  catch (error) {
+    toast.error("Ocorreu um erro, não foi possivel carregar os dados")
+  }finally {
+    loading.value = false;
+  }
+
 });
 </script>
 

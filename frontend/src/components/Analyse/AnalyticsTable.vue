@@ -1,37 +1,3 @@
-<script setup>
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-
-const props = defineProps({
-  items: {
-    type: Array,
-    default: () => [],
-  },
-  columns: {
-    type: Array,
-    required: true,
-  },
-  rowKey: {
-    type: String,
-    required: true,
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  onRowClick: {
-    type: Function,
-    default: null,
-  },
-})
-</script>
-
 <template>
   <div>
     <div v-if="loading" class="text-muted-foreground">
@@ -75,3 +41,37 @@ const props = defineProps({
     </Table>
   </div>
 </template>
+
+<script setup>
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+
+const props = defineProps({
+  items: {
+    type: Array,
+    default: () => [],
+  },
+  columns: {
+    type: Array,
+    required: true,
+  },
+  rowKey: {
+    type: String,
+    required: true,
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  onRowClick: {
+    type: Function,
+    default: null,
+  },
+})
+</script>

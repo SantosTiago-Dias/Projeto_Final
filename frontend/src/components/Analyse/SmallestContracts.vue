@@ -1,48 +1,3 @@
-<script setup>
-import { ref, onMounted } from "vue"
-import { useRouter } from "vue-router"
-import { useAPIStore } from "@/store/api"
-
-import AnalyticsTable from "@/components/Analyse/AnalyticsTable.vue"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-
-import { Separator } from "@/components/ui/separator"
-
-const router = useRouter()
-const apiStore = useAPIStore()
-
-const contracts = ref([])
-const loading = ref(true)
-
-const columns = [
-  { key: "objeto", label: "Contrato" },
-  { key: "valor", label: "Valor", class: "text-right", cellClass: "text-right font-semibold text-red-600" },
-]
-
-function goToContract(item) {
-  router.push(`/contracts/${item.chave_contratos}`)
-}
-
-const formatCurrency = (v) =>
-    new Intl.NumberFormat("pt-PT", {
-      style: "currency",
-      currency: "EUR",
-    }).format(v)
-
-onMounted(async () => {
-  let res = await apiStore.getAnalyticsSmallestContracts()
-  contracts.value = res.data
-  loading.value = false
-})
-</script>
-
 <template>
   <div class="p-6">
     <Card>
@@ -75,3 +30,56 @@ onMounted(async () => {
     </Card>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from "vue"
+import { useRouter } from "vue-router"
+import { useAPIStore } from "@/store/api"
+
+import AnalyticsTable from "@/components/Analyse/AnalyticsTable.vue"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+
+import { Separator } from "@/components/ui/separator"
+import {toast} from "vue-sonner";
+
+const router = useRouter()
+const apiStore = useAPIStore()
+
+const contracts = ref([])
+const loading = ref(true)
+
+const columns = [
+  { key: "objeto", label: "Contrato" },
+  { key: "valor", label: "Valor", class: "text-right", cellClass: "text-right font-semibold text-red-600" },
+]
+
+function goToContract(item) {
+  router.push(`/contracts/${item.chave_contratos}`)
+}
+
+const formatCurrency = (v) =>
+    new Intl.NumberFormat("pt-PT", {
+      style: "currency",
+      currency: "EUR",
+    }).format(v)
+
+onMounted(async () => {
+  try {
+    let res = await apiStore.getAnalyticsSmallestContracts()
+    contracts.value = res.data
+
+  }catch(error) {
+    toast.error("Ocorreu um erro, não foi possivel carregar os dados")
+  }finally {
+    loading.value = false
+  }
+
+})
+</script>

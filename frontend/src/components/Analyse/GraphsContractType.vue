@@ -58,35 +58,29 @@ const generateColors = (count) => {
   return Array.from({ length: count }, (_, i) => `hsl(${i * hueStep}, 70%, 60%)`)
 }
 
-onMounted(async () => {
-  const res1 = await apiStore.getAnalyticsTipoContrato()
-  let labels = res1.data.map(item => item.tipo_contrato.tipo)
-  chartData1.value = {
+const generateChart = (name,dataset,labels) => {
+  return  {
     labels: labels,
     datasets: [
       {
-        label: 'Tipo de Contratos',
+        label: name,
         backgroundColor: generateColors(labels.length),
         borderRadius: 8,
-        data: res1.data.map(item => item.contratos)
+        data: dataset.data.map(item => item.contratos)
       }
     ]
   }
+}
 
-  const res2 = await apiStore.getAnalyticsTipoProcedimento()
-  let labels2 = res2.data.map(item => item.tipo_procedimento.tipo)
-  chartData2.value = {
-    labels: labels2,
-    datasets: [
-      {
-        label: 'Tipo de Procedimentos',
-        backgroundColor: generateColors(labels2.length),
-        borderRadius: 8,
-        data: res2.data.map(item => item.contratos)
-      }
-    ]
-  }
-  console.log(chartData2)
+onMounted(async () => {
+
+  const tipo_contrato = await apiStore.getAnalyticsTipoContrato()
+  let labels = tipo_contrato.data.map(item => item.tipo_contrato.tipo)
+  chartData1.value = generateChart("Tipo contrato", tipo_contrato,labels)
+
+  const tipo_procedimento = await apiStore.getAnalyticsTipoProcedimento()
+  labels = tipo_procedimento.data.map(item => item.tipo_procedimento.tipo)
+  chartData2.value = generateChart("Tipo procedimento", tipo_procedimento,labels)
 })
 </script>
 
