@@ -79,9 +79,9 @@ onMounted(async () => {
   let labels = tipo_contrato.data.map(item => item.tipo_contrato.tipo)
   chartData1.value = generateChart("Tipo contrato", tipo_contrato,labels)
 
-  /*const tipo_procedimento = await apiStore.getAnalyticsTipoProcedimento()
+  const tipo_procedimento = await apiStore.getAnalyticsTipoProcedimento()
   labels = tipo_procedimento.data.map(item => item.tipo_procedimento.tipo)
-  chartData2.value = generateChart("Tipo procedimento", tipo_procedimento,labels)*/
+  chartData2.value = generateChart("Tipo procedimento", tipo_procedimento,labels)
 })
 </script>
 
