@@ -72,6 +72,10 @@ const routes = [
         path: '/terms',
         name: 'termos',
         component: Terms
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        redirect: '/'
     }
 ]
 
