@@ -121,7 +121,13 @@
 
     <!-- Lista de Contratos -->
     <div v-if="loading" class="text-center py-10 text-gray-400">A carregar...</div>
-    <div v-else-if="contracts === undefined || contracts === null">Não existem contratos ainda</div>
+
+    <div v-else-if="!contracts || contracts.length === 0" class="flex flex-col items-center justify-center p-8 bg-white border border-gray-100 rounded-xl transition-all duration-300">
+      <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <p class="text-sm font-medium text-gray-500">Não existem contratos ainda</p>
+    </div>
 
     <div v-else class="flex flex-col gap-4">
       <div class="contratos-summary" style="margin: 20px 0; font-family: sans-serif; color: #333;">
@@ -313,7 +319,6 @@ const fetchContracts = async (page = 1) => {
     const queryParams = Object.fromEntries(
         Object.entries(filters).filter(([_, v]) => v !== '' && v !== null)
     )
-
     const response = await apiStore.getListContracts({ page: page, ...queryParams })
     contracts.value = response.data.data?.map(item => ({
       ...item,
@@ -321,6 +326,7 @@ const fetchContracts = async (page = 1) => {
     }))
     meta.value = response.data.meta
   } catch (err) {
+    contracts.value = null
     console.error("Falha ao carregar dados:", err)
   } finally {
     loading.value = false

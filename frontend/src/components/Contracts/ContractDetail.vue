@@ -1,28 +1,24 @@
 <template>
   <div class="container max-w-5xl py-10 px-4 md:px-0 mx-auto space-y-8">
-    <!-- BACK BUTTON -->
-    <Button @click="$router.back()" class="flex items-center gap-1">
-      ← Voltar atrás
+
+    <Button @click="$router.back()" variant="ghost" class="flex items-center gap-2 hover:bg-slate-100 -ml-2 text-slate-600 transition-colors">
+      <ArrowLeft class="h-4 w-4" />
+      <span>Voltar atrás</span>
     </Button>
 
-    <!-- LOADING -->
-    <div v-if="loading" class="text-center py-10 text-gray-400">
-      A carregar...
+    <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-4">
+      <Loader2 class="h-8 w-8 animate-spin text-primary" />
+      <p class="text-sm font-medium text-slate-500 tracking-wide animate-pulse">A carregar detalhes do contrato...</p>
     </div>
 
-    <!-- ERROR -->
-    <div v-else-if="error" class="text-center py-10 text-red-500">
-      Ainda não existem dados
+    <div v-else-if="!contract" class="flex flex-col items-center justify-center text-center py-16 px-4 bg-white border border-dashed border-slate-200 rounded-2xl shadow-sm transition-all duration-300">
+      <div class="p-4 bg-amber-50 rounded-full text-amber-500 mb-4">
+        <FileSearch2 class="h-8 w-8" />
+      </div>
+      <h3 class="text-lg font-semibold text-slate-900">Contrato não encontrado</h3>
     </div>
 
-    <!-- NO DATA -->
-    <div v-else-if="!contract" class="text-center py-10 text-gray-400">
-      Contrato não encontrado.
-    </div>
-
-    <!-- CONTRACT DETAIL -->
     <template v-else>
-      <!-- HEADER -->
       <header class="space-y-4">
         <div class="flex items-center gap-2">
           <Badge variant="outline" class="uppercase tracking-wider"
@@ -38,7 +34,6 @@
         </h1>
       </header>
 
-      <!-- KEY METRICS -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card class="bg-primary/5 border-none shadow-none">
           <CardHeader class="pb-2">
@@ -69,7 +64,6 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- MAIN INFO -->
         <div class="lg:col-span-2 space-y-8">
           <section>
             <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
@@ -81,7 +75,6 @@
             </p>
           </section>
 
-          <!-- ENTITIES TABLE -->
           <Card>
             <CardHeader>
               <CardTitle class="text-lg flex items-center gap-2">
@@ -137,7 +130,6 @@
           </section>
         </div>
 
-        <!-- SIDEBAR -->
         <div class="space-y-6">
           <Card>
             <CardHeader class="pb-3">
@@ -175,7 +167,6 @@
         </div>
       </div>
 
-      <!-- FOOTER -->
       <footer v-if="contract.observacoes" class="pt-6 border-t">
         <h4 class="text-sm font-semibold mb-2 italic text-muted-foreground text-center">Observações</h4>
         <p class="text-sm text-muted-foreground text-center max-w-2xl mx-auto">
@@ -196,7 +187,8 @@ import { Badge } from "@/components/ui/badge/index.ts"
 import { Button } from "@/components/ui/button/index.ts"
 import { Separator } from "@/components/ui/separator/index.ts"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table/index.ts"
-import { Pin, Calendar, Euro, FileText, Users } from "lucide-vue-next"
+
+import { Pin, Calendar, Euro, FileText, Users, ArrowLeft, Loader2, FileSearch2 } from "lucide-vue-next"
 import CPVList from "@/components/ui/CPV/CPV.vue"
 
 const apiStore = useAPIStore()
@@ -232,10 +224,9 @@ onMounted(async () => {
 
   try {
     const res = await apiStore.getDetailContracts(id)
-    contract.value = res.data ?? res  // handle both { data: ... } and direct object
+    contract.value = res.data
   } catch (err) {
-    error.value = "Não foi possível carregar os detalhes do contrato."
-    console.error(err)
+    contract.value =null
   } finally {
     loading.value = false
   }

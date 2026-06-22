@@ -4,12 +4,8 @@
     <div class="mb-6">
       <h1 class="text-2xl font-medium text-gray-900">Entidades</h1>
     </div>
-
-    <!-- Loading State -->
-    <p v-if="loading" class="text-gray-400 text-sm italic">A carregar entidades...</p>
-    <div v-else-if="entities === undefined || entities === null">Não existem entidades ainda</div>
     <!-- Entity Grid -->
-    <div v-else class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3">
 
       <!-- Filtros -->
       <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
@@ -156,7 +152,16 @@
 
         </div>
       </div>
-      <div class="contratos-summary" style="margin: 20px 0; font-family: sans-serif; color: #333;">
+
+
+      <!-- Loading State -->
+      <p v-if="loading" class="text-gray-400 text-sm italic">A carregar entidades...</p>
+
+      <div v-else-if="entities === undefined || entities === null" class="flex flex-col items-center justify-center p-8 bg-white border border-gray-100 rounded-xl transition-all duration-300">
+        <p class="text-sm font-medium text-gray-500">Não existem entidades ainda</p>
+      </div>
+
+      <div v-else class="contratos-summary" style="margin: 20px 0; font-family: sans-serif; color: #333;">
         <span>A mostrar <strong>{{entities.length}}</strong> de <strong>{{meta.total}}</strong> entiadades encontradas</span>
       </div>
       <div
@@ -350,6 +355,7 @@ const fetchEntities = async (page = 1) => {
 
   } catch (err) {
     console.error("Falha ao carregar entidades:", err)
+    entities.value = null
   } finally {
     loading.value = false
   }
