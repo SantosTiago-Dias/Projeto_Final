@@ -66,35 +66,35 @@ CREATE TABLE IF NOT EXISTS cpv_dictionary (
     cpv_descricao VARCHAR(255),
     descricao TEXT,
     UNIQUE (codigo)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS tipo_procedimento_dictionary (
     id_tipo_procedimento INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(255),
     descricao TEXT,
     UNIQUE (tipo)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS tipo_contrato_dictionary (
     id_tipo_contrato INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(255),
     descricao TEXT,
     UNIQUE (tipo)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary (
     id_justificacao INT PRIMARY KEY AUTO_INCREMENT,
     justificacao TEXT,
     descricao TEXT,
     UNIQUE (justificacao (500))
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary (
     id_fundamentacao INT PRIMARY KEY AUTO_INCREMENT,
     fundamentacao VARCHAR(255),
     descricao TEXT,
     UNIQUE (fundamentacao)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS cpv_dim (
     chave_cpv INT PRIMARY KEY AUTO_INCREMENT,
@@ -103,42 +103,42 @@ CREATE TABLE IF NOT EXISTS cpv_dim (
     descricao TEXT,
     UNIQUE (codigo),
     FULLTEXT (codigo, cpv_descricao, descricao)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS tipo_procedimento_dim (
     chave_tipo_procedimento INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(255),
     descricao TEXT,
     UNIQUE (tipo)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS tipo_contrato_dim (
     chave_tipo_contrato INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(255),
     descricao TEXT,
     UNIQUE (tipo)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dim (
     chave_justificacao INT PRIMARY KEY AUTO_INCREMENT,
     justificacao TEXT,
     descricao TEXT,
     UNIQUE (justificacao (500))
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dim (
     chave_fundamentacao INT PRIMARY KEY AUTO_INCREMENT,
     fundamentacao VARCHAR(255),
     descricao TEXT,
     UNIQUE (fundamentacao)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS entidades_ext (
     id_entidade INTEGER,
     nif VARCHAR(20),
     nome VARCHAR(255),
     pais VARCHAR(255)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS contratos_ext (
     id_contrato INT UNIQUE,
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     observacoes TEXT,
     contrato_ecologico VARCHAR(10),
     fundamentacao_ajuste_directo VARCHAR(255)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS entidade_transf (
     id_entidade INT,
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS entidade_transf (
     pais VARCHAR(255),
     distrito VARCHAR(255),
     UNIQUE (id_entidade)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS detalhes_contratos_transf (
     id_contrato INT,
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS detalhes_contratos_transf (
     contrato_ecologico VARCHAR(5),
     fundamentacao_ajuste_directo VARCHAR(255),
     UNIQUE (id_contrato)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS contratos_transf (
     id_contrato INT,
@@ -219,14 +219,14 @@ CREATE TABLE IF NOT EXISTS contratos_transf (
     fundamentacao VARCHAR(255),
     justificacao_nao_escrita TEXT,
     UNIQUE (id_contrato, id_entidade)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS cpv_contratos_transf (
     id_contrato INT,
     cpv VARCHAR(10),
     cpv_descricao VARCHAR(255),
     UNIQUE (id_contrato, cpv)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS dim_entidade (
     chave_entidade INT AUTO_INCREMENT PRIMARY KEY,
@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS dim_entidade (
     pais VARCHAR(255),
     distrito VARCHAR(255),
     UNIQUE (id_entidade)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS dim_detalhes_contratos (
     chave_contratos INT AUTO_INCREMENT PRIMARY KEY,
@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS dim_detalhes_contratos (
     contrato_ecologico VARCHAR(5),
     fundamentacao_ajuste_directo VARCHAR(255),
     UNIQUE (id_contrato)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS dim_cpv_contratos (
     chave_contrato INT,
@@ -273,7 +273,7 @@ CREATE TABLE IF NOT EXISTS dim_cpv_contratos (
     UNIQUE (chave_contrato, chave_cpv),
     PRIMARY KEY (chave_contrato, chave_cpv),
     FOREIGN KEY (chave_contrato) REFERENCES dim_detalhes_contratos (chave_contratos)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS dim_data (
     chave_date INT AUTO_INCREMENT PRIMARY KEY,
@@ -290,7 +290,7 @@ CREATE TABLE IF NOT EXISTS dim_data (
     evento_natural VARCHAR(255),
     UNIQUE (data),
     UNIQUE (data_extenso)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS fact_contratos (
     chave_contratos INT,
