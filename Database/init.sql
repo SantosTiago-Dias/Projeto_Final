@@ -1,7 +1,5 @@
 /* DEFINIR BUFFERS */
 SET GLOBAL net_buffer_length = 1000000;
-SET NAMES utf8mb4;
-SET CHARACTER SET utf8mb4;
 SET GLOBAL max_allowed_packet = 1000000000;
 
 -- Terms Table
