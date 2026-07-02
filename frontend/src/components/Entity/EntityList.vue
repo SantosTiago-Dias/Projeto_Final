@@ -162,7 +162,7 @@
       </div>
 
       <div v-else class="contratos-summary" style="margin: 20px 0; font-family: sans-serif; color: #333;">
-        <span>A mostrar <strong>{{entities.length}}</strong> de <strong>{{meta.total}}</strong> entiadades encontradas</span>
+        <span>A mostrar <strong>{{entities.length}}</strong> de <strong>{{meta.total}}</strong> entidades encontradas</span>
       </div>
       <div
           v-for="entity in entities"

@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 DROP VIEW IF EXISTS view_contratos_maior_valor;
 DROP VIEW IF EXISTS view_contratos_menor_valor;
 DROP VIEW IF EXISTS view_entidades_mais_contratos_adjudicados;
