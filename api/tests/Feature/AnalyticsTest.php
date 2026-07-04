@@ -83,4 +83,58 @@ class AnalyticsTest extends TestCase
                     'valor_total'
         ]);
     }
+
+    public function test_can_get_type_contracts()
+    {
+        $response = $this->getJson('/api/analytics/tipoContrato');
+
+        $response->assertStatus(200);
+
+        $response->assertJsonStructure([
+            '*' => [
+                'chave_tipo_contrato',
+                'contratos',
+                'tipo_contrato' => [
+                    'chave_tipo_contrato',
+                    'tipo',
+                    'descricao',
+                ],
+            ],
+        ]);
+    }
+
+    public function test_can_get_type_procedures()
+    {
+        $response = $this->getJson('/api/analytics/tipoProcedimento');
+
+        $response->assertStatus(200);
+
+        $response->assertJsonStructure([
+            '*' => [
+                'chave_tipo_procedimento',
+                'contratos',
+                'tipo_procedimento'=> [
+                    'chave_tipo_procedimento',
+                    'tipo',
+                    'descricao',
+                ],
+            ]
+        ]);
+    }
+
+    public function test_can_get_terms()
+    {
+        $response = $this->getJson('/api/terms');
+
+        $response->assertStatus(200);
+
+        $response->assertJsonStructure([
+            '*' => [
+                'id',
+                'term',
+                'meaning'
+            ]
+        ]);
+    }
+
 }

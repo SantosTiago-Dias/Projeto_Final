@@ -42,7 +42,7 @@ class ContractsTest extends TestCase
         $response->assertStatus(200);
 
         $response->assertJsonStructure([
-            'chave_contratos',
+            'id_contrato',
             'objeto',
             'descricao',
             'data_publicacao',
