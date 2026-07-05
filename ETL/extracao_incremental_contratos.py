@@ -68,8 +68,8 @@ def listar_contratos(sessao: requests.Session, pagina: int, retries: int = 5):
         logger.error(f"Erro na listagem da página {pagina}: {e}")
         if retries > 0:
             logger.info(f"Tentativa {6 - retries} de 5")
-            wait_seconds = 30 * 60  # 30 minutes
-            logger.info(f"A aguardar 30 minutos antes de tentar novamente...")
+            wait_seconds = 15 * 60  # 15 minutes
+            logger.info(f"A aguardar 15 minutos antes de tentar novamente...")
             time.sleep(wait_seconds)
             return listar_contratos(sessao, pagina, retries - 1)
         else:

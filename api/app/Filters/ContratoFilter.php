@@ -14,8 +14,8 @@ class ContratoFilter
         $query=$query->when($filters['tipo_procedimento'] ?? null, fn($q, $v) =>$q->whereRelation('fact_contrato.tipo_procedimento', 'id_tipo_procedimento', 'like', $v));
 
         //Data
-        $query=$query->when($filters['data_publicacao_inicio'] ?? null, fn($q, $v) =>$q->whereRelation('fact_contrato.data', 'data', '>=', $v));
-        $query=$query->when($filters['data_publicacao_fim'] ?? null, fn($q, $v) =>$q->whereRelation('fact_contrato.data', 'data','<=', $v));
+        $query=$query->when($filters['data_publicacao_inicio'] ?? null, fn($q, $v) =>$q->where('data_publicacao', '>=', $v));
+        $query=$query->when($filters['data_publicacao_fim'] ?? null, fn($q, $v) =>$q->where('data_publicacao', '<=', $v));
 
         //valor contratual
         $query=$query->when($filters['valor_contratual_menor_que'] ?? null , fn($q, $v) =>$q->where('valor_contratual','<=', $v));
