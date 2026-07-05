@@ -311,6 +311,10 @@
   </div>
 </template>
 
+<script>
+export default { name: 'EntidadesList' }
+</script>
+
 <script setup>
 import {ref, computed, onMounted, reactive} from "vue"
 import { useAPIStore } from "@/store/api.js"

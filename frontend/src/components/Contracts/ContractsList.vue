@@ -281,6 +281,10 @@
   </div>
 </template>
 
+<script>
+export default { name: 'ContractsList' }
+</script>
+
 <script setup>
 import {ref, onMounted, reactive, computed} from "vue"
 import { useRouter, useRoute } from "vue-router"

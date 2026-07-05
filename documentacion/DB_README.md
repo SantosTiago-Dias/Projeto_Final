@@ -30,6 +30,7 @@ Each table belongs to one of these functional categories:
 
 - `init.sql`: creates tables, constraints, dictionaries, and initial lookup values.
 - `procedures.sql`: defines SQL functions and stored procedures to transform and load data.
+- `views.sql`: create the views
 
 ## Key Table Groups
 
@@ -314,14 +315,13 @@ This allows the ETL process to load incomplete or missing data without failing.
 
 A recommended execution order is:
 
-1. Run `init.sql` to create tables and seed lookup data.
-2. Run `procedures.sql` to create the helper functions and stored procedures.
-3. Execute transformation procedures:
+1. Run `staging_tables.sql` inside **ETL** folder.
+2. Execute transformation procedures:
    - `CALL transform_detalhes_contratos();`
    - `CALL transform_contratos();`
    - `CALL transform_entidades();`
    - `CALL transform_cpv_contratos();`
-4. Execute load procedures:
+3. Execute load procedures:
    - `CALL load_dim_entidade();`
    - `CALL load_dim_detalhes_contratos();`
    - `CALL load_dim_cpv_contratos();`

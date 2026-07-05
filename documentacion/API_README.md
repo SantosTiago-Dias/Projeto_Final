@@ -2,15 +2,24 @@
 ## Overview
 
 - Base API paths:
-  - `/contracts`
-  - `/contracts/{chave_contrato}`
-  - `/contracts/numberContracts`
-  - `/entidades`
-  - `/entidades/{chave_entidade}`
-  - `/entidades/{chave_entidade}/listContracts`
-  - - `/entidades/numberEntities`
-  - `/filters`
-  
+  - Contracts
+    - `/contracts`
+    - `/contracts/{chave_contrato}`
+    - `/contracts/filters`
+  - Entities
+    - `/entidades`
+    - `/entidades/{chave_entidade}`
+    - `/entidades/{chave_entidade}/listContracts`
+  - Analytics
+    - `analytics/biggest-contracts`
+    - `analytics/smallest-contracts`
+    - `analytics/entitiesCompeteMoreEarnLess`
+    - `analytics/entitiesMoreContractsAsContracting`
+    - `analytics/search-cpv`
+    - `analytics/tipoContrato`
+    - `analytics/tipoProcedimento`
+  - Terms
+    - `terms`
 
 - Response formats are JSON.
 - Pagination is used for list endpoints with 25 items per page.
@@ -19,8 +28,9 @@
 ## Tags
 
 - `Contratos`: Operations related to public contracts.
-- `Entidades`: Operations related to contracting entities (adjudicante, adjudicatária, or competitors).
-- `Filtros`: Available filter data for contract search.
+- `Entidades`: Operations related to entities.
+- `Analytics`: Some pre analytics about data.
+- `Terms`: Terms more technical  explained
 
 ## Endpoints
 
@@ -67,19 +77,16 @@ Returns details for a single contract by its unique key.
 - `404`: contract not found.
 - `500`: server error.
 
-### GET `/contracts/numberContracts`
+### GET `/contracts/getFilters`
 
-Returns number of contracts in database.
+Returns available filter metadata for contract queries.
 
 #### Success response
 
-- `200`: number of contracts.
-- Response body is a `numberContracts` object.
-
-#### Error responses
-
-- `404`: contract not found.
-- `500`: server error.
+- `200`: available filters.
+- Response body includes:
+  - `TipoContrato`: array of contract type objects.
+  - `TipoProcedimento`: array of procedure type objects.
 
 ### GET `/entidades`
 
@@ -136,30 +143,188 @@ Returns a paginated list of contracts associated with a specific entity, either 
 - `404`: entity not found.
 - `500`: server error.
 
-### GET `/entidades/numberEntities`
+### 6. GET `/analytics/biggest-contracts`
 
-Returns number of entities in database.
+Returns the 5 biggest contracts
 
 #### Success response
 
-- `200`: number of Entities.
-- Response body is a `numberEntities` object.
+- `200`: 5 biggest contracts list.
+- Response body uses the structure as:
+```json
+{
+  "chave_contratos": "contract id",
+  "objeto": "contract name",
+  "valor_contratual": "value contract"
+}
+```
 
 #### Error responses
 
-- `404`: contract not found.
+- `404`: error
 - `500`: server error.
 
-### 6. GET `/filters`
+### 7. GET `/analytics/smallest-contracts`
 
-Returns available filter metadata for contract queries.
+Returns the 5 smallest contracts where the value is different of 0
 
 #### Success response
 
-- `200`: available filters.
-- Response body includes:
-  - `TipoContrato`: array of contract type objects.
-  - `TipoProcedimento`: array of procedure type objects.
+- `200`: 5 smallest contracts list.
+- Response body uses the structure as:
+```json
+{
+  "chave_contratos": "contract id",
+  "objeto": "contract name",
+  "valor_contratual": "value contract"
+}
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 8. GET `/analytics/entitiesCompeteMoreEarnLess`
+
+Returns the 5 entities who try most and earn less
+
+#### Success response
+
+- `200`: 5 Entities list.
+- Response body uses the structure as:
+```json
+{
+  "nome": "entity name",
+  "chave_entidade": "entity id",
+  "total_concursos": "number of civil service exam",
+  "total_vitorias": "number of wins",
+  "total_derrotas": "number of losses",
+  "taxa_de_vitoria": "win rate"
+}
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 9. GET `/analytics/entitiesMoreContractsAsContracting`
+
+Returns the 5 entities who contract most
+
+#### Success response
+
+- `200`: 5 Entities list.
+- Response body uses the structure as:
+```json
+{
+  "nome": "entity name",
+  "numero_contratos": "number of contracts",
+  "adjudicante": "number of contracts as adjudicante",
+  "valor_adjudicado": "total amount awarded"
+}
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 10. GET `/analytics/search cpv`
+
+Returns the list of contracts who have the word searched
+
+### Parameters
+
+`cpv`:string
+
+#### Success response
+
+- `200`: Contracts list.
+- Response body uses the structure as `ContratoResumo`.
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 11. GET `/analytics/tipoContrato`
+
+Returns the total count of contracts grouped by contract type, filtered by CPV code.
+
+#### Success response
+
+- `200`: Contracts list.
+- Response body uses the structure as
+```json
+[
+  {
+    "chave_tipo_contrato": "key of tipo contrato",
+    "contratos": "number of contracts",
+    "tipo_contrato": {
+      "chave_tipo_contrato": "key of tipo contrato",
+      "tipo": "tipo contrato name",
+      "descricao": "a small description of tipo contrato"
+    }
+  }
+]
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 12. GET `/analytics/tipoProcedimento`
+
+Returns the total count of contracts grouped by contract type, filtered by CPV code.
+
+#### Success response
+
+- `200`: Contracts list.
+- Response body uses the structure as
+```json
+[
+  {
+    "chave_tipo_procedimento": "key of tipo procedimento",
+    "contratos": "number of contracts",
+    "tipo_procedimento": {
+      "chave_tipo_procedimento": "key of tipo procedimento",
+      "tipo": "tipo procedimento name",
+      "descricao": "a small description of tipo procedimento"
+    }
+  }
+]
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 12. GET `/terms`
+
+Return technical terms explained
+
+#### Success response
+
+- `200`: Contracts list.
+- Response body uses the structure as
+```json
+[
+  {
+    "id": "term id",
+    "term": "term",
+    "meaning": "a description about term"
+  }
+]
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
 
 ## Schemas
 

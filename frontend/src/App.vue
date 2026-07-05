@@ -5,6 +5,7 @@ import { Toaster } from "vue-sonner";
 import { useWebSocket } from "@/composable/newDataWS.js";
 import {inject} from "vue";
 import { ref } from "vue"
+
 let ws = inject('wsBaseURL');
 useWebSocket(ws);
 
@@ -159,7 +160,11 @@ const isActive = (path) => route.path.startsWith(path)
 
       <!-- View -->
       <main class="p-8 max-w-7xl">
-        <RouterView :key="$route.fullPath" />
+        <RouterView v-slot="{ Component, route }">
+          <keep-alive :include="['ContractsList', 'EntidadesList']">
+            <component :is="Component" :key="route.name" />
+          </keep-alive>
+        </RouterView>
       </main>
     </div>
   </div>
