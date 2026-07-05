@@ -37,7 +37,7 @@ class ContractsController extends Controller
             'fact_contrato.tipo_procedimento',
             'fact_contrato.data',
             'fact_contrato.concorrentes',
-        ])->whereIn('chave_contratos', $contratos);
+        ])->whereIn('chave_contratos', $contratos)->orderBy('chave_contratos', 'desc');
 
         $result = ContratoFilter::apply($query, $request->validated())->paginate(25);
 

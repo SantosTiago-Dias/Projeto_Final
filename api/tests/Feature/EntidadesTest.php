@@ -20,8 +20,7 @@ class EntidadesTest extends TestCase
                     'nome',
                     'num_contratos_adjudicatario',
                     'num_contratos_adjudicante',
-                    'pais',
-                    'distrito'
+                    'pais'
                 ]
             ]
         ]);

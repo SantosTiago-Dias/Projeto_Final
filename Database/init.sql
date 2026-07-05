@@ -1,18 +1,19 @@
 /* DEFINIR BUFFERS */
 SET GLOBAL net_buffer_length = 1000000;
-
 SET GLOBAL max_allowed_packet = 1000000000;
 
-/*Limpeza de tabelas*/
-DROP Table If EXISTS contratos_ext;
+SET NAMES utf8mb4;
 
-DROP Table If EXISTS entidades_ext;
+ALTER DATABASE ETL 
+  CHARACTER SET utf8mb4 
+  COLLATE utf8mb4_unicode_ci;
 
-DROP Table If EXISTS contratos_transf;
-
-DROP Table If EXISTS entidade_transf;
-
-DROP TABLE IF EXISTS detalhes_contratos_transf;
+-- Terms Table
+CREATE TABLE IF NOT EXISTS terms (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    term VARCHAR(255) NOT NULL,
+    meaning VARCHAR(255) NOT NULL
+);
 
 -- Cache Table
 CREATE TABLE `cache` (
@@ -69,7 +70,7 @@ CREATE TABLE IF NOT EXISTS cpv_dictionary (
     cpv_descricao VARCHAR(255),
     descricao TEXT,
     UNIQUE (codigo)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS tipo_procedimento_dictionary (
     id_tipo_procedimento INT PRIMARY KEY AUTO_INCREMENT,
@@ -83,21 +84,21 @@ CREATE TABLE IF NOT EXISTS tipo_contrato_dictionary (
     tipo VARCHAR(255),
     descricao TEXT,
     UNIQUE (tipo)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dictionary (
     id_justificacao INT PRIMARY KEY AUTO_INCREMENT,
     justificacao TEXT,
     descricao TEXT,
     UNIQUE (justificacao (500))
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary (
     id_fundamentacao INT PRIMARY KEY AUTO_INCREMENT,
     fundamentacao VARCHAR(255),
     descricao TEXT,
     UNIQUE (fundamentacao)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS cpv_dim (
     chave_cpv INT PRIMARY KEY AUTO_INCREMENT,
@@ -106,42 +107,42 @@ CREATE TABLE IF NOT EXISTS cpv_dim (
     descricao TEXT,
     UNIQUE (codigo),
     FULLTEXT (codigo, cpv_descricao, descricao)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS tipo_procedimento_dim (
     chave_tipo_procedimento INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(255),
     descricao TEXT,
     UNIQUE (tipo)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS tipo_contrato_dim (
     chave_tipo_contrato INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(255),
     descricao TEXT,
     UNIQUE (tipo)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dim (
     chave_justificacao INT PRIMARY KEY AUTO_INCREMENT,
     justificacao TEXT,
     descricao TEXT,
     UNIQUE (justificacao (500))
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dim (
     chave_fundamentacao INT PRIMARY KEY AUTO_INCREMENT,
     fundamentacao VARCHAR(255),
     descricao TEXT,
     UNIQUE (fundamentacao)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS entidades_ext (
     id_entidade INTEGER,
     nif VARCHAR(20),
     nome VARCHAR(255),
     pais VARCHAR(255)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS contratos_ext (
     id_contrato INT UNIQUE,
@@ -173,7 +174,7 @@ CREATE TABLE IF NOT EXISTS contratos_ext (
     observacoes TEXT,
     contrato_ecologico VARCHAR(10),
     fundamentacao_ajuste_directo VARCHAR(255)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS entidade_transf (
     id_entidade INT,
@@ -186,7 +187,7 @@ CREATE TABLE IF NOT EXISTS entidade_transf (
     pais VARCHAR(255),
     distrito VARCHAR(255),
     UNIQUE (id_entidade)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS detalhes_contratos_transf (
     id_contrato INT,
@@ -210,7 +211,7 @@ CREATE TABLE IF NOT EXISTS detalhes_contratos_transf (
     contrato_ecologico VARCHAR(5),
     fundamentacao_ajuste_directo VARCHAR(255),
     UNIQUE (id_contrato)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS contratos_transf (
     id_contrato INT,
@@ -222,14 +223,14 @@ CREATE TABLE IF NOT EXISTS contratos_transf (
     fundamentacao VARCHAR(255),
     justificacao_nao_escrita TEXT,
     UNIQUE (id_contrato, id_entidade)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS cpv_contratos_transf (
     id_contrato INT,
     cpv VARCHAR(10),
     cpv_descricao VARCHAR(255),
     UNIQUE (id_contrato, cpv)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS dim_entidade (
     chave_entidade INT AUTO_INCREMENT PRIMARY KEY,
@@ -243,7 +244,7 @@ CREATE TABLE IF NOT EXISTS dim_entidade (
     pais VARCHAR(255),
     distrito VARCHAR(255),
     UNIQUE (id_entidade)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS dim_detalhes_contratos (
     chave_contratos INT AUTO_INCREMENT PRIMARY KEY,
@@ -268,7 +269,7 @@ CREATE TABLE IF NOT EXISTS dim_detalhes_contratos (
     contrato_ecologico VARCHAR(5),
     fundamentacao_ajuste_directo VARCHAR(255),
     UNIQUE (id_contrato)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS dim_cpv_contratos (
     chave_contrato INT,
@@ -276,7 +277,7 @@ CREATE TABLE IF NOT EXISTS dim_cpv_contratos (
     UNIQUE (chave_contrato, chave_cpv),
     PRIMARY KEY (chave_contrato, chave_cpv),
     FOREIGN KEY (chave_contrato) REFERENCES dim_detalhes_contratos (chave_contratos)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS dim_data (
     chave_date INT AUTO_INCREMENT PRIMARY KEY,
@@ -293,7 +294,7 @@ CREATE TABLE IF NOT EXISTS dim_data (
     evento_natural VARCHAR(255),
     UNIQUE (data),
     UNIQUE (data_extenso)
-);
+) ;
 
 CREATE TABLE IF NOT EXISTS fact_contratos (
     chave_contratos INT,
@@ -466,3 +467,9 @@ INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('EPE.','EPE');
 INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('E.P.E','EPE');
 INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('S.A.','SA');
 INSERT IGNORE INTO lookup_abreviaturas (abr, abr_correta) VALUES ('S.A','SA');
+
+INSERT INTO terms (term, meaning) VALUES ('CPV', 'Vocabulário Comum para os Contratos Públicos - Sistema de classificação padronizado da União Europeia para identificar o objeto dos contratos públicos através de códigos.');
+INSERT INTO terms (term, meaning) VALUES ('Entidade Adjudicante', 'A entidade pública ou organismo responsável por lançar o procedimento de contratação, definir as regras do concurso e adjudicar o contrato.');
+INSERT INTO terms (term, meaning) VALUES ('Entidade Adjudicatária', 'O operador económico (empresa ou indivíduo) que venceu o concurso e a quem o contrato público foi formalmente atribuído.');
+INSERT INTO terms (term, meaning) VALUES ('Procedimento', 'O conjunto de etapas formais e o enquadramento legal seguido para escolher um fornecedor (ex: Ajuste Direto, Concurso Público, Consulta Prévia).');
+INSERT INTO terms (term, meaning) VALUES ('Tipo de Contrato', 'A classificação jurídica do contrato com base no seu objeto principal, como por exemplo: Empreitada de Obras Públicas, Aquisição de Bens ou Aquisição de Serviços.');

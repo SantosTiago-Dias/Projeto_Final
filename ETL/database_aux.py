@@ -22,7 +22,10 @@ def get_connection():
             user=os.getenv("MYSQL_DB_USER", "root"),
             port=int(os.getenv("MYSQL_PORT", 3306)),
             password=os.getenv("MYSQL_ROOT_PASSWORD", "root"),
-            database=os.getenv("MYSQL_DATABASE", "ETL")
+            database=os.getenv("MYSQL_DATABASE", "ETL"),
+            charset="utf8mb4",
+            collation="utf8mb4_unicode_ci",
+            use_unicode=True
         )
     except Error as e:
         logger.error(f"Erro ao conectar à BD: {e}")

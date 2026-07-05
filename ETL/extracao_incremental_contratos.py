@@ -68,8 +68,8 @@ def listar_contratos(sessao: requests.Session, pagina: int, retries: int = 5):
         logger.error(f"Erro na listagem da página {pagina}: {e}")
         if retries > 0:
             logger.info(f"Tentativa {6 - retries} de 5")
-            wait_seconds = 30 * 60  # 30 minutes
-            logger.info(f"A aguardar 30 minutos antes de tentar novamente...")
+            wait_seconds = 15 * 60  # 15 minutes
+            logger.info(f"A aguardar 15 minutos antes de tentar novamente...")
             time.sleep(wait_seconds)
             return listar_contratos(sessao, pagina, retries - 1)
         else:
@@ -222,6 +222,7 @@ def extracion_contracts(sessao:requests.session):
                         logger.success("Dados extraidos com sucesso")
                         parar = True
                         break
+
             pagina += 1
 
             #insert data
@@ -235,7 +236,6 @@ def extracion_contracts(sessao:requests.session):
                 except Exception as e:
                     logger.error("ocorreu um erro a extrair os dados")
                     db.change_status(log_id,TABLE_LOGS, None, "ERRO", mensagem=str(e))
-                parar = True
         return num_contratos
     except Exception as e:
         logger.exception(f"Não foi possível extrair os dados: {e}")

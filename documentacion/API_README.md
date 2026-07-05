@@ -2,12 +2,24 @@
 ## Overview
 
 - Base API paths:
-  - `/contracts`
-  - `/contracts/{chave_contrato}`
-  - `/entidades`
-  - `/entidades/{chave_entidade}`
-  - `/entidades/{chave_entidade}/listContracts`
-  - `/filters`
+  - Contracts
+    - `/contracts`
+    - `/contracts/{chave_contrato}`
+    - `/contracts/filters`
+  - Entities
+    - `/entidades`
+    - `/entidades/{chave_entidade}`
+    - `/entidades/{chave_entidade}/listContracts`
+  - Analytics
+    - `analytics/biggest-contracts`
+    - `analytics/smallest-contracts`
+    - `analytics/entitiesCompeteMoreEarnLess`
+    - `analytics/entitiesMoreContractsAsContracting`
+    - `analytics/search-cpv`
+    - `analytics/tipoContrato`
+    - `analytics/tipoProcedimento`
+  - Terms
+    - `terms`
 
 - Response formats are JSON.
 - Pagination is used for list endpoints with 25 items per page.
@@ -16,12 +28,13 @@
 ## Tags
 
 - `Contratos`: Operations related to public contracts.
-- `Entidades`: Operations related to contracting entities (adjudicante, adjudicatária, or competitors).
-- `Filtros`: Available filter data for contract search.
+- `Entidades`: Operations related to entities.
+- `Analytics`: Some pre analytics about data.
+- `Terms`: Terms more technical  explained
 
 ## Endpoints
 
-### 1. GET `/contracts`
+### GET `/contracts`
 
 Returns a paginated list of contracts.
 
@@ -46,7 +59,7 @@ Returns a paginated list of contracts.
   - `links`: pagination links.
   - `meta`: pagination metadata.
 
-### 2. GET `/contracts/{chave_contrato}`
+### GET `/contracts/{chave_contrato}`
 
 Returns details for a single contract by its unique key.
 
@@ -64,7 +77,18 @@ Returns details for a single contract by its unique key.
 - `404`: contract not found.
 - `500`: server error.
 
-### 3. GET `/entidades`
+### GET `/contracts/getFilters`
+
+Returns available filter metadata for contract queries.
+
+#### Success response
+
+- `200`: available filters.
+- Response body includes:
+  - `TipoContrato`: array of contract type objects.
+  - `TipoProcedimento`: array of procedure type objects.
+
+### GET `/entidades`
 
 Returns a paginated list of entities.
 
@@ -83,7 +107,7 @@ Returns a paginated list of entities.
   - `links`: pagination links.
   - `meta`: pagination metadata.
 
-### 4. GET `/entidades/{chave_entidade}`
+### GET `/entidades/{chave_entidade}`
 
 Returns details for a single entity by its unique key.
 
@@ -119,16 +143,188 @@ Returns a paginated list of contracts associated with a specific entity, either 
 - `404`: entity not found.
 - `500`: server error.
 
-### 6. GET `/filters`
+### 6. GET `/analytics/biggest-contracts`
 
-Returns available filter metadata for contract queries.
+Returns the 5 biggest contracts
 
 #### Success response
 
-- `200`: available filters.
-- Response body includes:
-  - `TipoContrato`: array of contract type objects.
-  - `TipoProcedimento`: array of procedure type objects.
+- `200`: 5 biggest contracts list.
+- Response body uses the structure as:
+```json
+{
+  "chave_contratos": "contract id",
+  "objeto": "contract name",
+  "valor_contratual": "value contract"
+}
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 7. GET `/analytics/smallest-contracts`
+
+Returns the 5 smallest contracts where the value is different of 0
+
+#### Success response
+
+- `200`: 5 smallest contracts list.
+- Response body uses the structure as:
+```json
+{
+  "chave_contratos": "contract id",
+  "objeto": "contract name",
+  "valor_contratual": "value contract"
+}
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 8. GET `/analytics/entitiesCompeteMoreEarnLess`
+
+Returns the 5 entities who try most and earn less
+
+#### Success response
+
+- `200`: 5 Entities list.
+- Response body uses the structure as:
+```json
+{
+  "nome": "entity name",
+  "chave_entidade": "entity id",
+  "total_concursos": "number of civil service exam",
+  "total_vitorias": "number of wins",
+  "total_derrotas": "number of losses",
+  "taxa_de_vitoria": "win rate"
+}
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 9. GET `/analytics/entitiesMoreContractsAsContracting`
+
+Returns the 5 entities who contract most
+
+#### Success response
+
+- `200`: 5 Entities list.
+- Response body uses the structure as:
+```json
+{
+  "nome": "entity name",
+  "numero_contratos": "number of contracts",
+  "adjudicante": "number of contracts as adjudicante",
+  "valor_adjudicado": "total amount awarded"
+}
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 10. GET `/analytics/search cpv`
+
+Returns the list of contracts who have the word searched
+
+### Parameters
+
+`cpv`:string
+
+#### Success response
+
+- `200`: Contracts list.
+- Response body uses the structure as `ContratoResumo`.
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 11. GET `/analytics/tipoContrato`
+
+Returns the total count of contracts grouped by contract type, filtered by CPV code.
+
+#### Success response
+
+- `200`: Contracts list.
+- Response body uses the structure as
+```json
+[
+  {
+    "chave_tipo_contrato": "key of tipo contrato",
+    "contratos": "number of contracts",
+    "tipo_contrato": {
+      "chave_tipo_contrato": "key of tipo contrato",
+      "tipo": "tipo contrato name",
+      "descricao": "a small description of tipo contrato"
+    }
+  }
+]
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 12. GET `/analytics/tipoProcedimento`
+
+Returns the total count of contracts grouped by contract type, filtered by CPV code.
+
+#### Success response
+
+- `200`: Contracts list.
+- Response body uses the structure as
+```json
+[
+  {
+    "chave_tipo_procedimento": "key of tipo procedimento",
+    "contratos": "number of contracts",
+    "tipo_procedimento": {
+      "chave_tipo_procedimento": "key of tipo procedimento",
+      "tipo": "tipo procedimento name",
+      "descricao": "a small description of tipo procedimento"
+    }
+  }
+]
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
+
+### 12. GET `/terms`
+
+Return technical terms explained
+
+#### Success response
+
+- `200`: Contracts list.
+- Response body uses the structure as
+```json
+[
+  {
+    "id": "term id",
+    "term": "term",
+    "meaning": "a description about term"
+  }
+]
+```
+
+#### Error responses
+
+- `404`: error
+- `500`: server error.
 
 ## Schemas
 

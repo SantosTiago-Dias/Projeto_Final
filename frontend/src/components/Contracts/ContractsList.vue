@@ -4,7 +4,7 @@
 
     <div class="mb-8">
       <h1 class="text-2xl font-medium text-gray-900">Contratos</h1>
-    
+
     </div>
 
     <!-- Filtros -->
@@ -33,7 +33,7 @@
 
         <div>
           <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-            Data Início
+            Data de Início
           </label>
           <input type="date"
                  v-model="filters.data_publicacao_inicio"
@@ -42,7 +42,7 @@
 
         <div>
           <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-            Data Fim
+            Data de Fim
           </label>
           <input type="date"
                  v-model="filters.data_publicacao_fim"
@@ -121,9 +121,18 @@
 
     <!-- Lista de Contratos -->
     <div v-if="loading" class="text-center py-10 text-gray-400">A carregar...</div>
-    <div v-else-if="contracts === undefined || contracts === null">Não existem contratos ainda</div>
+
+    <div v-else-if="!contracts || contracts.length === 0" class="flex flex-col items-center justify-center p-8 bg-white border border-gray-100 rounded-xl transition-all duration-300">
+      <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <p class="text-sm font-medium text-gray-500">Não existem contratos ainda</p>
+    </div>
 
     <div v-else class="flex flex-col gap-4">
+      <div class="contratos-summary" style="margin: 20px 0; font-family: sans-serif; color: #333;">
+        <span>A mostrar <strong>{{contracts.length}}</strong> de {{meta.total}} contratos encontrados</span>
+      </div>
       <div
           v-for="contract in contracts"
           :key="contract.chave_contratos"
@@ -140,8 +149,9 @@
               {{ contract.objeto }}
             </h2>
             <div class="flex gap-2 mt-2">
-              <span class="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 uppercase font-bold">
-                {{ contract.tipo_procedimento.tipo }}
+              <span class="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 uppercase font-bold"
+                    :title="contract.tipo_procedimento?.descricao ?? 'Sem descrição'">
+                {{ contract.tipo_procedimento?.tipo ?? 'Não disponível'}}
               </span>
             </div>
           </div>
@@ -157,11 +167,11 @@
 
             <div class="space-y-3">
               <div>
-                <p class="text-[11px] uppercase tracking-wide text-gray-400">Adjudicante</p>
+                <p class="text-[11px] uppercase tracking-wide text-gray-400" title="Entidade que contrata os serviços">Adjudicante</p>
                 <p class="text-sm font-medium text-gray-800">{{ contract.adjudicante.nome }}</p>
               </div>
               <div>
-                <p class="text-[11px] uppercase tracking-wide text-gray-400">Adjudicatário</p>
+                <p class="text-[11px] uppercase tracking-wide text-gray-400"title="Entidade(s) que presta os serviços">Adjudicatário</p>
                 <div class="text-sm font-medium text-green-700">
                   <span v-for="c in contract.concorrentes.filter(x => x.adjudicatario === 1)" :key="c.id">
                     {{ c.entidade.nome }}
@@ -175,7 +185,7 @@
                 <p class="text-[11px] uppercase tracking-wide text-gray-400">Detalhes Adicionais</p>
                 <ul class="text-xs space-y-1 text-gray-600 mt-1">
                   <li><strong>Prazo de Execução:</strong> {{ contract.prazo_execucao }} dias</li>
-                  <li><strong>Data Publicação:</strong> {{ contract.data_publicacao }}</li>
+                  <li><strong>Data de Celebração:</strong> {{ formatDate(contract.data?.date) }}</li>
                 </ul>
               </div>
               <div>
@@ -271,6 +281,10 @@
   </div>
 </template>
 
+<script>
+export default { name: 'ContractsList' }
+</script>
+
 <script setup>
 import {ref, onMounted, reactive, computed} from "vue"
 import { useRouter, useRoute } from "vue-router"
@@ -309,16 +323,14 @@ const fetchContracts = async (page = 1) => {
     const queryParams = Object.fromEntries(
         Object.entries(filters).filter(([_, v]) => v !== '' && v !== null)
     )
-
     const response = await apiStore.getListContracts({ page: page, ...queryParams })
-    console.log(response)
     contracts.value = response.data.data?.map(item => ({
       ...item,
       _isOpen: false
     }))
-    console.log(contracts.value)
     meta.value = response.data.meta
   } catch (err) {
+    contracts.value = null
     console.error("Falha ao carregar dados:", err)
   } finally {
     loading.value = false
@@ -382,5 +394,10 @@ function formatCurrency(v) {
 
 function goToDetails(id) {
   router.push(`/contracts/${id}`)
+}
+
+const formatDate = (date) => {
+  if (!date) return "---"
+  return new Date(date).toLocaleDateString("pt-PT")
 }
 </script>

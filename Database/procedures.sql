@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 DROP FUNCTION IF EXISTS normalizar;
 
 DELIMITER $$
