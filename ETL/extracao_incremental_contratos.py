@@ -76,7 +76,7 @@ def listar_contratos(sessao: requests.Session, pagina: int, retries: int = 5):
             return None
 
 #Get details of each contract
-def extrair_detalhes(sessao: requests.Session, contrato_id: str):
+def extrair_detalhes(sessao: requests.Session, contrato_id: str, retries: int = 3):
     payload = {
         "type": "detail_contratos",
         "version": VERSION_DETAIL,
@@ -94,6 +94,10 @@ def extrair_detalhes(sessao: requests.Session, contrato_id: str):
 
     except requests.exceptions.RequestException as e:
         logger.error(f"Erro ao extrair detalhe do contrato {contrato_id}: {e}")
+        if retries > 0:
+            logger.info(f"Tentativa {4 - retries} de 3")
+            time.sleep(60)  # Wait 1 minute before retrying
+            return extrair_detalhes(sessao, contrato_id, retries - 1)
         return {}
 
 
