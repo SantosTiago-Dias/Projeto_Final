@@ -290,6 +290,7 @@ import {ref, onMounted, reactive, computed} from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { useAPIStore } from "@/store/api.js"
 import { Button } from "@/components/ui/button/index.ts"
+import {toast} from "vue-sonner";
 
 const router = useRouter()
 const apiStore = useAPIStore()
@@ -332,6 +333,7 @@ const fetchContracts = async (page = 1) => {
   } catch (err) {
     contracts.value = null
     console.error("Falha ao carregar dados:", err)
+    toast.error("Ocorreu um erro ao carregar os dados")
   } finally {
     loading.value = false
   }

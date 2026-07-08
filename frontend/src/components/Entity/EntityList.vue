@@ -321,6 +321,7 @@ import { useAPIStore } from "@/store/api.js"
 import { Button } from "@/components/ui/button"
 import router from "@/router/index.js";
 import { useRoute } from "vue-router";
+import {toast} from "vue-sonner";
 
 const apiStore = useAPIStore()
 
@@ -359,6 +360,7 @@ const fetchEntities = async (page = 1) => {
 
   } catch (err) {
     console.error("Falha ao carregar entidades:", err)
+    toast.error("Ocorreu um erro a tentar carregar os dados")
     entities.value = null
   } finally {
     loading.value = false

@@ -16,20 +16,10 @@ class EntidadeController extends Controller
 {
     public function index(EntidadeFilterRequest $request)
     {
-        try {
-            $cachedIds = Cache::rememberForever('entidades:list', function () {
-                return DimEntidade::where('id_entidade', '!=', -1)
-                    ->pluck('id_entidade')
-                    ->toArray();
-            });
+        $query = DimEntidade::where('id_entidade', '!=', -1);
+        $result = EntidadeFilter::apply($query, $request->validated())->paginate(25);
 
-            $entidades = DimEntidade::whereIn('id_entidade', $cachedIds)->paginate(25);
-
-            return EntidadeResource::collection($entidades);
-
-        } catch (\Throwable $e) {
-            abort(500, 'Error: ' . $e->getMessage());
-        }
+        return EntidadeResource::collection($result);
     }
 
     public function show($id)
