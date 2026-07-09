@@ -4,9 +4,7 @@ SET GLOBAL max_allowed_packet = 1000000000;
 
 SET NAMES utf8mb4;
 
-ALTER DATABASE ETL 
-  CHARACTER SET utf8mb4 
-  COLLATE utf8mb4_unicode_ci;
+ALTER DATABASE ETL CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Terms Table
 CREATE TABLE IF NOT EXISTS terms (

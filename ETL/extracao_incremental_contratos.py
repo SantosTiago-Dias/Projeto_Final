@@ -21,8 +21,8 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0",
 }
 TABLE_LOGS= "t_logs_extract"
-VERSION_SEARCH = "101.0"
-VERSION_DETAIL = "101.0"
+VERSION_SEARCH = "144.0"
+VERSION_DETAIL = "144.0"
 PAGE_SIZE = 25
 MAX_PAGES = 1
 
