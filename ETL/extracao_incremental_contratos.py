@@ -253,12 +253,14 @@ def main():
     num_contratos = extracion_contracts(sessao)
     average_contratos = db.get_average_contracts_extracted()
 
+    """
     #check if the number of contracts extracted is less than the average, if so, repeat the extraction process
     if average_contratos is not None:
         if float(num_contratos) < float(average_contratos):
             logger.info(f"Número de contratos extraídos ({num_contratos}) é inferior à média histórica ({average_contratos}). Repetindo extração.")
             db.drop_staging_tables()
             num_contratos = extracion_contracts(sessao)
+    """
             
     logger.success("Extração finalizada com sucesso")
     logger.info(f"Número de contratos extraidos: {num_contratos}")
