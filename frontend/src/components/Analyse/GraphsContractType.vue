@@ -10,7 +10,7 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition duration-300">
           <div class="mb-4">
             <h3 class="text-lg font-semibold text-slate-800">Tipo de Contratos</h3>
-            <p class="text-xs text-slate-400" >Distribuição da quantidade pelos os varios tipos de contrato</p>
+            <p class="text-xs text-slate-400" >Distribuição da quantidade pelos tipos de contrato</p>
           </div>
           <div class="chart-container">
             <Doughnut v-if="chartData1" :data="chartData1" :options="chartOptions" />

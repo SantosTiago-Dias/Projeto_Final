@@ -1,7 +1,7 @@
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Pesquisa por objeto contrato</CardTitle>
+      <CardTitle>Pesquisa por palavras chave</CardTitle>
 
       <CardDescription>
         Aqui é possível pesquisar contratos utilizando palavras simples como 'carros', 'software' ou 'obras'.

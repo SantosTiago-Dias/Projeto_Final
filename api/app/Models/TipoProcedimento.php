@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class TipoProcedimento extends Model
 {
     protected $connection = 'etl';
-    protected $table = 'tipo_procedimento_dim';
+    protected $table = 'dim_tipo_procedimento';
     protected $primaryKey = 'chave_tipo_procedimento';
     public $timestamps = false;
 }

@@ -24,7 +24,7 @@ def main():
         sys.exit(1)
     #endregion    
 
-    
+    """"
     #region Extração
     try:
         logger.info("A iniciar extração de dados")
@@ -35,7 +35,7 @@ def main():
         logger.error(f"Erro: {e}")
         sys.exit(1)
     #endregion
-
+    """
     #region Transformação
     try:
         logger.info("A iniciar transformação de dados")

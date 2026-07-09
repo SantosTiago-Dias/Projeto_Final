@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class TipoContrato extends Model
 {
     protected $connection = 'etl';
-    protected $table = 'tipo_contrato_dim';
+    protected $table = 'dim_tipo_contrato';
     protected $primaryKey = 'chave_tipo_contrato';
     public $timestamps = false;
 }
