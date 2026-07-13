@@ -316,39 +316,51 @@ WHERE t.id_entidade IS NULL
 
 -- Metricas para adjudicatários
 UPDATE entidade_transf t
-JOIN (
+    JOIN (
     SELECT
-        ct.id_entidade,
-        COUNT(DISTINCT ct.id_contrato) AS num_contratos,
-        SUM(dc.valor_contratual) AS total_valor
+    ct.id_entidade,
+    COUNT(DISTINCT ct.id_contrato) AS num_contratos,
+    SUM(dc.valor_contratual) AS total_valor,
+    ed.num_contratos_adjudicatario AS num_contratos_adjudicatario,
+    ed.total_adjudicatario AS total_adjudicatario
+
     FROM contratos_transf ct
     JOIN detalhes_contratos_transf dc
-        ON ct.id_contrato = dc.id_contrato
+    ON ct.id_contrato = dc.id_contrato
+    JOIN dim_entidade ed
+    ON ct.id_entidade = ed.id_entidade
+
     WHERE ct.adjudicatario = 1
     GROUP BY ct.id_entidade
-) agg
-    ON t.id_entidade = agg.id_entidade
-SET
-    t.num_contratos_adjudicatario = IFNULL(t.num_contratos_adjudicatario,0) + IFNULL(agg.num_contratos,0),
-    t.total_adjudicatario = IFNULL(t.total_adjudicatario,0) + IFNULL(agg.total_valor,0);
+    ) agg
+ON t.id_entidade = agg.id_entidade
+    SET
+        t.num_contratos_adjudicatario = IFNULL(agg.num_contratos_adjudicatario,0) + IFNULL(agg.num_contratos,0),
+        t.total_adjudicatario = IFNULL(agg.total_adjudicatario,0) + IFNULL(agg.total_valor,0);
 
 -- Metricas para adjudicantes
 UPDATE entidade_transf t
-JOIN (
+    JOIN (
     SELECT
-        ct.id_adjudicante AS id_entidade,
-        COUNT(DISTINCT ct.id_contrato) AS num_contratos,
-        SUM(dc.valor_contratual) AS total_valor
+    ct.id_adjudicante AS id_entidade,
+    COUNT(DISTINCT ct.id_contrato) AS num_contratos,
+    SUM(dc.valor_contratual) AS total_valor,
+    ed.num_contratos_adjudicante AS num_contratos_adjudicante,
+    ed.total_adjudicante AS total_adjudicante
+
     FROM contratos_transf ct
     JOIN detalhes_contratos_transf dc
-        ON ct.id_contrato = dc.id_contrato
+    ON ct.id_contrato = dc.id_contrato
+    JOIN dim_entidade ed
+    ON ct.id_adjudicante = ed.id_entidade
+
     WHERE ct.id_adjudicante IS NOT NULL
     GROUP BY ct.id_adjudicante
-) agg
-    ON t.id_entidade = agg.id_entidade
-SET
-    t.num_contratos_adjudicante = IFNULL(t.num_contratos_adjudicante,0) + IFNULL(agg.num_contratos,0),
-    t.total_adjudicante = IFNULL(t.total_adjudicante,0) + IFNULL(agg.total_valor,0);
+    ) agg
+ON t.id_entidade = agg.id_entidade
+    SET
+        t.num_contratos_adjudicante = IFNULL(agg.num_contratos_adjudicante,0) + IFNULL(agg.num_contratos,0),
+        t.total_adjudicante = IFNULL(agg.total_adjudicante,0) + IFNULL(agg.total_valor,0);
 
 END$$
 
