@@ -38,7 +38,7 @@
 
         <p class="text-muted-foreground flex items-center gap-2 text-sm">
           <Hash class="h-4 w-4 text-slate-400" />
-          <span class="font-medium">NIF:</span> {{ entidade.nif }}
+          <span class="font-medium">NIPC:</span> {{ entidade.nif }}
         </p>
       </header>
 

@@ -26,16 +26,16 @@
             />
           </div>
 
-          <!-- NIF -->
+          <!-- NIPC -->
           <div>
             <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-              NIF
+              NIPC
             </label>
 
             <input
                 type="text"
                 v-model="filters.nif"
-                placeholder="Pesquisar NIF..."
+                placeholder="Pesquisar NIPC..."
                 class="w-full h-9 text-sm border-gray-300 rounded-lg"
             />
           </div>
