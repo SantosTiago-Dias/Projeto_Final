@@ -262,7 +262,7 @@ def getEntitynotFound():
     mycursor = mydb.cursor()
 
     #Returns all ids from dim_entidade where nome is 'Não disponivel'
-    query = f"SELECT id_entidade from dim_entidade where nome like 'Não disponivel';"
+    query = f"SELECT id_entidade from dim_entidade where nome like 'Não disponivel' LIMIT 100;"
     mycursor.execute(query)
     rows = mycursor.fetchall()
     return [row[0] for row in rows]
