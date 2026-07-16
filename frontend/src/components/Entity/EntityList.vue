@@ -26,16 +26,16 @@
             />
           </div>
 
-          <!-- NIF -->
+          <!-- NIPC -->
           <div>
             <label class="block text-[11px] font-medium text-gray-500 mb-1 uppercase">
-              NIF
+              NIPC
             </label>
 
             <input
                 type="text"
                 v-model="filters.nif"
-                placeholder="Pesquisar NIF..."
+                placeholder="Pesquisar NIPC..."
                 class="w-full h-9 text-sm border-gray-300 rounded-lg"
             />
           </div>
@@ -173,7 +173,7 @@
         <div class="flex justify-between items-start gap-4">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-[10px] font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">NIF: {{ entity.nif }}</span>
+              <span class="text-[10px] font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">NIPC: {{ entity.nif }}</span>
               <span class="text-[10px] font-medium uppercase text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{{ entity.pais }}</span>
             </div>
             <h2 class="text-lg font-semibold text-gray-900 line-clamp-1">{{ entity.nome }}</h2>
@@ -256,7 +256,7 @@
         <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0">
           <div>
             <h2 class="text-xl font-bold text-gray-900">{{ entityDetails?.nome }}</h2>
-            <p class="text-sm text-gray-500">NIF: {{ entityDetails?.nif }}</p>
+            <p class="text-sm text-gray-500">NIPC: {{ entityDetails?.nif }}</p>
           </div>
           <button @click="closeModal" class="p-2 hover:bg-gray-100 rounded-full text-gray-400">✕</button>
         </div>
@@ -321,6 +321,7 @@ import { useAPIStore } from "@/store/api.js"
 import { Button } from "@/components/ui/button"
 import router from "@/router/index.js";
 import { useRoute } from "vue-router";
+import {toast} from "vue-sonner";
 
 const apiStore = useAPIStore()
 
@@ -359,6 +360,7 @@ const fetchEntities = async (page = 1) => {
 
   } catch (err) {
     console.error("Falha ao carregar entidades:", err)
+    toast.error("Ocorreu um erro a tentar carregar os dados")
     entities.value = null
   } finally {
     loading.value = false

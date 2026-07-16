@@ -4,9 +4,7 @@ SET GLOBAL max_allowed_packet = 1000000000;
 
 SET NAMES utf8mb4;
 
-ALTER DATABASE ETL 
-  CHARACTER SET utf8mb4 
-  COLLATE utf8mb4_unicode_ci;
+ALTER DATABASE ETL CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Terms Table
 CREATE TABLE IF NOT EXISTS terms (
@@ -100,7 +98,7 @@ CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dictionary (
     UNIQUE (fundamentacao)
 ) ;
 
-CREATE TABLE IF NOT EXISTS cpv_dim (
+CREATE TABLE IF NOT EXISTS dim_cpv (
     chave_cpv INT PRIMARY KEY AUTO_INCREMENT,
     codigo VARCHAR(10),
     cpv_descricao VARCHAR(255),
@@ -109,28 +107,28 @@ CREATE TABLE IF NOT EXISTS cpv_dim (
     FULLTEXT (codigo, cpv_descricao, descricao)
 ) ;
 
-CREATE TABLE IF NOT EXISTS tipo_procedimento_dim (
+CREATE TABLE IF NOT EXISTS dim_tipo_procedimento (
     chave_tipo_procedimento INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(255),
     descricao TEXT,
     UNIQUE (tipo)
 ) ;
 
-CREATE TABLE IF NOT EXISTS tipo_contrato_dim (
+CREATE TABLE IF NOT EXISTS dim_tipo_contrato (
     chave_tipo_contrato INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(255),
     descricao TEXT,
     UNIQUE (tipo)
 ) ;
 
-CREATE TABLE IF NOT EXISTS justificacao_contrato_nao_escrito_dim (
+CREATE TABLE IF NOT EXISTS dim_justificacao_contrato_nao_escrito (
     chave_justificacao INT PRIMARY KEY AUTO_INCREMENT,
     justificacao TEXT,
     descricao TEXT,
     UNIQUE (justificacao (500))
 ) ;
 
-CREATE TABLE IF NOT EXISTS fundamentacao_contrato_dim (
+CREATE TABLE IF NOT EXISTS dim_fundamentacao_contrato (
     chave_fundamentacao INT PRIMARY KEY AUTO_INCREMENT,
     fundamentacao VARCHAR(255),
     descricao TEXT,
@@ -314,12 +312,10 @@ CREATE TABLE IF NOT EXISTS fact_contratos (
     ),
     FOREIGN KEY (chave_contratos) REFERENCES dim_detalhes_contratos (chave_contratos),
     FOREIGN KEY (chave_entidade) REFERENCES dim_entidade (chave_entidade),
-    FOREIGN KEY (chave_tipo_contrato) REFERENCES tipo_contrato_dim (chave_tipo_contrato),
-    FOREIGN KEY (chave_tipo_procedimento) REFERENCES tipo_procedimento_dim (chave_tipo_procedimento),
-    FOREIGN KEY (chave_fundamentacao) REFERENCES fundamentacao_contrato_dim (chave_fundamentacao),
-    FOREIGN KEY (
-        chave_justificacao_nao_escrita
-    ) REFERENCES justificacao_contrato_nao_escrito_dim (chave_justificacao),
+    FOREIGN KEY (chave_tipo_contrato) REFERENCES dim_tipo_contrato (chave_tipo_contrato),
+    FOREIGN KEY (chave_tipo_procedimento) REFERENCES dim_tipo_procedimento (chave_tipo_procedimento),
+    FOREIGN KEY (chave_fundamentacao) REFERENCES dim_fundamentacao_contrato (chave_fundamentacao),
+    FOREIGN KEY (chave_justificacao_nao_escrita) REFERENCES dim_justificacao_contrato_nao_escrito (chave_justificacao),
     FOREIGN KEY (chave_data) REFERENCES dim_data (chave_date)
 );
 
@@ -424,7 +420,7 @@ VALUES (
     );
 
 INSERT IGNORE INTO
-    cpv_dim (
+    dim_cpv (
         codigo,
         cpv_descricao,
         descricao
@@ -436,19 +432,19 @@ VALUES (
     );
 
 INSERT IGNORE INTO
-    tipo_procedimento_dim (tipo, descricao)
+    dim_tipo_procedimento (tipo, descricao)
 VALUES ('N/A', 'VALOR DESCONHECIDO');
 
 INSERT IGNORE INTO
-    tipo_contrato_dim (tipo, descricao)
+    dim_tipo_contrato (tipo, descricao)
 VALUES ('N/A', 'VALOR DESCONHECIDO');
 
 INSERT IGNORE INTO
-    justificacao_contrato_nao_escrito_dim (justificacao, descricao)
+    dim_justificacao_contrato_nao_escrito (justificacao, descricao)
 VALUES ('N/A', 'VALOR DESCONHECIDO');
 
 INSERT IGNORE INTO
-    fundamentacao_contrato_dim (fundamentacao, descricao)
+    dim_fundamentacao_contrato (fundamentacao, descricao)
 VALUES ('N/A', 'VALOR DESCONHECIDO');
 
 CREATE TABLE IF NOT EXISTS lookup_abreviaturas (

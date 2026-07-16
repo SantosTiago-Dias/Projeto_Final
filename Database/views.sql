@@ -62,7 +62,7 @@ SELECT
 FROM dim_cpv_contratos cp
      LEFT JOIN dim_detalhes_contratos dc
            ON cp.chave_contrato = dc.chave_contratos
-     LEFT JOIN cpv_dim c
+     LEFT JOIN dim_cpv c
            ON cp.chave_cpv = c.chave_cpv
 WHERE
     MATCH(c.codigo, c.cpv_descricao, c.descricao)

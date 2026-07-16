@@ -30,7 +30,7 @@ class ContractsController extends Controller
         });
 
         // Rebuild query from cached IDs so filters
-        $query = DimDetalhesContrato::with([
+        $query = DimDetalhesContrato::whereHas('fact_contrato')->with([
             'cpvs',
             'fact_contrato.entidade',
             'fact_contrato.tipo_contrato',

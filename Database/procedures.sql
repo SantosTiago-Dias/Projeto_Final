@@ -320,19 +320,23 @@ UPDATE entidade_transf t
     SELECT
     ct.id_entidade,
     COUNT(DISTINCT ct.id_contrato) AS num_contratos,
-    SUM(dc.valor_contratual) AS total_valor
+    SUM(dc.valor_contratual) AS total_valor,
+    ed.num_contratos_adjudicatario AS num_contratos_adjudicatario,
+    ed.total_adjudicatario AS total_adjudicatario
 
     FROM contratos_transf ct
     JOIN detalhes_contratos_transf dc
     ON ct.id_contrato = dc.id_contrato
+    JOIN dim_entidade ed
+    ON ct.id_entidade = ed.id_entidade
 
     WHERE ct.adjudicatario = 1
     GROUP BY ct.id_entidade
     ) agg
 ON t.id_entidade = agg.id_entidade
     SET
-        t.num_contratos_adjudicatario = IFNULL(agg.num_contratos,0),
-        t.total_adjudicatario = IFNULL(agg.total_valor,0);
+        t.num_contratos_adjudicatario = IFNULL(agg.num_contratos_adjudicatario,0) + IFNULL(agg.num_contratos,0),
+        t.total_adjudicatario = IFNULL(agg.total_adjudicatario,0) + IFNULL(agg.total_valor,0);
 
 -- Metricas para adjudicantes
 UPDATE entidade_transf t
@@ -340,19 +344,23 @@ UPDATE entidade_transf t
     SELECT
     ct.id_adjudicante AS id_entidade,
     COUNT(DISTINCT ct.id_contrato) AS num_contratos,
-    SUM(dc.valor_contratual) AS total_valor
+    SUM(dc.valor_contratual) AS total_valor,
+    ed.num_contratos_adjudicante AS num_contratos_adjudicante,
+    ed.total_adjudicante AS total_adjudicante
 
     FROM contratos_transf ct
     JOIN detalhes_contratos_transf dc
     ON ct.id_contrato = dc.id_contrato
+    JOIN dim_entidade ed
+    ON ct.id_adjudicante = ed.id_entidade
 
     WHERE ct.id_adjudicante IS NOT NULL
     GROUP BY ct.id_adjudicante
     ) agg
 ON t.id_entidade = agg.id_entidade
     SET
-        t.num_contratos_adjudicante = IFNULL(t.num_contratos_adjudicante,0) + IFNULL(agg.num_contratos,0),
-        t.total_adjudicante = IFNULL(t.total_adjudicante,0) + IFNULL(agg.total_valor,0);
+        t.num_contratos_adjudicante = IFNULL(agg.num_contratos_adjudicante,0) + IFNULL(agg.num_contratos,0),
+        t.total_adjudicante = IFNULL(agg.total_adjudicante,0) + IFNULL(agg.total_valor,0);
 
 END$$
 
@@ -532,13 +540,15 @@ CREATE PROCEDURE load_dim_cpv_contratos() BEGIN
 
 INSERT IGNORE INTO
     dim_cpv_contratos (chave_contrato, chave_cpv)
-SELECT dc.chave_contratos, cp.id_cpv AS chave_cpv
+SELECT dc.chave_contratos, cp.chave_cpv
 FROM
     cpv_contratos_transf c
-    INNER JOIN dim_detalhes_contratos dc ON dc.id_contrato = c.id_contrato
-    INNER JOIN cpv_dictionary cp ON cp.codigo = c.cpv;
+        INNER JOIN dim_detalhes_contratos dc ON dc.id_contrato = c.id_contrato
+        INNER JOIN dim_cpv cp ON cp.codigo = c.cpv;
 
 END$$
+
+DROP PROCEDURE IF EXISTS load_dim_data$$
 
 DROP PROCEDURE IF EXISTS load_dim_data$$
 
@@ -732,21 +742,21 @@ SELECT COALESCE(
     ), ct.adjudicatario, COALESCE(
         tc.chave_tipo_contrato, (
             SELECT chave_tipo_contrato
-            FROM tipo_contrato_dim
+            FROM dim_tipo_contrato
             WHERE
                 tipo = 'N/A'
         )
     ), COALESCE(
         tp.chave_tipo_procedimento, (
             SELECT chave_tipo_procedimento
-            FROM tipo_procedimento_dim
+            FROM dim_tipo_procedimento
             WHERE
                 tipo = 'N/A'
         )
     ), COALESCE(
         fc.chave_fundamentacao, (
             SELECT chave_fundamentacao
-            FROM fundamentacao_contrato_dim
+            FROM dim_fundamentacao_contrato
             WHERE
                 fundamentacao = 'N/A'
         )
@@ -754,7 +764,7 @@ SELECT COALESCE(
         jc.chave_justificacao, (
             SELECT chave_justificacao
             FROM
-                justificacao_contrato_nao_escrito_dim
+                dim_justificacao_contrato_nao_escrito
             WHERE
                 justificacao = 'N/A'
         )
@@ -778,10 +788,10 @@ FROM
     LEFT JOIN dim_detalhes_contratos dc ON dc.id_contrato = ct.id_contrato
     LEFT JOIN dim_entidade de ON de.id_entidade = ct.id_entidade
     LEFT JOIN dim_entidade deadjudicante ON deadjudicante.id_entidade = ct.id_adjudicante
-    LEFT JOIN tipo_contrato_dim tc ON tc.tipo = ct.tipo_contrato
-    LEFT JOIN tipo_procedimento_dim tp ON tp.tipo = ct.tipo_procedimento
-    LEFT JOIN fundamentacao_contrato_dim fc ON fc.fundamentacao = ct.fundamentacao
-    LEFT JOIN justificacao_contrato_nao_escrito_dim jc ON jc.justificacao = ct.justificacao_nao_escrita
+    LEFT JOIN dim_tipo_contrato tc ON tc.tipo = ct.tipo_contrato
+    LEFT JOIN dim_tipo_procedimento tp ON tp.tipo = ct.tipo_procedimento
+    LEFT JOIN dim_fundamentacao_contrato fc ON fc.fundamentacao = ct.fundamentacao
+    LEFT JOIN dim_justificacao_contrato_nao_escrito jc ON jc.justificacao = ct.justificacao_nao_escrita
     LEFT JOIN dim_data dd ON dd.data = dc.data_celebracao
 ON DUPLICATE KEY UPDATE
     adjudicatario = VALUES(adjudicatario),
@@ -801,7 +811,7 @@ DROP PROCEDURE IF EXISTS load_dims_dict$$
 CREATE PROCEDURE load_dims_dict() BEGIN
 -- Tipo Contrato
 INSERT IGNORE INTO
-    tipo_contrato_dim (tipo, descricao)
+    dim_tipo_contrato (tipo, descricao)
 SELECT DISTINCT
     tipo,
     descricao
@@ -809,7 +819,7 @@ FROM tipo_contrato_dictionary;
 
 -- Tipo Procedimento
 INSERT IGNORE INTO
-    tipo_procedimento_dim (tipo, descricao)
+    dim_tipo_procedimento (tipo, descricao)
 SELECT DISTINCT
     tipo,
     descricao
@@ -817,7 +827,7 @@ FROM tipo_procedimento_dictionary;
 
 -- Fundamentação Contrato
 INSERT IGNORE INTO
-    fundamentacao_contrato_dim (fundamentacao, descricao)
+    dim_fundamentacao_contrato (fundamentacao, descricao)
 SELECT DISTINCT
     fundamentacao,
     descricao
@@ -826,7 +836,7 @@ FROM
 
 -- Justificação Contrato Não Escrito
 INSERT IGNORE INTO
-    justificacao_contrato_nao_escrito_dim (justificacao, descricao)
+    dim_justificacao_contrato_nao_escrito (justificacao, descricao)
 SELECT DISTINCT
     justificacao,
     descricao
@@ -835,7 +845,7 @@ FROM
 
 -- CPV
 INSERT IGNORE INTO
-    cpv_dim (codigo, cpv_descricao, descricao)
+    dim_cpv (codigo, cpv_descricao, descricao)
 SELECT DISTINCT
     codigo,
     cpv_descricao,

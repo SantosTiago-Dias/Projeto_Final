@@ -86,7 +86,7 @@
                 <TableHeader>
                   <TableRow>
                     <TableHead>Entidade</TableHead>
-                    <TableHead>NIF</TableHead>
+                    <TableHead>NIPC</TableHead>
                     <TableHead class="text-right">Papel</TableHead>
                   </TableRow>
                 </TableHeader>

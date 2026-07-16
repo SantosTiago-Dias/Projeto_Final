@@ -56,7 +56,7 @@ const loading = ref(true)
 const columns = [
   { key: "nome", label: "Entidade" },
   { key: "numero", label: "Contratos", class: "text-right", cellClass: "text-right font-semibold" },
-  { key: "valor", label: "Valor", class: "text-right", cellClass: "text-right font-semibold text-green-600" },
+  { key: "valor", label: "Valor total contratos", class: "text-right", cellClass: "text-right font-semibold text-green-600" },
 ]
 
 function goToEntity(item) {

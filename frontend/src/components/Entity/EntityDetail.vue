@@ -38,7 +38,7 @@
 
         <p class="text-muted-foreground flex items-center gap-2 text-sm">
           <Hash class="h-4 w-4 text-slate-400" />
-          <span class="font-medium">NIF:</span> {{ entidade.nif }}
+          <span class="font-medium">NIPC:</span> {{ entidade.nif }}
         </p>
       </header>
 
@@ -87,7 +87,7 @@
               <div>
                 <span class="font-medium block mb-1 text-xs text-slate-400 uppercase tracking-wider">Distrito</span>
                 <p class="text-slate-700 font-medium">
-                  {{ entity.distrito || 'N/A' }}
+                  {{ entidade.distrito || 'N/A' }}
                 </p>
               </div>
             </CardContent>

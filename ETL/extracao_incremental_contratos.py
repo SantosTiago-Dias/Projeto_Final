@@ -21,8 +21,8 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0",
 }
 TABLE_LOGS= "t_logs_extract"
-VERSION_SEARCH = "101.0"
-VERSION_DETAIL = "101.0"
+VERSION_SEARCH = "150.0"
+VERSION_DETAIL = "150.0"
 PAGE_SIZE = 25
 MAX_PAGES = 1
 
@@ -76,7 +76,7 @@ def listar_contratos(sessao: requests.Session, pagina: int, retries: int = 5):
             return None
 
 #Get details of each contract
-def extrair_detalhes(sessao: requests.Session, contrato_id: str):
+def extrair_detalhes(sessao: requests.Session, contrato_id: str, retries: int = 3):
     payload = {
         "type": "detail_contratos",
         "version": VERSION_DETAIL,
@@ -94,6 +94,10 @@ def extrair_detalhes(sessao: requests.Session, contrato_id: str):
 
     except requests.exceptions.RequestException as e:
         logger.error(f"Erro ao extrair detalhe do contrato {contrato_id}: {e}")
+        if retries > 0:
+            logger.info(f"Tentativa {4 - retries} de 3")
+            time.sleep(60)  # Wait 1 minute before retrying
+            return extrair_detalhes(sessao, contrato_id, retries - 1)
         return {}
 
 
@@ -249,12 +253,14 @@ def main():
     num_contratos = extracion_contracts(sessao)
     average_contratos = db.get_average_contracts_extracted()
 
+    """
     #check if the number of contracts extracted is less than the average, if so, repeat the extraction process
     if average_contratos is not None:
         if float(num_contratos) < float(average_contratos):
             logger.info(f"Número de contratos extraídos ({num_contratos}) é inferior à média histórica ({average_contratos}). Repetindo extração.")
             db.drop_staging_tables()
             num_contratos = extracion_contracts(sessao)
+    """
             
     logger.success("Extração finalizada com sucesso")
     logger.info(f"Número de contratos extraidos: {num_contratos}")

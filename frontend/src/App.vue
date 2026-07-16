@@ -162,7 +162,7 @@ const isActive = (path) => route.path.startsWith(path)
       <main class="p-8 max-w-7xl">
         <RouterView v-slot="{ Component, route }">
           <keep-alive :include="['ContractsList', 'EntidadesList']">
-            <component :is="Component" :key="route.name" />
+            <component :is="Component" :key="route.fullPath" />
           </keep-alive>
         </RouterView>
       </main>

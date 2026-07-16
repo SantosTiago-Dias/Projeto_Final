@@ -54,7 +54,7 @@ pip install requests pandas alive-progress python-dotenv mysql-connector-python 
    cp .env.example .env
    ```
 
-3. Generate a Cerebras API key at [cerebras.ai](https://www.cerebras.ai/)
+3. Generate a Gord API key at [gorq](https://groq.com/)
 4. Fill `.env` with your values
 5. Run ```docker compose up -d --build```
 6. Go to `localhost:81` to change values in proxy manager

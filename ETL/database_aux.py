@@ -1,3 +1,5 @@
+import json
+
 from dotenv import load_dotenv
 from loguru import logger
 import mysql.connector
@@ -12,7 +14,7 @@ load_dotenv('.env')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 URL_NOMI = "https://nominatim.openstreetmap.org/search"
-URL_NASA = "https://eonet.gsfc.nasa.gov/api/v3/events?status=all"
+URL_NASA = "https://eonet.gsfc.nasa.gov/api/v3/events?days=30"
 
 #Function to get a connection to the database using environment variables
 def get_connection():
@@ -260,7 +262,7 @@ def getEntitynotFound():
     mycursor = mydb.cursor()
 
     #Returns all ids from dim_entidade where nome is 'Não disponivel'
-    query = f"SELECT id_entidade from dim_entidade where nome like 'Não disponivel';"
+    query = f"SELECT id_entidade from dim_entidade where nome like 'Não disponivel' LIMIT 100;"
     mycursor.execute(query)
     rows = mycursor.fetchall()
     return [row[0] for row in rows]
@@ -416,9 +418,10 @@ def load_eventos_naturais():
             logger.error(f"Erro na API: {response.status_code}")
             return
 
-        data = response.json()
+        data = json.loads(response.content.decode('utf-8'))
+        
         updates = 0
-
+        
         for event in data.get("events", []):
             titulo = event.get("title", "")
 
