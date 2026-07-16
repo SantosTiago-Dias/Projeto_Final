@@ -87,7 +87,7 @@
               <div>
                 <span class="font-medium block mb-1 text-xs text-slate-400 uppercase tracking-wider">Distrito</span>
                 <p class="text-slate-700 font-medium">
-                  {{ entity.distrito || 'N/A' }}
+                  {{ entidade.distrito || 'N/A' }}
                 </p>
               </div>
             </CardContent>

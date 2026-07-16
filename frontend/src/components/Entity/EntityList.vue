@@ -173,7 +173,7 @@
         <div class="flex justify-between items-start gap-4">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-[10px] font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">NIF: {{ entity.nif }}</span>
+              <span class="text-[10px] font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">NIPC: {{ entity.nif }}</span>
               <span class="text-[10px] font-medium uppercase text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{{ entity.pais }}</span>
             </div>
             <h2 class="text-lg font-semibold text-gray-900 line-clamp-1">{{ entity.nome }}</h2>
@@ -256,7 +256,7 @@
         <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0">
           <div>
             <h2 class="text-xl font-bold text-gray-900">{{ entityDetails?.nome }}</h2>
-            <p class="text-sm text-gray-500">NIF: {{ entityDetails?.nif }}</p>
+            <p class="text-sm text-gray-500">NIPC: {{ entityDetails?.nif }}</p>
           </div>
           <button @click="closeModal" class="p-2 hover:bg-gray-100 rounded-full text-gray-400">✕</button>
         </div>
